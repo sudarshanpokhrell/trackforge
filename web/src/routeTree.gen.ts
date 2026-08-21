@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IssuesRouteImport } from './routes/issues'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as IssuesIssueIdRouteImport } from './routes/issues.$issueId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +30,52 @@ const IssuesRoute = IssuesRouteImport.update({
   path: '/issues',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IssuesIssueIdRoute = IssuesIssueIdRouteImport.update({
+  id: '/$issueId',
+  path: '/$issueId',
+  getParentRoute: () => IssuesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/issues': typeof IssuesRoute
+  '/issues': typeof IssuesRouteWithChildren
+  '/projects': typeof ProjectsRoute
+  '/issues/$issueId': typeof IssuesIssueIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/issues': typeof IssuesRoute
+  '/issues': typeof IssuesRouteWithChildren
+  '/projects': typeof ProjectsRoute
+  '/issues/$issueId': typeof IssuesIssueIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/issues': typeof IssuesRoute
+  '/issues': typeof IssuesRouteWithChildren
+  '/projects': typeof ProjectsRoute
+  '/issues/$issueId': typeof IssuesIssueIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/issues'
+  fullPaths: '/' | '/about' | '/issues' | '/projects' | '/issues/$issueId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/issues'
-  id: '__root__' | '/' | '/about' | '/issues'
+  to: '/' | '/about' | '/issues' | '/projects' | '/issues/$issueId'
+  id: '__root__' | '/' | '/about' | '/issues' | '/projects' | '/issues/$issueId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  IssuesRoute: typeof IssuesRoute
+  IssuesRoute: typeof IssuesRouteWithChildren
+  ProjectsRoute: typeof ProjectsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,13 +101,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IssuesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/issues/$issueId': {
+      id: '/issues/$issueId'
+      path: '/$issueId'
+      fullPath: '/issues/$issueId'
+      preLoaderRoute: typeof IssuesIssueIdRouteImport
+      parentRoute: typeof IssuesRoute
+    }
   }
 }
+
+interface IssuesRouteChildren {
+  IssuesIssueIdRoute: typeof IssuesIssueIdRoute
+}
+
+const IssuesRouteChildren: IssuesRouteChildren = {
+  IssuesIssueIdRoute: IssuesIssueIdRoute,
+}
+
+const IssuesRouteWithChildren =
+  IssuesRoute._addFileChildren(IssuesRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  IssuesRoute: IssuesRoute,
+  IssuesRoute: IssuesRouteWithChildren,
+  ProjectsRoute: ProjectsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
