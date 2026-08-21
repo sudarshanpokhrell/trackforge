@@ -1,7 +1,6 @@
 import {
   Inbox,
   ListChecks,
-  Bot,
   Folder,
   LayoutDashboard,
   Eye,
@@ -9,7 +8,7 @@ import {
   FolderKanban,
   Import,
   UserPlus,
-} from 'lucide-react'
+} from "lucide-react"
 
 export type NavItem = {
   title: string
@@ -19,30 +18,29 @@ export type NavItem = {
 }
 
 export const mainNav: NavItem[] = [
-  { title: 'Inbox', icon: Inbox, href: '/inbox' },
-  { title: 'My issues', icon: ListChecks, href: '/issues' },
-  { title: 'Agent', icon: Bot, href: '/agent' },
-  { title: 'Workspace', icon: Folder, href: '/workspace' },
-  { title: 'Projects', icon: LayoutDashboard, href: '/projects' },
-  { title: 'Views', icon: Eye, href: '/views' },
-  { title: 'More', icon: MoreHorizontal, href: '/more' },
+  { title: "Inbox", icon: Inbox, href: "/inbox" },
+  { title: "My issues", icon: ListChecks, href: "/issues" },
+  { title: "Workspace", icon: Folder, href: "/workspace" },
+  { title: "Projects", icon: LayoutDashboard, href: "/projects" },
+  { title: "Views", icon: Eye, href: "/views" },
+  { title: "More", icon: MoreHorizontal, href: "/more" },
 ]
 
 export const teamNav: NavItem[] = [
   {
-    title: 'Srs issue tracking',
+    title: "Srs issue tracking",
     icon: FolderKanban,
     children: [
-      { title: 'Home', href: '/' },
-      { title: 'Issues', href: '/issues' },
-      { title: 'Projects', href: '/projects' },
-      { title: 'Views', href: '/views' },
+      { title: "Home", href: "/" },
+      { title: "Issues", href: "/issues" },
+      { title: "Projects", href: "/projects" },
+      { title: "Views", href: "/views" },
     ],
   },
 ]
 
 export const tryNav: NavItem[] = [
-  { title: 'Import issues', icon: Import, href: '/import' },
-  { title: 'Invite people', icon: UserPlus, href: '/invite' },
+  { title: "Import issues", icon: Import, href: "/import" },
+  { title: "Invite people", icon: UserPlus, href: "/invite" },
   // { title: 'Connect GitHub', icon: GitHub, href: '/github' },
 ]
