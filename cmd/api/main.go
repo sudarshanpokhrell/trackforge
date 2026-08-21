@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
-
+	"github.com/joho/godotenv"
 	"github.com/sudarshanpokhrell/trackforge/internal/db"
+	"github.com/sudarshanpokhrell/trackforge/internal/env"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"go.uber.org/zap"
 )
@@ -11,13 +11,23 @@ import (
 const version = "1.0.0"
 
 type config struct {
-	port int
+	addr string
 	env  string
 	db   struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
 		maxIdleTime  string
+	}
+	auth struct {
+		basic struct {
+			user string
+			pass string
+		}
+	}
+	mail struct {
+		fromEmail      string
+		sendGridAPIKey string
 	}
 }
 
@@ -28,29 +38,50 @@ type application struct {
 }
 
 func main() {
-	cfg := config{
-		port: 8080,
-		env:  "development",
+	godotenv.Load()
+
+	var cfg config
+	cfg.addr = env.GetString("ADDR", ":"+env.GetString("PORT", "8080"))
+	cfg.env = env.GetString("ENV", "development")
+
+	cfg.db.dsn = env.GetString("DB_ADDR", "postgres://postgres:postgres@localhost:5432/trackforge?sslmode=disable")
+	cfg.db.maxOpenConns = env.GetInt("DB_MAX_OPEN_CONN", 30)
+	cfg.db.maxIdleConns = env.GetInt("DB_MAX_IDLE_CONN", 30)
+	cfg.db.maxIdleTime = env.GetString("DB_MAX_IDLE_TIME", "15m")
+
+	var zapLogger *zap.Logger
+	var err error
+	if cfg.env == "development" {
+		zapLogger, err = zap.NewDevelopment()
+	} else {
+		zapLogger, err = zap.NewProduction()
 	}
-	fmt.Println("welcome to trackforge")
-
-	logger := zap.Must(zap.NewProduction()).Sugar()
-
-	db, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
 
 	if err != nil {
-		logger.Fatal(err)
+		panic(err)
 	}
+	logger := zapLogger.Sugar()
+
+	defer logger.Sync()
+
+	logger.Infof("starting trackforge API v%s", version)
+
+	database, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
+
+	if err != nil {
+		logger.Fatalf("failed to connect to database: %v", err)
+	}
+	defer database.Close()
+
+	logger.Info("database connection pool established")
 
 	app := &application{
 		config: cfg,
 		logger: logger,
-		store:  store.NewStorage(db),
+		store:  store.NewStorage(database),
 	}
 
-	err = app.serve()
-
-	if err != nil {
-		logger.Fatalf(err.Error(), nil)
+	if err := app.serve(); err != nil {
+		logger.Fatalf("server error: %v", err)
 	}
 }

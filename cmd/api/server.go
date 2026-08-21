@@ -1,22 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 )
 
 func (app *application) serve() error {
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", app.config.port),
-		Handler: app.routes(),
-
+		Addr:         app.config.addr,
+		Handler:      app.routes(),
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 30 * time.Second,
 	}
 
-	err := srv.ListenAndServe()
+	app.logger.Infof("server starting on %s (env: %s)", app.config.addr, app.config.env)
 
-	return err
+	return srv.ListenAndServe()
 }
+
