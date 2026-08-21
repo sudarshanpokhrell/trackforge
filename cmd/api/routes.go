@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
@@ -22,11 +21,8 @@ func (app *application) routes() http.Handler {
 
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			fmt.Fprintf(w, `{"status":"ok","version":%q,"env":%q}`, version, app.config.env)
-		})
+		r.Get("/health", app.healthcheckHandler)
+
 	})
 
 	// Static & SPA Frontend Serving
