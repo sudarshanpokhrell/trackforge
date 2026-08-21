@@ -3,7 +3,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Loader2 } from "lucide-react"
+import { NewIssueDialog } from "@/components/issues/NewIssueDialog"
+import { Search, Loader2 } from "lucide-react"
 import { issuesApi } from "../services/api"
 import type { AxiosResponse, AxiosError } from "axios"
 
@@ -82,10 +83,12 @@ function IssuesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Issues</h1>
-        <Button size="sm">
-          <Plus className="mr-1 size-4" />
-          New issue
-        </Button>
+        <NewIssueDialog
+          onSuccess={() => {
+            // For now, we'll just log
+            console.log("Issue created, refresh list")
+          }}
+        />
       </div>
 
       <div className="flex items-center gap-4">
