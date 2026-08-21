@@ -8,6 +8,7 @@ MIGRATIONS_PATH = ./cmd/migrate/migrations
 help:
 	@echo "Trackforge Makefile commands:"
 	@echo "  make run             - Run Go API locally"
+	@echo "  make build-web       - Build frontend"
 	@echo "  make build           - Build Go API binary"
 	@echo "  make test            - Run all tests"
 	@echo "  make docker-up       - Start local testing dependencies (PostgreSQL)"
