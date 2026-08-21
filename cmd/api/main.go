@@ -28,8 +28,10 @@ type application struct {
 }
 
 func main() {
-	var cfg config
-
+	cfg := config{
+		port: 8080,
+		env:  "development",
+	}
 	fmt.Println("welcome to trackforge")
 
 	logger := zap.Must(zap.NewProduction()).Sugar()
