@@ -1,69 +1,42 @@
-import * as React from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import axios from "axios"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { ListChecks, Inbox, FolderKanban, Users } from "lucide-react"
 
 export const Route = createFileRoute("/")({
   component: HomeComponent,
 })
 
 function HomeComponent() {
-  const [data, setData] = React.useState<Record<string, unknown> | null>(null)
-  const [error, setError] = React.useState<string | null>(null)
-  const [loading, setLoading] = React.useState(false)
-
-  const checkHealth = async () => {
-    setLoading(true)
-    setError(null)
-    setData(null)
-
-    try {
-      const response = await axios.get("/api/v1/health")
-      setData(response.data)
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.message || err.message)
-      } else if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError("An unknown error occurred")
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
+  const stats = [
+    { label: "Issues", value: "12", icon: ListChecks, color: "text-blue-500" },
+    { label: "Inbox", value: "3", icon: Inbox, color: "text-amber-500" },
+    {
+      label: "Projects",
+      value: "5",
+      icon: FolderKanban,
+      color: "text-purple-500",
+    },
+    { label: "Members", value: "8", icon: Users, color: "text-emerald-500" },
+  ]
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">API Health Check</h1>
-          <p className="text-sm text-muted-foreground">
-            Click the button  to fetch <code>/api/v1/health</code>
-          </p>
-        </div>
-
-        <Button onClick={checkHealth} disabled={loading} className="cursor-pointer">
-          {loading ? "Checking..." : "Check Backend Health"}
-        </Button>
-
-        {data && (
-          <div className="rounded-lg">
-            <h2 className="font-semibold text-primary text-sm mb-2">
-              Success Response:
-            </h2>
-            <pre className="font-mono text-sm overflow-x-auto p-3 rounded">
-              {JSON.stringify(data, null, 2)}
-            </pre>
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-            <h2 className="font-semibold text-sm mb-1">Error:</h2>
-            <p className="text-sm ">{error}</p>
-          </div>
-        )}
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.label}
+              </CardTitle>
+              <stat.icon className={cn("size-4", stat.color)} />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stat.value}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   )
