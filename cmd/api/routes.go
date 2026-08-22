@@ -9,7 +9,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/sudarshanpokhrell/trackforge/docs"
 	"github.com/sudarshanpokhrell/trackforge/web"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 func (app *application) routes() http.Handler {
@@ -26,6 +28,9 @@ func (app *application) routes() http.Handler {
 			r.Post("/register", app.registerUserHandler)
 			r.Post("/login", app.loginUserHandler)
 		})
+		r.Get("/docs/*", httpSwagger.Handler(
+			httpSwagger.URL("/api/v1/docs/doc.json"), //The url pointing to API definition
+		))
 	})
 
 	// Static & SPA Frontend Serving

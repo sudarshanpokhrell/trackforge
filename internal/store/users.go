@@ -76,7 +76,7 @@ func ValidateUser(v *validator.Validator, user *User) {
 
 type User struct {
 	ID        string   `json:"id"`
-	Name      string   `json:"string"`
+	Name      string   `json:"name"`
 	Email     string   `json:"email"`
 	Password  password `json:"-"`
 	CreatedAt string   `json:"created_at"`

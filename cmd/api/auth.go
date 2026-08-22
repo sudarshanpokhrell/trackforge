@@ -10,12 +10,24 @@ import (
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
+type RegisterUserPayload struct {
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// @Summary Register a new user
+// @Description Register a new user with name, email, and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param payload body RegisterUserPayload true "User registration details"
+// @Success 201 {object} store.User
+// @Failure 400 {object} error
+// @Failure 500 {object} error
+// @Router /auth/register [post]
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Name     string `json:"name"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var payload RegisterUserPayload
 
 	err := app.readJSON(w, r, &payload)
 
@@ -63,11 +75,24 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 }
 
+type LoginUserPayload struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+// @Summary Login a user
+// @Description Login a user with email and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param payload body LoginUserPayload true "User login credentials"
+// @Success 200 {object} store.User
+// @Failure 400 {object} error
+// @Failure 401 {object} error
+// @Failure 500 {object} error
+// @Router /auth/login [post]
 func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
+	var payload LoginUserPayload
 
 	err := app.readJSON(w, r, &payload)
 

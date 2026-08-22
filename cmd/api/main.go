@@ -47,6 +47,11 @@ type application struct {
 	authenticator auth.Authenticator
 }
 
+// @title Trackforge API
+// @version 1.0
+// @description API for Trackforge application.
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	godotenv.Load()
 
