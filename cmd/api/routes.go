@@ -22,7 +22,10 @@ func (app *application) routes() http.Handler {
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", app.healthcheckHandler)
-
+		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", app.registerUserHandler)
+			r.Post("/login", app.loginUserHandler)
+		})
 	})
 
 	// Static & SPA Frontend Serving

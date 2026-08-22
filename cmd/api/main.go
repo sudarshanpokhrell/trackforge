@@ -1,7 +1,10 @@
 package main
 
 import (
+	"time"
+
 	"github.com/joho/godotenv"
+	"github.com/sudarshanpokhrell/trackforge/internal/auth"
 	"github.com/sudarshanpokhrell/trackforge/internal/db"
 	"github.com/sudarshanpokhrell/trackforge/internal/env"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
@@ -19,6 +22,12 @@ type config struct {
 		maxIdleConns int
 		maxIdleTime  string
 	}
+	token struct {
+		secret string
+		exp    time.Duration
+		iss    string
+	}
+
 	auth struct {
 		basic struct {
 			user string
@@ -32,9 +41,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	store  store.Storage
-	logger *zap.SugaredLogger
+	config        config
+	store         store.Storage
+	logger        *zap.SugaredLogger
+	authenticator auth.Authenticator
 }
 
 func main() {
@@ -48,6 +58,10 @@ func main() {
 	cfg.db.maxOpenConns = env.GetInt("DB_MAX_OPEN_CONN", 30)
 	cfg.db.maxIdleConns = env.GetInt("DB_MAX_IDLE_CONN", 30)
 	cfg.db.maxIdleTime = env.GetString("DB_MAX_IDLE_TIME", "15m")
+
+	cfg.token.secret = env.GetString("TOKEN_SECRET", "this-is-very-secret")
+	cfg.token.exp = env.GetDuration("TOKEN_EXP", time.Hour*24*3)
+	cfg.token.iss = env.GetString("TOKEN_ISS", "trackforge")
 
 	var zapLogger *zap.Logger
 	var err error
@@ -75,10 +89,13 @@ func main() {
 
 	logger.Info("database connection pool established")
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.token.secret, cfg.token.iss, cfg.token.iss)
+
 	app := &application{
-		config: cfg,
-		logger: logger,
-		store:  store.NewStorage(database),
+		config:        cfg,
+		logger:        logger,
+		store:         store.NewStorage(database),
+		authenticator: jwtAuthenticator,
 	}
 
 	if err := app.serve(); err != nil {
