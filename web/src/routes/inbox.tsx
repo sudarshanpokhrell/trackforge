@@ -68,7 +68,7 @@ function InboxPage() {
           <div
             key={item.id}
             className={cn(
-              'flex items-start gap-4 border-b px-4 py-3 last:border-0 hover:bg-muted/30',
+              'flex items-center gap-4 border-b px-4 py-3 last:border-0 hover:bg-muted/30',
               !item.read && 'bg-muted/10'
             )}
           >
