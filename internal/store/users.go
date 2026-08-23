@@ -111,7 +111,7 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *UserStore) GetById(ctx context.Context, id int64) (*User, error) {
+func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
 
 	query := `SELECT id, name, email , password, created_at FROM users WHERE id = $1 `
 

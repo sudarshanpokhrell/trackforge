@@ -13,7 +13,7 @@ var ErrNotFound = errors.New("Resource not found")
 type Storage struct {
 	Users interface {
 		Create(context.Context, *User) error
-		GetById(context.Context, int64) (*User, error)
+		GetById(context.Context, string) (*User, error)
 		GetByEmail(context.Context, string) (*User, error)
 	}
 }

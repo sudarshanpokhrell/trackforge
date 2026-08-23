@@ -28,6 +28,13 @@ func (app *application) routes() http.Handler {
 			r.Post("/register", app.registerUserHandler)
 			r.Post("/login", app.loginUserHandler)
 		})
+		r.Route("/projects", func(r chi.Router) {
+			r.Post("/", app.createProjectHandler)
+			r.Get("/", app.getUserProjectsHandler)
+			r.Get("/{id}", app.getProjectByIDHandler)
+			r.Put("/{id}", app.updateProjectHandler)
+			r.Delete("/{id}", app.deleteProjectHandler)
+		})
 		r.Get("/docs/*", httpSwagger.Handler(
 			httpSwagger.URL("/api/v1/docs/doc.json"), //The url pointing to API definition
 		))

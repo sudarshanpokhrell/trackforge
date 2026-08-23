@@ -14,7 +14,7 @@ help:
 	@echo "  make docker-up       - Start local testing dependencies (PostgreSQL)"
 	@echo "  make docker-down     - Stop local testing containers"
 	@echo "  make docker-logs     - Follow Docker container logs"
-	@echo "  make migrate-create  - Create a new migration file (usage: make migration name=add_users)"
+	@echo "  make migration  - Create a new migration file (usage: make migration name=add_users)"
 	@echo "  make migrate-up      - Run all pending database migrations locally"
 	@echo "  make migrate-down    - Rollback database migrations locally"
 
