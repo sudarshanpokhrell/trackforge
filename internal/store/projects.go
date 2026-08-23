@@ -17,7 +17,7 @@ type Project struct {
 	ID          uint64         `json:"id"`
 	Name        string         `json:"name"`
 	Description string         `json:"description"`
-	StartDAte   time.Time      `json:"start_date"`
+	StartDate   time.Time      `json:"start_date"`
 	TargetDate  time.Time      `json:"target_date"`
 	CreatedBy   ProjectCreator `json:"created_by"`
 	CreatedAt   time.Time      `json:"created_at"`
@@ -63,11 +63,11 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, p.Name, p.Description, p.StartDAte, p.TargetDate, p.CreatedBy.ID).Scan(
+	err := s.db.QueryRowContext(ctx, query, p.Name, p.Description, p.StartDate, p.TargetDate, p.CreatedBy.ID).Scan(
 		&p.ID,
 		&p.Name,
 		&p.Description,
-		&p.StartDAte,
+		&p.StartDate,
 		&p.TargetDate,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -111,7 +111,7 @@ func (s *ProjectStore) GetProjectsByUserID(ctx context.Context, userID string) (
 			&project.ID,
 			&project.Name,
 			&project.Description,
-			&project.StartDAte,
+			&project.StartDate,
 			&project.TargetDate,
 			&project.CreatedBy.ID,
 			&project.CreatedBy.Name,
@@ -174,7 +174,7 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 			&details.ID,
 			&details.Name,
 			&details.Description,
-			&details.StartDAte,
+			&details.StartDate,
 			&details.TargetDate,
 			&details.CreatedAt,
 			&details.UpdatedAt,
@@ -216,7 +216,7 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 
 }
 
-func (s *ProjectStore) Update(ctx context.Context, projectID int64, input *Project) (*Project, error) {
+func (s *ProjectStore) Update(ctx context.Context, projectID int64, input *Project) error {
 	query := `
         UPDATE projects
         SET 
@@ -234,14 +234,14 @@ func (s *ProjectStore) Update(ctx context.Context, projectID int64, input *Proje
 	err := s.db.QueryRowContext(ctx, query,
 		input.Name,
 		input.Description,
-		input.StartDAte,
+		input.StartDate,
 		input.TargetDate,
 		projectID,
 	).Scan(
 		&input.ID,
 		&input.Name,
 		&input.Description,
-		&input.StartDAte,
+		&input.StartDate,
 		&input.TargetDate,
 		&input.CreatedBy.ID,
 		&input.CreatedAt,
@@ -250,12 +250,12 @@ func (s *ProjectStore) Update(ctx context.Context, projectID int64, input *Proje
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return ErrNotFound
 		}
-		return nil, err
+		return err
 	}
 
-	return input, nil
+	return nil
 }
 
 func (s *ProjectStore) Delete(ctx context.Context, projectID int64) error {
@@ -283,4 +283,42 @@ func (s *ProjectStore) Delete(ctx context.Context, projectID int64) error {
 	}
 
 	return err
+}
+
+func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, error) {
+	query := `
+		SELECT 
+			p.id, p.name, p.description, p.start_date, p.target_date, p.created_at, p.updated_at,
+			creator.id, creator.name, creator.email
+		FROM projects p
+		JOIN users creator ON p.created_by = creator.id
+		WHERE p.id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	var project Project
+
+	err := s.db.QueryRowContext(ctx, query, projectID).Scan(
+		&project.ID,
+		&project.Name,
+		&project.Description,
+		&project.StartDate,
+		&project.TargetDate,
+		&project.CreatedAt,
+		&project.UpdatedAt,
+		&project.CreatedBy.ID,
+		&project.CreatedBy.Name,
+		&project.CreatedBy.Email,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &project, nil
 }
