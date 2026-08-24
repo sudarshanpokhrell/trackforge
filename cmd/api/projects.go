@@ -90,7 +90,6 @@ func (app *application) getUserProjectsHandler(w http.ResponseWriter, r *http.Re
 // @Failure 404 {object} error
 // @Failure 500 {object} error
 // @Router /projects/{id} [get]
-
 func (app *application) getProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
 

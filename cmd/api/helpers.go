@@ -95,5 +95,5 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 }
 
 func (app *application) contextUserID(r *http.Request) string {
-	return "random-string"
+	return "eb9aa0db-d53f-4b8a-be44-a4aaaccd2fc8"
 }

@@ -17,6 +17,7 @@ help:
 	@echo "  make migration  - Create a new migration file (usage: make migration name=add_users)"
 	@echo "  make migrate-up      - Run all pending database migrations locally"
 	@echo "  make migrate-down    - Rollback database migrations locally"
+	@echo "  make swagger         - Regenerate Swagger docs from code annotations"
 
 .PHONY: run
 run:
@@ -33,6 +34,11 @@ build: build-web
 .PHONY: test
 test:
 	@go test -v ./...
+
+#swagger docs
+.PHONY: swagger
+swagger:
+	@swag init -g cmd/api/main.go -o docs --parseInternal
 
 #docker commands
 .PHONY: docker-up

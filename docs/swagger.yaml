@@ -1,5 +1,16 @@
 basePath: /api/v1
 definitions:
+  main.CreateProjectPayload:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+      target_date:
+        type: string
+    type: object
   main.LoginUserPayload:
     properties:
       email:
@@ -23,6 +34,80 @@ definitions:
     - name
     - password
     type: object
+  main.UpdateProjectPayload:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+      target_date:
+        type: string
+    type: object
+  store.Project:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lead_id:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+      target_date:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  store.ProjectDetails:
+    properties:
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lead_id:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/store.ProjectMember'
+        type: array
+      name:
+        type: string
+      start_date:
+        type: string
+      target_date:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  store.ProjectMember:
+    properties:
+      email:
+        type: string
+      joined_at:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
   store.User:
     properties:
       created_at:
@@ -31,7 +116,7 @@ definitions:
         type: string
       id:
         type: string
-      string:
+      name:
         type: string
     type: object
 host: localhost:8080
@@ -117,4 +202,144 @@ paths:
       summary: Healthcheck
       tags:
       - health
+  /projects:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Project'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: List the caller's projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project details
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateProjectPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Create a project
+      tags:
+      - projects
+  /projects/{id}:
+    delete:
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.ProjectDetails'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get a project with its members
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Partial update; omitted fields keep their current value.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fields to change
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateProjectPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Project'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Update a project
+      tags:
+      - projects
 swagger: "2.0"
