@@ -1,7 +1,13 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE EXTENSION IF NOT EXISTS citext;
 
-CREATE TYPE project_role AS ENUM ('viewer', 'editor', 'admin');
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'project_role') THEN
+    CREATE TYPE project_role AS ENUM ('viewer', 'editor', 'admin');
+  END IF;
+END
+$$;
 
 CREATE OR REPLACE FUNCTION set_updated_at()
 RETURNS TRIGGER AS $$
