@@ -52,6 +52,10 @@ type application struct {
 // @description API for Trackforge application.
 // @host localhost:8080
 // @BasePath /api/v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description JWT from POST /auth/login. Paste it with the scheme included, e.g. "Bearer eyJhbGciOi..."
 func main() {
 	godotenv.Load()
 

@@ -237,6 +237,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: List the caller's projects
       tags:
       - projects
@@ -266,6 +268,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Create a project
       tags:
       - projects
@@ -293,6 +297,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Delete a project
       tags:
       - projects
@@ -319,6 +325,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Get a project with its members
       tags:
       - projects
@@ -360,6 +368,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Update a project
       tags:
       - projects
@@ -402,6 +412,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Add a member to a project
       tags:
       - memberships
@@ -434,6 +446,8 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Remove a member from a project
       tags:
       - memberships
@@ -476,7 +490,16 @@ paths:
         "500":
           description: Internal Server Error
           schema: {}
+      security:
+      - BearerAuth: []
       summary: Change a member's role
       tags:
       - memberships
+securityDefinitions:
+  BearerAuth:
+    description: JWT from POST /auth/login. Paste it with the scheme included, e.g.
+      "Bearer eyJhbGciOi..."
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

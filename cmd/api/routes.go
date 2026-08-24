@@ -29,6 +29,7 @@ func (app *application) routes() http.Handler {
 			r.Post("/login", app.loginUserHandler)
 		})
 		r.Route("/projects", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
 			r.Post("/", app.createProjectHandler)
 			r.Get("/", app.getUserProjectsHandler)
 			r.Get("/{id}", app.getProjectByIDHandler)
@@ -43,6 +44,8 @@ func (app *application) routes() http.Handler {
 		})
 		r.Get("/docs/*", httpSwagger.Handler(
 			httpSwagger.URL("/api/v1/docs/doc.json"),
+			// Without this the Authorize value is discarded on every page reload.
+			httpSwagger.PersistAuthorization(true),
 		))
 	})
 

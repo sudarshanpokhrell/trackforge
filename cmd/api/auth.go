@@ -145,19 +145,24 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 
 	token, err := app.authenticator.GenerateToken(claims)
 
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	cookie := http.Cookie{
-		Name:     "jwt_token",
+		Name:     authCookieName,
 		Value:    token,
 		Path:     "/",
 		MaxAge:   int(app.config.token.exp.Seconds()),
-		Secure:   true,
+		Secure:   app.config.env != "development",
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	}
 
 	http.SetCookie(w, &cookie)
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user, "token": token}, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

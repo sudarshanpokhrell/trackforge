@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
@@ -110,6 +111,14 @@ func (app *application) readUserIDParam(r *http.Request) (string, error) {
 	return userID, nil
 }
 
+func (app *application) contextUser(r *http.Request) *store.User {
+	user, ok := r.Context().Value(userCtx).(*store.User)
+	if !ok {
+		panic("missing user in request context")
+	}
+	return user
+}
+
 func (app *application) contextUserID(r *http.Request) string {
-	return "eb9aa0db-d53f-4b8a-be44-a4aaaccd2fc8"
+	return app.contextUser(r).ID
 }

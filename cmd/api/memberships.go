@@ -26,6 +26,7 @@ type AddProjectMemberPayload struct {
 // @Failure 409 {object} error
 // @Failure 422 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id}/members [post]
 func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
@@ -97,6 +98,7 @@ type UpdateProjectMemberRolePayload struct {
 // @Failure 404 {object} error
 // @Failure 422 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id}/members/{userID} [patch]
 func (app *application) updateProjectMemberRoleHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
@@ -159,6 +161,7 @@ func (app *application) updateProjectMemberRoleHandler(w http.ResponseWriter, r 
 // @Failure 400 {object} error
 // @Failure 404 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id}/members/{userID} [delete]
 func (app *application) removeProjectMemberHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)

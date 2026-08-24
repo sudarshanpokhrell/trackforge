@@ -25,6 +25,7 @@ type CreateProjectPayload struct {
 // @Failure 400 {object} error
 // @Failure 422 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects [post]
 func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreateProjectPayload
@@ -66,6 +67,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 // @Produce json
 // @Success 200 {array} store.Project
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects [get]
 func (app *application) getUserProjectsHandler(w http.ResponseWriter, r *http.Request) {
 	userId := app.contextUserID(r)
@@ -89,6 +91,7 @@ func (app *application) getUserProjectsHandler(w http.ResponseWriter, r *http.Re
 // @Failure 400 {object} error
 // @Failure 404 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id} [get]
 func (app *application) getProjectByIDHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
@@ -137,6 +140,7 @@ type UpdateProjectPayload struct {
 // @Failure 409 {object} error
 // @Failure 422 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id} [put]
 func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
@@ -208,6 +212,7 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 // @Failure 400 {object} error
 // @Failure 404 {object} error
 // @Failure 500 {object} error
+// @Security BearerAuth
 // @Router /projects/{id} [delete]
 func (app *application) deleteProjectHandler(w http.ResponseWriter, r *http.Request) {
 	projectID, err := app.readIDParam(r)
