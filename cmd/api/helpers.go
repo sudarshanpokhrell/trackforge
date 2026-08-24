@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -43,6 +44,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
 		var invalidUnmarshalError *json.InvalidUnmarshalError
+		var timeParseError *time.ParseError
 
 		switch {
 		case errors.As(err, &syntaxError):
@@ -56,6 +58,9 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
+
+		case errors.As(err, &timeParseError):
+			return fmt.Errorf("body contains an invalid date/time value %q; use RFC 3339, e.g. 2006-01-02T15:04:05Z", timeParseError.Value)
 
 		case errors.Is(err, io.EOF):
 			return errors.New("body must not be empty.")

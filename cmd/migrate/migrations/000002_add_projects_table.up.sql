@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS projects (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     description TEXT,
-    start_date DATE DEFAULT CURRENT_DATE,
+    start_date DATE,
     target_date DATE,
 
     created_by UUID NOT NULL REFERENCES users (id) ON DELETE RESTRICT,

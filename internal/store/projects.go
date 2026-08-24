@@ -52,8 +52,8 @@ type ProjectStore struct {
 func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 	query := `
 		INSERT INTO projects (name, description, start_date, target_date, created_by)
-		VALUES ($1, $2, COALESCE($3::date, CURRENT_DATE), $4::date, $5)
-		RETURNING id, start_date, lead_id, created_at, updated_at, version
+		VALUES ($1, $2, $3::date, $4::date, $5)
+		RETURNING id, lead_id, created_at, updated_at, version
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
@@ -67,7 +67,6 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 		p.CreatedBy,
 	).Scan(
 		&p.ID,
-		&p.StartDate,
 		&p.LeadID,
 		&p.CreatedAt,
 		&p.UpdatedAt,
@@ -264,7 +263,7 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 			target_date = $4::date,
 			version = version + 1
 		WHERE id = $5 AND version = $6
-		RETURNING start_date, updated_at, version
+		RETURNING updated_at, version
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
@@ -278,7 +277,6 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 		p.ID,
 		p.Version,
 	).Scan(
-		&p.StartDate,
 		&p.UpdatedAt,
 		&p.Version,
 	)
