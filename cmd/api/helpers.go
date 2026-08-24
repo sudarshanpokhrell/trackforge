@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
 type envelope map[string]any
@@ -97,6 +98,16 @@ func (app *application) readIDParam(r *http.Request) (int64, error) {
 	}
 
 	return id, nil
+}
+
+func (app *application) readUserIDParam(r *http.Request) (string, error) {
+	userID := chi.URLParam(r, "userID")
+
+	if !validator.UUIDRX.MatchString(userID) {
+		return "", errors.New("invalid user id parameter")
+	}
+
+	return userID, nil
 }
 
 func (app *application) contextUserID(r *http.Request) string {

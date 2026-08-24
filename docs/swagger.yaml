@@ -1,5 +1,12 @@
 basePath: /api/v1
 definitions:
+  main.AddProjectMemberPayload:
+    properties:
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
   main.CreateProjectPayload:
     properties:
       description:
@@ -34,6 +41,11 @@ definitions:
     - name
     - password
     type: object
+  main.UpdateProjectMemberRolePayload:
+    properties:
+      role:
+        type: string
+    type: object
   main.UpdateProjectPayload:
     properties:
       description:
@@ -43,6 +55,15 @@ definitions:
       start_date:
         type: string
       target_date:
+        type: string
+    type: object
+  store.Membership:
+    properties:
+      project_id:
+        type: integer
+      role:
+        type: string
+      user_id:
         type: string
     type: object
   store.Project:
@@ -342,4 +363,120 @@ paths:
       summary: Update a project
       tags:
       - projects
+  /projects/{id}/members:
+    post:
+      consumes:
+      - application/json
+      description: Role defaults to "editor" when omitted.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Member to add
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.AddProjectMemberPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Membership'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Add a member to a project
+      tags:
+      - memberships
+  /projects/{id}/members/{userID}:
+    delete:
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Remove a member from a project
+      tags:
+      - memberships
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: New role
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateProjectMemberRolePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Membership'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Change a member's role
+      tags:
+      - memberships
 swagger: "2.0"

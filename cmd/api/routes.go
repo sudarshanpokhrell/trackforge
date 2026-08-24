@@ -34,6 +34,12 @@ func (app *application) routes() http.Handler {
 			r.Get("/{id}", app.getProjectByIDHandler)
 			r.Put("/{id}", app.updateProjectHandler)
 			r.Delete("/{id}", app.deleteProjectHandler)
+
+			r.Route("/{id}/members", func(r chi.Router) {
+				r.Post("/", app.addProjectMemberHandler)
+				r.Patch("/{userID}", app.updateProjectMemberRoleHandler)
+				r.Delete("/{userID}", app.removeProjectMemberHandler)
+			})
 		})
 		r.Get("/docs/*", httpSwagger.Handler(
 			httpSwagger.URL("/api/v1/docs/doc.json"),

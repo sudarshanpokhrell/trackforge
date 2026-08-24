@@ -29,11 +29,19 @@ type Storage struct {
 		Update(context.Context, *Project) error
 		Delete(ctx context.Context, projectID int64) error
 	}
+
+	Memberships interface {
+		Create(ctx context.Context, userID, role string, projectID int64) error
+		GetRole(ctx context.Context, userID string, projectID int64) (string, error)
+		UpdateRole(ctx context.Context, userID, role string, projectID int64) error
+		Delete(ctx context.Context, userID string, projectID int64) error
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Users:    &UserStore{db},
-		Projects: &ProjectStore{db},
+		Users:       &UserStore{db},
+		Projects:    &ProjectStore{db},
+		Memberships: &MembershipStore{db},
 	}
 }
