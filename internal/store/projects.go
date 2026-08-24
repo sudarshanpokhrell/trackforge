@@ -59,7 +59,15 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query,
+	tx, err := s.db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	err = tx.QueryRowContext(ctx, query,
 		p.Name,
 		p.Description,
 		p.StartDate,
@@ -77,7 +85,16 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 		return err
 	}
 
-	return nil
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO project_memberships (project_id, user_id, role)
+		VALUES ($1, $2, $3)
+	`, p.ID, p.CreatedBy, RoleAdmin)
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (s *ProjectStore) GetProjectsByUserID(ctx context.Context, userID string) ([]*Project, error) {

@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/sudarshanpokhrell/trackforge/docs"
+	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/web"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
@@ -32,19 +33,22 @@ func (app *application) routes() http.Handler {
 			r.Use(app.AuthTokenMiddleware)
 			r.Post("/", app.createProjectHandler)
 			r.Get("/", app.getUserProjectsHandler)
-			r.Get("/{id}", app.getProjectByIDHandler)
-			r.Put("/{id}", app.updateProjectHandler)
-			r.Delete("/{id}", app.deleteProjectHandler)
 
-			r.Route("/{id}/members", func(r chi.Router) {
-				r.Post("/", app.addProjectMemberHandler)
-				r.Patch("/{userID}", app.updateProjectMemberRoleHandler)
-				r.Delete("/{userID}", app.removeProjectMemberHandler)
+			r.Route("/{id}", func(r chi.Router) {
+				r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectByIDHandler)
+				r.With(app.RequireProjectRole(store.RoleEditor)).Put("/", app.updateProjectHandler)
+				r.With(app.RequireProjectRole(store.RoleAdmin)).Delete("/", app.deleteProjectHandler)
+
+				r.Route("/members", func(r chi.Router) {
+					r.Use(app.RequireProjectRole(store.RoleAdmin))
+					r.Post("/", app.addProjectMemberHandler)
+					r.Patch("/{userID}", app.updateProjectMemberRoleHandler)
+					r.Delete("/{userID}", app.removeProjectMemberHandler)
+				})
 			})
 		})
 		r.Get("/docs/*", httpSwagger.Handler(
 			httpSwagger.URL("/api/v1/docs/doc.json"),
-			// Without this the Authorize value is discarded on every page reload.
 			httpSwagger.PersistAuthorization(true),
 		))
 	})

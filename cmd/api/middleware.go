@@ -14,6 +14,7 @@ import (
 type contextKey string
 
 const userCtx contextKey = "user"
+const projectRoleCtx contextKey = "project_role"
 
 const authCookieName = "jwt_token"
 
@@ -88,4 +89,37 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) RequireProjectRole(minRole string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			projectID, err := app.readIDParam(r)
+
+			if err != nil {
+				app.badRequestResponse(w, r, err)
+				return
+			}
+
+			role, err := app.store.Memberships.GetRole(r.Context(), app.contextUserID(r), projectID)
+
+			if err != nil {
+				switch {
+				case errors.Is(err, store.ErrNotFound):
+					app.notFoundResponse(w, r)
+				default:
+					app.serverErrorResponse(w, r, err)
+				}
+				return
+			}
+
+			if !store.RoleAtLeast(role, minRole) {
+				app.notPermittedResponse(w, r)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), projectRoleCtx, role)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }

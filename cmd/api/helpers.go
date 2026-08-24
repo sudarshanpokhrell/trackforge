@@ -122,3 +122,8 @@ func (app *application) contextUser(r *http.Request) *store.User {
 func (app *application) contextUserID(r *http.Request) string {
 	return app.contextUser(r).ID
 }
+
+// func (app *application) contextProjectRole(r *http.Request) (string, bool) {
+// 	role, ok := r.Context().Value(projectRoleCtx).(string)
+// 	return role, ok
+// }

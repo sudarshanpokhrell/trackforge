@@ -17,6 +17,16 @@ const (
 	RoleAdmin  = "admin"
 )
 
+var roleRanks = map[string]int{
+	RoleViewer: 1,
+	RoleEditor: 2,
+	RoleAdmin:  3,
+}
+
+func RoleAtLeast(role, min string) bool {
+	return roleRanks[role] != 0 && roleRanks[role] >= roleRanks[min]
+}
+
 func ValidateRole(v *validator.Validator, role string) {
 	v.Check(v.In(role, RoleViewer, RoleEditor, RoleAdmin), "role", "must be one of viewer, editor or admin")
 }
