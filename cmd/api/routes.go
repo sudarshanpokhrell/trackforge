@@ -36,7 +36,7 @@ func (app *application) routes() http.Handler {
 			r.Delete("/{id}", app.deleteProjectHandler)
 		})
 		r.Get("/docs/*", httpSwagger.Handler(
-			httpSwagger.URL("/api/v1/docs/doc.json"), //The url pointing to API definition
+			httpSwagger.URL("/api/v1/docs/doc.json"),
 		))
 	})
 
@@ -61,7 +61,6 @@ func (app *application) routes() http.Handler {
 		f, err := distFS.Open(path)
 		if err != nil {
 			if os.IsNotExist(err) {
-				// Return 404 for missing static assets (e.g. missing .js/.css/.png)
 				if filepath.Ext(path) != "" {
 					http.NotFound(w, r)
 					return

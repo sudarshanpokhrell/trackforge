@@ -18,4 +18,3 @@ func (app *application) serve() error {
 
 	return srv.ListenAndServe()
 }
-

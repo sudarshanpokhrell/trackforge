@@ -8,7 +8,11 @@ import (
 )
 
 var QueryTimeOutDuration = 3 * time.Second
-var ErrNotFound = errors.New("Resource not found")
+
+var (
+	ErrNotFound     = errors.New("resource not found")
+	ErrEditConflict = errors.New("edit conflict, please retry")
+)
 
 type Storage struct {
 	Users interface {
@@ -19,11 +23,11 @@ type Storage struct {
 
 	Projects interface {
 		Create(context.Context, *Project) error
-		GetProjectDetails(context.Context, int64) (*ProjectDetails, error)
-		GetProjectsByUserID(context.Context, string) ([]*Project, error)
-		GetByID(context.Context, int64) (*Project, error)
-		Update(context.Context, int64, *Project) error
-		Delete(context.Context, int64) error
+		GetByID(ctx context.Context, projectID int64) (*Project, error)
+		GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error)
+		GetProjectsByUserID(ctx context.Context, userID string) ([]*Project, error)
+		Update(context.Context, *Project) error
+		Delete(ctx context.Context, projectID int64) error
 	}
 }
 

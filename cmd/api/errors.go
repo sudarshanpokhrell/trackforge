@@ -23,7 +23,7 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 
 func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "the resource could not be found."
-	app.errorResponse(w, r, http.StatusInternalServerError, message)
+	app.errorResponse(w, r, http.StatusNotFound, message)
 }
 
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
@@ -55,4 +55,10 @@ func (app *application) authenticationRequiredResponse(w http.ResponseWriter, r 
 func (app *application) notPermittedResponse(w http.ResponseWriter, r *http.Request) {
 	message := "you doesn't have the necessary permission to perform this action"
 	app.errorResponse(w, r, http.StatusForbidden, message)
+}
+
+func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
+	message := "unable to update the resources due to an edit conflict: please try again  	"
+
+	app.errorResponse(w, r, http.StatusConflict, message)
 }

@@ -5,31 +5,29 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
-type ProjectCreator struct {
-	ID    string `json:"id"`
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
 type Project struct {
-	ID          uint64         `json:"id"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
-	StartDate   time.Time      `json:"start_date"`
-	TargetDate  time.Time      `json:"target_date"`
-	CreatedBy   ProjectCreator `json:"created_by"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ID          int64      `json:"id"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	StartDate   *time.Time `json:"start_date"`
+	TargetDate  *time.Time `json:"target_date"`
+	CreatedBy   string     `json:"created_by"`
+	LeadID      *string    `json:"lead_id"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	Version     int32      `json:"version"`
 }
 
 type ProjectMember struct {
-	ID       string    `json:"id"`
-	Email    string    `json:"email"`
+	UserID   string    `json:"user_id"`
 	Name     string    `json:"name"`
-	JoinDate time.Time `json:"join_date"`
+	Email    string    `json:"email"`
 	Role     string    `json:"role"`
+	JoinedAt time.Time `json:"joined_at"`
 }
 
 type ProjectDetails struct {
@@ -37,41 +35,43 @@ type ProjectDetails struct {
 	Members []ProjectMember `json:"members"`
 }
 
+func ValidateProject(v *validator.Validator, p *Project) {
+	v.Check(p.Name != "", "name", "must be provided")
+	v.Check(len(p.Name) <= 255, "name", "must not be more than 255 bytes long")
+	v.Check(len(p.Description) <= 2000, "description", "must not be more than 2000 bytes long")
+
+	if p.StartDate != nil && p.TargetDate != nil {
+		v.Check(!p.TargetDate.Before(*p.StartDate), "target_date", "must not be before the start date")
+	}
+}
+
 type ProjectStore struct {
 	db *sql.DB
 }
 
 func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
-
 	query := `
-		INSERT INTO projects (
-			name,
-			description,
-			start_date,
-			target_date,
-			created_by
-		) VALUES (
-			$1,
-			$2,
-			$3,
-			$4,
-			$5,
-		)
-		RETURNING id, name, description, start_date, target_date, created_by, created_at, updated_at
+		INSERT INTO projects (name, description, start_date, target_date, created_by)
+		VALUES ($1, $2, COALESCE($3::date, CURRENT_DATE), $4::date, $5)
+		RETURNING id, start_date, lead_id, created_at, updated_at, version
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, p.Name, p.Description, p.StartDate, p.TargetDate, p.CreatedBy.ID).Scan(
+	err := s.db.QueryRowContext(ctx, query,
+		p.Name,
+		p.Description,
+		p.StartDate,
+		p.TargetDate,
+		p.CreatedBy,
+	).Scan(
 		&p.ID,
-		&p.Name,
-		&p.Description,
 		&p.StartDate,
-		&p.TargetDate,
+		&p.LeadID,
 		&p.CreatedAt,
 		&p.UpdatedAt,
-		&p.CreatedBy.ID,
+		&p.Version,
 	)
 
 	if err != nil {
@@ -82,13 +82,16 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 }
 
 func (s *ProjectStore) GetProjectsByUserID(ctx context.Context, userID string) ([]*Project, error) {
-
 	query := `
-	SELECT p.id, p.name, p.description, p.start_date, p.target_date, u.id, u.name, u.email, p.created_at, p.updated_at
-	FROM projects p
-	JOIN project_members m ON p.id = m.project_id
-	JOIN users u ON p.created_by = u.id
-	WHERE m.user_id = $1
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+			p.created_by, p.lead_id, p.created_at, p.updated_at, p.version
+		FROM projects p
+		WHERE p.created_by = $1
+		   OR EXISTS (
+			SELECT 1 FROM project_memberships pm
+			WHERE pm.project_id = p.id AND pm.user_id = $1
+		  )
+		ORDER BY p.created_at DESC, p.id DESC
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
@@ -113,11 +116,11 @@ func (s *ProjectStore) GetProjectsByUserID(ctx context.Context, userID string) (
 			&project.Description,
 			&project.StartDate,
 			&project.TargetDate,
-			&project.CreatedBy.ID,
-			&project.CreatedBy.Name,
-			&project.CreatedBy.Email,
+			&project.CreatedBy,
+			&project.LeadID,
 			&project.CreatedAt,
 			&project.UpdatedAt,
+			&project.Version,
 		)
 
 		if err != nil {
@@ -135,17 +138,15 @@ func (s *ProjectStore) GetProjectsByUserID(ctx context.Context, userID string) (
 }
 
 func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error) {
-
 	query := `
-	SELECT 
-		p.id, p.name, p.description, p.start_date, p.target_date, p.created_at, p.updated_at,
-		creator.id, creator.name, creator.email,
-		m_user.id, m_user.name, m_user.email, pm.created_at, pm.role
-	FROM projects p
-	JOIN users creator ON p.created_by = creator.id
-	LEFT JOIN project_members pm ON p.id = pm.project_id
-	LEFT JOIN users m_user ON pm.user_id = m_user.id
-	WHERE p.id = $1
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+			p.created_by, p.lead_id, p.created_at, p.updated_at, p.version,
+			m_user.id, m_user.name, m_user.email, pm.role, pm.created_at
+		FROM projects p
+		LEFT JOIN project_memberships pm ON p.id = pm.project_id
+		LEFT JOIN users m_user ON pm.user_id = m_user.id
+		WHERE p.id = $1
+		ORDER BY pm.created_at, pm.id
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
@@ -160,14 +161,14 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 	defer rows.Close()
 
 	var details ProjectDetails
-	details.Members = make([]ProjectMember, 0)
+	details.Members = []ProjectMember{}
 
 	projectLoaded := false
 
 	for rows.Next() {
 		var (
 			memberID, memberName, memberEmail, memberRole sql.NullString
-			memberJoinDate                                sql.NullTime
+			memberJoinedAt                                sql.NullTime
 		)
 
 		err := rows.Scan(
@@ -176,16 +177,16 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 			&details.Description,
 			&details.StartDate,
 			&details.TargetDate,
+			&details.CreatedBy,
+			&details.LeadID,
 			&details.CreatedAt,
 			&details.UpdatedAt,
-			&details.CreatedBy.ID,
-			&details.CreatedBy.Name,
-			&details.CreatedBy.Email,
+			&details.Version,
 			&memberID,
 			&memberName,
 			&memberEmail,
-			&memberJoinDate,
 			&memberRole,
+			&memberJoinedAt,
 		)
 
 		if err != nil {
@@ -196,10 +197,11 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 
 		if memberID.Valid {
 			details.Members = append(details.Members, ProjectMember{
-				ID:       memberID.String,
+				UserID:   memberID.String,
 				Name:     memberName.String,
-				JoinDate: memberJoinDate.Time,
+				Email:    memberEmail.String,
 				Role:     memberRole.String,
+				JoinedAt: memberJoinedAt.Time,
 			})
 		}
 	}
@@ -213,85 +215,13 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 	}
 
 	return &details, nil
-
-}
-
-func (s *ProjectStore) Update(ctx context.Context, projectID int64, input *Project) error {
-	query := `
-        UPDATE projects
-        SET 
-            name = $1,
-            description = $2,
-            start_date = $3,
-            target_date = $4
-        WHERE id = $5
-        RETURNING id, name, description, start_date, target_date, created_by, created_at, updated_at
-    `
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
-	defer cancel()
-
-	err := s.db.QueryRowContext(ctx, query,
-		input.Name,
-		input.Description,
-		input.StartDate,
-		input.TargetDate,
-		projectID,
-	).Scan(
-		&input.ID,
-		&input.Name,
-		&input.Description,
-		&input.StartDate,
-		&input.TargetDate,
-		&input.CreatedBy.ID,
-		&input.CreatedAt,
-		&input.UpdatedAt,
-	)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ErrNotFound
-		}
-		return err
-	}
-
-	return nil
-}
-
-func (s *ProjectStore) Delete(ctx context.Context, projectID int64) error {
-	query := `
-		DELETE from projects WHERE id = $1
-	`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
-	defer cancel()
-
-	rows, err := s.db.ExecContext(ctx, query, projectID)
-
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := rows.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrNotFound
-	}
-
-	return err
 }
 
 func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, error) {
 	query := `
-		SELECT 
-			p.id, p.name, p.description, p.start_date, p.target_date, p.created_at, p.updated_at,
-			creator.id, creator.name, creator.email
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+			p.created_by, p.lead_id, p.created_at, p.updated_at, p.version
 		FROM projects p
-		JOIN users creator ON p.created_by = creator.id
 		WHERE p.id = $1
 	`
 
@@ -306,11 +236,11 @@ func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, 
 		&project.Description,
 		&project.StartDate,
 		&project.TargetDate,
+		&project.CreatedBy,
+		&project.LeadID,
 		&project.CreatedAt,
 		&project.UpdatedAt,
-		&project.CreatedBy.ID,
-		&project.CreatedBy.Name,
-		&project.CreatedBy.Email,
+		&project.Version,
 	)
 
 	if err != nil {
@@ -321,4 +251,69 @@ func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, 
 	}
 
 	return &project, nil
+}
+
+// Using version make the write atomic against the concurrent update.
+
+func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
+	query := `
+		UPDATE projects
+		SET name = $1,
+			description = $2,
+			start_date = $3::date,
+			target_date = $4::date,
+			version = version + 1
+		WHERE id = $5 AND version = $6
+		RETURNING start_date, updated_at, version
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query,
+		p.Name,
+		p.Description,
+		p.StartDate,
+		p.TargetDate,
+		p.ID,
+		p.Version,
+	).Scan(
+		&p.StartDate,
+		&p.UpdatedAt,
+		&p.Version,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrEditConflict
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (s *ProjectStore) Delete(ctx context.Context, projectID int64) error {
+	query := `DELETE FROM projects WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, projectID)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrNotFound
+	}
+
+	return nil
 }
