@@ -15,6 +15,7 @@ type contextKey string
 
 const userCtx contextKey = "user"
 const projectRoleCtx contextKey = "project_role"
+const commentCtx contextKey = "comment"
 
 const authCookieName = "jwt_token"
 
@@ -122,4 +123,60 @@ func (app *application) RequireProjectRole(minRole string) func(http.Handler) ht
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// RequireCommentOwnership loads the comment named by the URL and lets the request
+// through only for its author or a project admin; the comment is put in the
+// request context for the handler to read with contextComment.
+//
+// It must run after RequireProjectRole, which establishes the membership this
+// builds on and the role in the context. This adds the two checks that one
+// cannot make: that the comment really belongs to the project in the path
+// (otherwise membership in one project would reach into another's comments),
+// and that the caller authored it or administers the project.
+func (app *application) RequireCommentOwnership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		projectID, err := app.readIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		commentID, err := app.readCommentIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		comment, err := app.store.Comments.GetProjectCommentByID(r.Context(), commentID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		// Not a 403: that would confirm the comment exists to someone with no
+		// business knowing it does.
+		if comment.ProjectID != projectID {
+			app.notFoundResponse(w, r)
+			return
+		}
+
+		role, _ := app.contextProjectRole(r)
+
+		if comment.CreatedBy != app.contextUserID(r) && !store.RoleAtLeast(role, store.RoleAdmin) {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), commentCtx, comment)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

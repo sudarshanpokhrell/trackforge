@@ -46,6 +46,18 @@ func (app *application) routes() http.Handler {
 					r.Patch("/{userID}", app.updateProjectMemberRoleHandler)
 					r.Delete("/{userID}", app.removeProjectMemberHandler)
 				})
+
+				r.Route("/comments", func(r chi.Router) {
+					r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectCommentsHandler)
+					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createProjectCommentHandler)
+
+					r.Route("/{commentID}", func(r chi.Router) {
+						r.Use(app.RequireProjectRole(store.RoleEditor))
+						r.Use(app.RequireCommentOwnership)
+						r.Patch("/", app.updateProjectCommentHandler)
+						r.Delete("/", app.deleteProjectCommentHandler)
+					})
+				})
 			})
 		})
 		r.Get("/docs/*", httpSwagger.Handler(

@@ -37,6 +37,13 @@ type Storage struct {
 		UpdateRole(ctx context.Context, userID, role string, projectID int64) error
 		Delete(ctx context.Context, userID string, projectID int64) error
 	}
+	Comments interface {
+		Create(context.Context, *ProjectComment) error
+		GetByProjectID(ctx context.Context, projectID int64) ([]*ProjectComment, error)
+		GetProjectCommentByID(ctx context.Context, commentID int64) (*ProjectComment, error)
+		Update(context.Context, *ProjectComment) error
+		Delete(ctx context.Context, commentID int64) error
+	}
 }
 
 func NewStorage(db *sql.DB) Storage {
@@ -44,5 +51,6 @@ func NewStorage(db *sql.DB) Storage {
 		Users:       &UserStore{db},
 		Projects:    &ProjectStore{db},
 		Memberships: &MembershipStore{db},
+		Comments:    &CommentStore{db},
 	}
 }
