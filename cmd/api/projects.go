@@ -204,6 +204,79 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// UpdateProjectLeadPayload carries the user to put in charge of the project.
+type UpdateProjectLeadPayload struct {
+	LeadID string `json:"lead_id"`
+}
+
+// @Summary Set a project's lead
+// @Description Puts a user in charge of the project. They must already be a member of it. Use DELETE to unassign.
+// @Tags projects
+// @Accept json
+// @Produce json
+// @Param id path int true "Project ID"
+// @Param payload body UpdateProjectLeadPayload true "The new lead"
+// @Success 200 {object} store.Project
+// @Failure 400 {object} error
+// @Failure 404 {object} error
+// @Failure 422 {object} error
+// @Failure 500 {object} error
+// @Security BearerAuth
+// @Router /projects/{id}/lead [put]
+func (app *application) updateProjectLeadHandler(w http.ResponseWriter, r *http.Request) {
+	projectID, err := app.readIDParam(r)
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	var payload UpdateProjectLeadPayload
+
+	if err := app.readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	v.Check(payload.LeadID != "", "lead_id", "must be provided")
+	v.Check(validator.UUIDRX.MatchString(payload.LeadID), "lead_id", "must be a valid user id")
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	// Only a member of the project can lead it.
+	if _, err := app.store.Memberships.GetRole(r.Context(), payload.LeadID, projectID); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			v.AddError("lead_id", "must be a member of the project")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	project, err := app.store.Projects.UpdateLead(r.Context(), projectID, &payload.LeadID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"project": project}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
 // @Summary Delete a project
 // @Tags projects
 // @Produce json

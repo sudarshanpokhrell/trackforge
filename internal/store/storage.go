@@ -27,6 +27,7 @@ type Storage struct {
 		GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error)
 		GetProjectsByUserID(ctx context.Context, userID string) ([]*Project, error)
 		Update(context.Context, *Project) error
+		UpdateLead(ctx context.Context, projectID int64, leadID *string) (*Project, error)
 		Delete(ctx context.Context, projectID int64) error
 	}
 

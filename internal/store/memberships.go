@@ -116,7 +116,15 @@ func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId i
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	result, err := s.db.ExecContext(ctx, query, projectId, userId)
+	tx, err := s.db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	result, err := tx.ExecContext(ctx, query, projectId, userId)
 
 	if err != nil {
 		return err
@@ -132,7 +140,18 @@ func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId i
 		return ErrNotFound
 	}
 
-	return nil
+	_, err = tx.ExecContext(ctx, `
+		UPDATE projects
+		SET lead_id = NULL,
+			version = version + 1
+		WHERE id = $1 AND lead_id = $2
+	`, projectId, userId)
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func translateMembershipError(err error) error {

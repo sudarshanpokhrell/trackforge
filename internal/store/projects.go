@@ -308,6 +308,47 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 	return nil
 }
 
+// UpdateLead sets (or clears, when leadID is nil) the project lead and returns
+// the updated row. It touches one column, so callers do not read the project
+// first — which is also why it takes no version.
+func (s *ProjectStore) UpdateLead(ctx context.Context, projectID int64, leadID *string) (*Project, error) {
+	query := `
+		UPDATE projects
+		SET lead_id = $2,
+			version = version + 1
+		WHERE id = $1
+		RETURNING id, name, COALESCE(description, ''), start_date, target_date,
+			created_by, lead_id, created_at, updated_at, version
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	var project Project
+
+	err := s.db.QueryRowContext(ctx, query, projectID, leadID).Scan(
+		&project.ID,
+		&project.Name,
+		&project.Description,
+		&project.StartDate,
+		&project.TargetDate,
+		&project.CreatedBy,
+		&project.LeadID,
+		&project.CreatedAt,
+		&project.UpdatedAt,
+		&project.Version,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &project, nil
+}
+
 func (s *ProjectStore) Delete(ctx context.Context, projectID int64) error {
 	query := `DELETE FROM projects WHERE id = $1`
 

@@ -38,6 +38,7 @@ func (app *application) routes() http.Handler {
 				r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectByIDHandler)
 				r.With(app.RequireProjectRole(store.RoleEditor)).Put("/", app.updateProjectHandler)
 				r.With(app.RequireProjectRole(store.RoleAdmin)).Delete("/", app.deleteProjectHandler)
+				r.With(app.RequireProjectRole(store.RoleAdmin)).Put("/lead", app.updateProjectLeadHandler)
 
 				r.Route("/members", func(r chi.Router) {
 					r.Use(app.RequireProjectRole(store.RoleAdmin))
