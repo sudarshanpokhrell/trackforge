@@ -14,9 +14,9 @@ help:
 	@echo "  make docker-up       - Start local testing dependencies (PostgreSQL)"
 	@echo "  make docker-down     - Stop local testing containers"
 	@echo "  make docker-logs     - Follow Docker container logs"
-	@echo "  make migration  - Create a new migration file (usage: make migration name=add_users)"
-	@echo "  make migrate-up      - Run all pending database migrations locally"
-	@echo "  make migrate-down    - Rollback database migrations locally"
+	@echo "  make migration       - Create a new migration file (usage: make migration name=add_users)"
+	@echo "  make migrate-up      - Run pending migrations (usage: make migrate-up [steps=1])"
+	@echo "  make migrate-down    - Rollback migrations (usage: make migrate-down [steps=1])"
 	@echo "  make swagger         - Regenerate Swagger docs from code annotations"
 
 .PHONY: run
@@ -57,12 +57,13 @@ docker-logs:
 #migrations
 .PHONY: migration
 migration:
-	@migrate create -seq -ext sql -dir $(MIGRATIONS_PATH) $(filter-out $@,$(MAKECMDGOALS))
+	@test -n "$(name)" || (echo "Usage: make migration name=add_users" && exit 1)
+	@migrate create -seq -ext sql -dir $(MIGRATIONS_PATH) $(name)
 
 .PHONY: migrate-up
 migrate-up:
-	@migrate -path=$(MIGRATIONS_PATH) -database="$(DB_ADDR)" up
+	@go run ./cmd/migrate up $(steps)
 
 .PHONY: migrate-down
 migrate-down:
-	@migrate -path=$(MIGRATIONS_PATH) -database="$(DB_ADDR)" down $(filter-out $@,$(MAKECMDGOALS))
+	@go run ./cmd/migrate down $(steps)
