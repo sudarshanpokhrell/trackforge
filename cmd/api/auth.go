@@ -45,6 +45,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	v := validator.New()
@@ -71,6 +72,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 }

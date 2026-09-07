@@ -19,8 +19,8 @@ func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
 	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
 
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {

@@ -36,13 +36,10 @@ func (p *password) Compare(plainText string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword(p.hash, []byte(plainText))
 
 	if err != nil {
-		switch {
-		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return false, nil
-		default:
-			return false, nil
-
 		}
+		return false, err
 	}
 
 	return true, nil
