@@ -9,231 +9,321 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as InboxRouteImport } from './routes/inbox'
-import { Route as IssuesRouteImport } from './routes/issues'
-import { Route as ViewsRouteImport } from './routes/views'
-import { Route as WorkspaceRouteImport } from './routes/workspace'
-import { Route as IssuesIssueIdRouteImport } from './routes/issues.$issueId'
-import { Route as ProjectsProjectIdIndexRouteImport } from './routes/projects/$projectId/index'
-import { Route as ProjectsProjectIdIssuesRouteImport } from './routes/projects/$projectId/issues'
+import { Route as AuthRouteRouteImport } from './routes/_auth/route'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
+import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
+import { Route as AuthenticatedViewsRouteImport } from './routes/_authenticated/views'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
+import { Route as AuthenticatedIssuesIndexRouteImport } from './routes/_authenticated/issues/index'
+import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues/$issueId'
+import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects/$projectId/index'
+import { Route as AuthenticatedProjectsProjectIdIssuesRouteImport } from './routes/_authenticated/projects/$projectId/issues'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthRouteRoute = AuthRouteRouteImport.update({
+  id: '/_auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AuthRouteRoute,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AboutRoute = AboutRouteImport.update({
+const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const InboxRoute = InboxRouteImport.update({
+const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const IssuesRoute = IssuesRouteImport.update({
-  id: '/issues',
-  path: '/issues',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ViewsRoute = ViewsRouteImport.update({
+const AuthenticatedViewsRoute = AuthenticatedViewsRouteImport.update({
   id: '/views',
   path: '/views',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const WorkspaceRoute = WorkspaceRouteImport.update({
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const IssuesIssueIdRoute = IssuesIssueIdRouteImport.update({
-  id: '/$issueId',
-  path: '/$issueId',
-  getParentRoute: () => IssuesRoute,
-} as any)
-const ProjectsProjectIdIndexRoute = ProjectsProjectIdIndexRouteImport.update({
-  id: '/projects/$projectId/',
-  path: '/projects/$projectId/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsProjectIdIssuesRoute = ProjectsProjectIdIssuesRouteImport.update({
-  id: '/projects/$projectId/issues',
-  path: '/projects/$projectId/issues',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedIssuesIndexRoute =
+  AuthenticatedIssuesIndexRouteImport.update({
+    id: '/issues/',
+    path: '/issues/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedIssuesIssueIdRoute =
+  AuthenticatedIssuesIssueIdRouteImport.update({
+    id: '/issues/$issueId',
+    path: '/issues/$issueId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsProjectIdIndexRoute =
+  AuthenticatedProjectsProjectIdIndexRouteImport.update({
+    id: '/projects/$projectId/',
+    path: '/projects/$projectId/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsProjectIdIssuesRoute =
+  AuthenticatedProjectsProjectIdIssuesRouteImport.update({
+    id: '/projects/$projectId/issues',
+    path: '/projects/$projectId/issues',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/inbox': typeof InboxRoute
-  '/issues': typeof IssuesRouteWithChildren
-  '/views': typeof ViewsRoute
-  '/workspace': typeof WorkspaceRoute
-  '/issues/$issueId': typeof IssuesIssueIdRoute
-  '/projects/$projectId/issues': typeof ProjectsProjectIdIssuesRoute
-  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
+  '/about': typeof AuthenticatedAboutRoute
+  '/inbox': typeof AuthenticatedInboxRoute
+  '/views': typeof AuthenticatedViewsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
+  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
+  '/issues/': typeof AuthenticatedIssuesIndexRoute
+  '/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
+  '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/inbox': typeof InboxRoute
-  '/issues': typeof IssuesRouteWithChildren
-  '/views': typeof ViewsRoute
-  '/workspace': typeof WorkspaceRoute
-  '/issues/$issueId': typeof IssuesIssueIdRoute
-  '/projects/$projectId/issues': typeof ProjectsProjectIdIssuesRoute
-  '/projects/$projectId': typeof ProjectsProjectIdIndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
+  '/about': typeof AuthenticatedAboutRoute
+  '/inbox': typeof AuthenticatedInboxRoute
+  '/views': typeof AuthenticatedViewsRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
+  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
+  '/issues': typeof AuthenticatedIssuesIndexRoute
+  '/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
+  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/inbox': typeof InboxRoute
-  '/issues': typeof IssuesRouteWithChildren
-  '/views': typeof ViewsRoute
-  '/workspace': typeof WorkspaceRoute
-  '/issues/$issueId': typeof IssuesIssueIdRoute
-  '/projects/$projectId/issues': typeof ProjectsProjectIdIssuesRoute
-  '/projects/$projectId/': typeof ProjectsProjectIdIndexRoute
+  '/_auth': typeof AuthRouteRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_auth/login': typeof AuthLoginRoute
+  '/_auth/register': typeof AuthRegisterRoute
+  '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
+  '/_authenticated/views': typeof AuthenticatedViewsRoute
+  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
+  '/_authenticated/issues/': typeof AuthenticatedIssuesIndexRoute
+  '/_authenticated/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
+  '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
+    | '/register'
     | '/about'
     | '/inbox'
-    | '/issues'
     | '/views'
     | '/workspace'
     | '/issues/$issueId'
+    | '/issues/'
     | '/projects/$projectId/issues'
     | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
+    | '/register'
     | '/about'
     | '/inbox'
-    | '/issues'
     | '/views'
     | '/workspace'
     | '/issues/$issueId'
+    | '/issues'
     | '/projects/$projectId/issues'
     | '/projects/$projectId'
   id:
     | '__root__'
-    | '/'
-    | '/about'
-    | '/inbox'
-    | '/issues'
-    | '/views'
-    | '/workspace'
-    | '/issues/$issueId'
-    | '/projects/$projectId/issues'
-    | '/projects/$projectId/'
+    | '/_auth'
+    | '/_authenticated'
+    | '/_auth/login'
+    | '/_auth/register'
+    | '/_authenticated/about'
+    | '/_authenticated/inbox'
+    | '/_authenticated/views'
+    | '/_authenticated/workspace'
+    | '/_authenticated/'
+    | '/_authenticated/issues/$issueId'
+    | '/_authenticated/issues/'
+    | '/_authenticated/projects/$projectId/issues'
+    | '/_authenticated/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  InboxRoute: typeof InboxRoute
-  IssuesRoute: typeof IssuesRouteWithChildren
-  ViewsRoute: typeof ViewsRoute
-  WorkspaceRoute: typeof WorkspaceRoute
-  ProjectsProjectIdIssuesRoute: typeof ProjectsProjectIdIssuesRoute
-  ProjectsProjectIdIndexRoute: typeof ProjectsProjectIdIndexRoute
+  AuthRouteRoute: typeof AuthRouteRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_auth/register': {
+      id: '/_auth/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof AuthRouteRoute
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/about': {
-      id: '/about'
+    '/_authenticated/about': {
+      id: '/_authenticated/about'
       path: '/about'
       fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedAboutRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/inbox': {
-      id: '/inbox'
+    '/_authenticated/inbox': {
+      id: '/_authenticated/inbox'
       path: '/inbox'
       fullPath: '/inbox'
-      preLoaderRoute: typeof InboxRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedInboxRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/issues': {
-      id: '/issues'
-      path: '/issues'
-      fullPath: '/issues'
-      preLoaderRoute: typeof IssuesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/views': {
-      id: '/views'
+    '/_authenticated/views': {
+      id: '/_authenticated/views'
       path: '/views'
       fullPath: '/views'
-      preLoaderRoute: typeof ViewsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedViewsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/workspace': {
-      id: '/workspace'
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
       path: '/workspace'
       fullPath: '/workspace'
-      preLoaderRoute: typeof WorkspaceRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/issues/$issueId': {
-      id: '/issues/$issueId'
-      path: '/$issueId'
+    '/_authenticated/issues/': {
+      id: '/_authenticated/issues/'
+      path: '/issues'
+      fullPath: '/issues/'
+      preLoaderRoute: typeof AuthenticatedIssuesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/issues/$issueId': {
+      id: '/_authenticated/issues/$issueId'
+      path: '/issues/$issueId'
       fullPath: '/issues/$issueId'
-      preLoaderRoute: typeof IssuesIssueIdRouteImport
-      parentRoute: typeof IssuesRoute
+      preLoaderRoute: typeof AuthenticatedIssuesIssueIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/projects/$projectId/': {
-      id: '/projects/$projectId/'
+    '/_authenticated/projects/$projectId/': {
+      id: '/_authenticated/projects/$projectId/'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId/'
-      preLoaderRoute: typeof ProjectsProjectIdIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/projects/$projectId/issues': {
-      id: '/projects/$projectId/issues'
+    '/_authenticated/projects/$projectId/issues': {
+      id: '/_authenticated/projects/$projectId/issues'
       path: '/projects/$projectId/issues'
       fullPath: '/projects/$projectId/issues'
-      preLoaderRoute: typeof ProjectsProjectIdIssuesRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIssuesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface IssuesRouteChildren {
-  IssuesIssueIdRoute: typeof IssuesIssueIdRoute
+interface AuthRouteRouteChildren {
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
 }
 
-const IssuesRouteChildren: IssuesRouteChildren = {
-  IssuesIssueIdRoute: IssuesIssueIdRoute,
+const AuthRouteRouteChildren: AuthRouteRouteChildren = {
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
 }
 
-const IssuesRouteWithChildren =
-  IssuesRoute._addFileChildren(IssuesRouteChildren)
+const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
+  AuthRouteRouteChildren,
+)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
+  AuthenticatedViewsRoute: typeof AuthenticatedViewsRoute
+  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
+  AuthenticatedIssuesIndexRoute: typeof AuthenticatedIssuesIndexRoute
+  AuthenticatedProjectsProjectIdIssuesRoute: typeof AuthenticatedProjectsProjectIdIssuesRoute
+  AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
+  AuthenticatedViewsRoute: AuthenticatedViewsRoute,
+  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
+  AuthenticatedIssuesIndexRoute: AuthenticatedIssuesIndexRoute,
+  AuthenticatedProjectsProjectIdIssuesRoute:
+    AuthenticatedProjectsProjectIdIssuesRoute,
+  AuthenticatedProjectsProjectIdIndexRoute:
+    AuthenticatedProjectsProjectIdIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  InboxRoute: InboxRoute,
-  IssuesRoute: IssuesRouteWithChildren,
-  ViewsRoute: ViewsRoute,
-  WorkspaceRoute: WorkspaceRoute,
-  ProjectsProjectIdIssuesRoute: ProjectsProjectIdIssuesRoute,
-  ProjectsProjectIdIndexRoute: ProjectsProjectIdIndexRoute,
+  AuthRouteRoute: AuthRouteRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

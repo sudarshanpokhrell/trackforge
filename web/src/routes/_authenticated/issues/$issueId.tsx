@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { issuesApi } from "../services/api"
+import { issuesApi } from "@/services/api"
 import type { AxiosResponse, AxiosError } from "axios"
 
 type Issue = {
@@ -14,7 +14,7 @@ type Issue = {
   description?: string
 }
 
-export const Route = createFileRoute("/issues/$issueId")({
+export const Route = createFileRoute("/_authenticated/issues/$issueId")({
   component: IssueDetailPage,
 })
 

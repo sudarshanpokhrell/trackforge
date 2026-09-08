@@ -42,7 +42,7 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {projects.map((item) => {
-                    const homeHref = `/projects/${item.id}/`;
+                    const homeHref = `/projects/${item.id}`;
                     const issuesHref = `/projects/${item.id}/issues`;
                     const isProjectActive = pathname.startsWith(`/projects/${item.id}`);
                     const Icon = item.icon
@@ -63,7 +63,7 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
                                   isActive={pathname === homeHref}
-                                  render={<Link to={homeHref as any} />}
+                                  render={<Link to="/projects/$projectId" params={{ projectId: item.id }} />}
                                 >
                                   <LayoutDashboard />
                                   <span>Overview</span>
@@ -72,7 +72,7 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
                                   isActive={pathname === issuesHref}
-                                  render={<Link to={issuesHref as any} />}
+                                  render={<Link to="/projects/$projectId/issues" params={{ projectId: item.id }} />}
                                 >
                                   <Ticket />
                                   <span>Issues</span>

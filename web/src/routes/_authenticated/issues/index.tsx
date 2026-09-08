@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { IssueList } from '@/components/issues/IssueList'
 import { globalIssues } from '@/components/issues/data'
 
-export const Route = createFileRoute('/issues')({
+export const Route = createFileRoute('/_authenticated/issues/')({
   component: IssuesPage,
 })
 
