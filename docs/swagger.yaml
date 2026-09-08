@@ -1,10 +1,31 @@
 basePath: /api/v1
 definitions:
+  main.AddIssueAssigneePayload:
+    properties:
+      user_id:
+        type: string
+    type: object
   main.AddProjectMemberPayload:
     properties:
       role:
         type: string
       user_id:
+        type: string
+    type: object
+  main.CreateIssueCommentPayload:
+    properties:
+      content:
+        type: string
+    type: object
+  main.CreateIssuePayload:
+    properties:
+      description:
+        type: string
+      priority:
+        type: string
+      status:
+        type: string
+      title:
         type: string
     type: object
   main.CreateProjectCommentPayload:
@@ -46,6 +67,22 @@ definitions:
     - name
     - password
     type: object
+  main.UpdateIssueCommentPayload:
+    properties:
+      content:
+        type: string
+    type: object
+  main.UpdateIssuePayload:
+    properties:
+      description:
+        type: string
+      priority:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
   main.UpdateProjectCommentPayload:
     properties:
       content:
@@ -71,6 +108,77 @@ definitions:
         type: string
       target_date:
         type: string
+    type: object
+  store.Assignee:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  store.Issue:
+    properties:
+      assignees:
+        items:
+          $ref: '#/definitions/store.Assignee'
+        type: array
+      author_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      priority:
+        type: string
+      project_id:
+        type: integer
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  store.IssueActivity:
+    properties:
+      actor:
+        $ref: '#/definitions/store.UserSummary'
+      actor_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      issue_id:
+        type: integer
+      payload:
+        description: Shape depends on Type, e.g. {"from":"todo","to":"done"} for status_changed.
+        type: object
+      type:
+        type: string
+    type: object
+  store.IssueComment:
+    properties:
+      author:
+        $ref: '#/definitions/store.UserSummary'
+      author_id:
+        type: string
+      content:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      issue_id:
+        type: integer
+      updated_at:
+        type: string
+      version:
+        type: integer
     type: object
   store.Membership:
     properties:
@@ -266,6 +374,389 @@ paths:
       summary: Healthcheck
       tags:
       - health
+  /issues/{issueID}:
+    delete:
+      description: Only the issue's author or a project admin may delete it. Its comments
+        and activity trail go with it.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Delete an issue
+      tags:
+      - issues
+    get:
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Issue'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Get one issue
+      tags:
+      - issues
+    patch:
+      consumes:
+      - application/json
+      description: Fields left out of the payload are unchanged. Every change is recorded
+        on the issue's activity trail.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Fields to change
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateIssuePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Issue'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Edit an issue
+      tags:
+      - issues
+  /issues/{issueID}/activities:
+    get:
+      description: Append-only record of everything that has happened to the issue,
+        oldest first. The payload's shape depends on the entry's type, e.g. {"from":"todo","to":"done"}
+        for status_changed.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.IssueActivity'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Read an issue's activity trail
+      tags:
+      - activities
+  /issues/{issueID}/assignees:
+    post:
+      consumes:
+      - application/json
+      description: The user must already be a member of the project. An issue may
+        have any number of assignees.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: User to assign
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.AddIssueAssigneePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Assignee'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Assign a user to an issue
+      tags:
+      - issues
+  /issues/{issueID}/assignees/{userID}:
+    delete:
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Unassign a user from an issue
+      tags:
+      - issues
+  /issues/{issueID}/comments:
+    get:
+      description: Comments are returned newest first, each with a summary of its
+        author.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.IssueComment'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: List an issue's comments
+      tags:
+      - issue-comments
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Comment content
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateIssueCommentPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.IssueComment'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Post a comment on an issue
+      tags:
+      - issue-comments
+  /issues/{issueID}/comments/{commentID}:
+    delete:
+      description: Only the comment's author or a project admin may delete it.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Comment ID
+        in: path
+        name: commentID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Delete an issue comment
+      tags:
+      - issue-comments
+    patch:
+      consumes:
+      - application/json
+      description: Only the comment's author or a project admin may edit it.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Comment ID
+        in: path
+        name: commentID
+        required: true
+        type: integer
+      - description: New content
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateIssueCommentPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.IssueComment'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Edit an issue comment
+      tags:
+      - issue-comments
   /projects:
     get:
       produces:
@@ -577,6 +1068,78 @@ paths:
       summary: Edit a comment
       tags:
       - comments
+  /projects/{id}/issues:
+    get:
+      description: Issues are returned newest first, each with its assignees.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Issue'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: List a project's issues
+      tags:
+      - issues
+    post:
+      consumes:
+      - application/json
+      description: Omitting status or priority falls back to 'backlog' and 'no-priority'.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Issue to create
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateIssuePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Issue'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Create an issue on a project
+      tags:
+      - issues
   /projects/{id}/lead:
     put:
       consumes:

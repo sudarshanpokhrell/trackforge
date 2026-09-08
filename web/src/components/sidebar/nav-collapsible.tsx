@@ -1,5 +1,5 @@
 'use client';
-import { ChevronDown, Home, LayoutDashboard, Ticket } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Ticket } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
   Collapsible,

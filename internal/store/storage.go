@@ -39,6 +39,24 @@ type Storage struct {
 	}
 	Issues interface {
 		Create(context.Context, *Issue) error
+		GetByID(ctx context.Context, issueID int64) (*Issue, error)
+		ListByProject(ctx context.Context, projectID int64) ([]*Issue, error)
+		Update(ctx context.Context, issue *Issue, before Issue, actorID string) error
+		AddAssignee(ctx context.Context, issueID int64, userID, actorID string) error
+		RemoveAssignee(ctx context.Context, issueID int64, userID, actorID string) error
+		Delete(ctx context.Context, issueID int64) error
+	}
+
+	Activities interface {
+		ListByIssue(ctx context.Context, issueID int64) ([]*IssueActivity, error)
+	}
+
+	IssueComments interface {
+		Create(context.Context, *IssueComment) error
+		GetByIssueID(ctx context.Context, issueID int64) ([]*IssueComment, error)
+		GetByID(ctx context.Context, commentID int64) (*IssueComment, error)
+		Update(context.Context, *IssueComment) error
+		Delete(ctx context.Context, commentID int64) error
 	}
 
 	Comments interface {
@@ -57,5 +75,8 @@ func NewStorage(db *sql.DB) Storage {
 		Memberships: &MembershipStore{db},
 		Comments:    &CommentStore{db},
 		Issues:      &IssueStore{db},
+		Activities:  &ActivityStore{db},
+
+		IssueComments: &IssueCommentStore{db},
 	}
 }

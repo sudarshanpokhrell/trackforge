@@ -16,6 +16,8 @@ type contextKey string
 const userCtx contextKey = "user"
 const projectRoleCtx contextKey = "project_role"
 const commentCtx contextKey = "comment"
+const issueCtx contextKey = "issue"
+const issueCommentCtx contextKey = "issue_comment"
 
 const authCookieName = "jwt_token"
 
@@ -177,6 +179,109 @@ func (app *application) RequireCommentOwnership(next http.Handler) http.Handler 
 		}
 
 		ctx := context.WithValue(r.Context(), commentCtx, comment)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// Check roles and provide issue and role in context
+func (app *application) RequireIssueRole(minRole string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			issueID, err := app.readIssueIDParam(r)
+
+			if err != nil {
+				app.badRequestResponse(w, r, err)
+				return
+			}
+
+			issue, err := app.store.Issues.GetByID(r.Context(), issueID)
+
+			if err != nil {
+				switch {
+				case errors.Is(err, store.ErrNotFound):
+					app.notFoundResponse(w, r)
+				default:
+					app.serverErrorResponse(w, r, err)
+				}
+				return
+			}
+
+			role, err := app.store.Memberships.GetRole(r.Context(), app.contextUserID(r), issue.ProjectID)
+
+			if err != nil {
+				switch {
+				case errors.Is(err, store.ErrNotFound):
+					app.notFoundResponse(w, r)
+				default:
+					app.serverErrorResponse(w, r, err)
+				}
+				return
+			}
+
+			if !store.RoleAtLeast(role, minRole) {
+				app.notPermittedResponse(w, r)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), projectRoleCtx, role)
+			ctx = context.WithValue(ctx, issueCtx, issue)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+func (app *application) RequireIssueOwnership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		issue := app.contextIssue(r)
+
+		role, _ := app.contextProjectRole(r)
+
+		if issue.AuthorID != app.contextUserID(r) && !store.RoleAtLeast(role, store.RoleAdmin) {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) RequireIssueCommentOwnership(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		issue := app.contextIssue(r)
+
+		commentID, err := app.readCommentIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		comment, err := app.store.IssueComments.GetByID(r.Context(), commentID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		if comment.IssueID != issue.ID {
+			app.notFoundResponse(w, r)
+			return
+		}
+
+		role, _ := app.contextProjectRole(r)
+
+		if comment.AuthorID != app.contextUserID(r) && !store.RoleAtLeast(role, store.RoleAdmin) {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), issueCommentCtx, comment)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

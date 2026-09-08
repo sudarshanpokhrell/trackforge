@@ -1,6 +1,6 @@
 'use client';
 
-import { Inbox, Ticket, Home, Folder, Server, Laptop } from 'lucide-react';
+import { Inbox, Ticket, Home,  Server, Laptop } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';

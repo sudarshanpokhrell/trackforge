@@ -32,9 +32,14 @@ type ProjectComment struct {
 	Version   int32        `json:"version"`
 }
 
+// Project and issue comments hold their content to the same rule.
+func validateCommentContent(v *validator.Validator, content string) {
+	v.Check(strings.TrimSpace(content) != "", "content", "must be provided")
+	v.Check(len(content) <= 2000, "content", "must not be more than 2000 bytes long")
+}
+
 func ValidateComment(v *validator.Validator, c *ProjectComment) {
-	v.Check(strings.TrimSpace(c.Content) != "", "content", "must be provided")
-	v.Check(len(c.Content) <= 2000, "content", "must not be more than 2000 bytes long")
+	validateCommentContent(v, c.Content)
 }
 
 func (s *CommentStore) Create(ctx context.Context, comment *ProjectComment) error {

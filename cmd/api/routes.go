@@ -29,6 +29,40 @@ func (app *application) routes() http.Handler {
 			r.Post("/register", app.registerUserHandler)
 			r.Post("/login", app.loginUserHandler)
 		})
+		r.Route("/issues", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+
+			r.Route("/{issueID}", func(r chi.Router) {
+				r.Group(func(r chi.Router) {
+					r.Use(app.RequireIssueRole(store.RoleViewer))
+					r.Get("/", app.getIssueHandler)
+					r.Get("/activities", app.listIssueActivitiesHandler)
+					r.Get("/comments", app.listIssueCommentsHandler)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.RequireIssueRole(store.RoleEditor))
+					r.Patch("/", app.updateIssueHandler)
+					r.Post("/assignees", app.addIssueAssigneeHandler)
+					r.Delete("/assignees/{userID}", app.removeIssueAssigneeHandler)
+					r.Post("/comments", app.createIssueCommentHandler)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.RequireIssueRole(store.RoleEditor))
+					r.Use(app.RequireIssueCommentOwnership)
+					r.Patch("/comments/{commentID}", app.updateIssueCommentHandler)
+					r.Delete("/comments/{commentID}", app.deleteIssueCommentHandler)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.RequireIssueRole(store.RoleEditor))
+					r.Use(app.RequireIssueOwnership)
+					r.Delete("/", app.deleteIssueHandler)
+				})
+			})
+		})
+
 		r.Route("/projects", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 			r.Post("/", app.createProjectHandler)
@@ -48,6 +82,7 @@ func (app *application) routes() http.Handler {
 				})
 
 				r.Route("/issues", func(r chi.Router) {
+					r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.listProjectIssuesHandler)
 					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createIssueHandler)
 				})
 

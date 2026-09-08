@@ -111,6 +111,16 @@ func (app *application) readCommentIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
+func (app *application) readIssueIDParam(r *http.Request) (int64, error) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "issueID"), 10, 64)
+
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid issue id parameter")
+	}
+
+	return id, nil
+}
+
 func (app *application) readUserIDParam(r *http.Request) (string, error) {
 	userID := chi.URLParam(r, "userID")
 
@@ -137,6 +147,22 @@ func (app *application) contextComment(r *http.Request) *store.ProjectComment {
 	comment, ok := r.Context().Value(commentCtx).(*store.ProjectComment)
 	if !ok {
 		panic("missing comment in request context")
+	}
+	return comment
+}
+
+func (app *application) contextIssue(r *http.Request) *store.Issue {
+	issue, ok := r.Context().Value(issueCtx).(*store.Issue)
+	if !ok {
+		panic("missing issue in request context")
+	}
+	return issue
+}
+
+func (app *application) contextIssueComment(r *http.Request) *store.IssueComment {
+	comment, ok := r.Context().Value(issueCommentCtx).(*store.IssueComment)
+	if !ok {
+		panic("missing issue comment in request context")
 	}
 	return comment
 }

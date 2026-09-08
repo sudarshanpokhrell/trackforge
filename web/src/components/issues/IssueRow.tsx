@@ -1,4 +1,4 @@
-import { GripVertical, UserCircle2 } from 'lucide-react'
+import {  UserCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { StatusIcon, PriorityIcon } from './icons'
 import { StatusPopover, PriorityPopover, AssigneePopover } from './popovers'
