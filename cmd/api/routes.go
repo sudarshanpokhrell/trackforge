@@ -47,6 +47,10 @@ func (app *application) routes() http.Handler {
 					r.Delete("/{userID}", app.removeProjectMemberHandler)
 				})
 
+				r.Route("/issues", func(r chi.Router) {
+					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createIssueHandler)
+				})
+
 				r.Route("/comments", func(r chi.Router) {
 					r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectCommentsHandler)
 					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createProjectCommentHandler)
