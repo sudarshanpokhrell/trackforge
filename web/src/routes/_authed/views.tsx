@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Eye, Filter, Clock, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_authenticated/views')({
+export const Route = createFileRoute('/_authed/views')({
   component: ViewsPage,
 })
 

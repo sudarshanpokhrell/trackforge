@@ -6,8 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Link } from '@tanstack/react-router';
-import { api } from '@/lib/api';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { getErrorMessage } from '@/lib/api';
+import { useAuth } from '@/providers/auth-provider';
 
 const GoogleIcon = (
   props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>
@@ -22,19 +23,13 @@ type LoginValues = {
   password: string;
 };
 
-interface LoginResponse {
-  token: string
-  user : {
-    id: string
-    name: string
-    email: string
-  }
-}
-
 export default function LoginForm() {
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { redirect } = useSearch({ from: '/_auth/login' });
 
   const {
     register,
@@ -47,14 +42,11 @@ export default function LoginForm() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const {user} = await api.post("/auth/login", {json: values}).json<LoginResponse>()
+      const user = await login(values);
       toast.success(`Welcome ${user.name}`);
-
+      await navigate({ to: redirect ?? '/', replace: true });
     } catch (error) {
-      setError('root', {
-        message:
-          error instanceof Error ? error.message : 'Something went wrong.',
-      });
+      setError('root', { message: getErrorMessage(error) });
     }
   };
 

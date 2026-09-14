@@ -170,3 +170,39 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+// @Summary Get the current user
+// @Description Return the user identified by the auth cookie or bearer token
+// @Tags auth
+// @Produce json
+// @Success 200 {object} store.User
+// @Failure 401 {object} error
+// @Security BearerAuth
+// @Router /auth/me [get]
+func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	err := app.writeJSON(w, http.StatusOK, envelope{"user": app.contextUser(r)}, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// @Summary Logout
+// @Description Clear the auth cookie
+// @Tags auth
+// @Success 204
+// @Router /auth/logout [post]
+func (app *application) logoutUserHandler(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name:     authCookieName,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Secure:   app.config.env != "development",
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	}
+
+	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -14,7 +14,7 @@ type Issue = {
   description?: string
 }
 
-export const Route = createFileRoute("/_authenticated/issues/$issueId")({
+export const Route = createFileRoute("/_authed/issues/$issueId")({
   component: IssueDetailPage,
 })
 

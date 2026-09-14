@@ -10,25 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
-import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
-import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
-import { Route as AuthenticatedViewsRouteImport } from './routes/_authenticated/views'
-import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
-import { Route as AuthenticatedIssuesIndexRouteImport } from './routes/_authenticated/issues/index'
-import { Route as AuthenticatedIssuesIssueIdRouteImport } from './routes/_authenticated/issues/$issueId'
-import { Route as AuthenticatedProjectsProjectIdIndexRouteImport } from './routes/_authenticated/projects/$projectId/index'
-import { Route as AuthenticatedProjectsProjectIdIssuesRouteImport } from './routes/_authenticated/projects/$projectId/issues'
+import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
+import { Route as AuthedAboutRouteImport } from './routes/_authed/about'
+import { Route as AuthedInboxRouteImport } from './routes/_authed/inbox'
+import { Route as AuthedViewsRouteImport } from './routes/_authed/views'
+import { Route as AuthedWorkspaceRouteImport } from './routes/_authed/workspace'
+import { Route as AuthedIssuesIndexRouteImport } from './routes/_authed/issues/index'
+import { Route as AuthedIssuesIssueIdRouteImport } from './routes/_authed/issues/$issueId'
+import { Route as AuthedProjectsProjectIdIndexRouteImport } from './routes/_authed/projects/$projectId/index'
+import { Route as AuthedProjectsProjectIdIssuesRouteImport } from './routes/_authed/projects/$projectId/issues'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const AuthedRouteRoute = AuthedRouteRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -41,97 +41,95 @@ const AuthRegisterRoute = AuthRegisterRouteImport.update({
   path: '/register',
   getParentRoute: () => AuthRouteRoute,
 } as any)
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+const AuthedIndexRoute = AuthedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
+const AuthedAboutRoute = AuthedAboutRouteImport.update({
   id: '/about',
   path: '/about',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
+const AuthedInboxRoute = AuthedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthenticatedViewsRoute = AuthenticatedViewsRouteImport.update({
+const AuthedViewsRoute = AuthedViewsRouteImport.update({
   id: '/views',
   path: '/views',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+const AuthedWorkspaceRoute = AuthedWorkspaceRouteImport.update({
   id: '/workspace',
   path: '/workspace',
-  getParentRoute: () => AuthenticatedRouteRoute,
+  getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthenticatedIssuesIndexRoute =
-  AuthenticatedIssuesIndexRouteImport.update({
-    id: '/issues/',
-    path: '/issues/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedIssuesIssueIdRoute =
-  AuthenticatedIssuesIssueIdRouteImport.update({
-    id: '/issues/$issueId',
-    path: '/issues/$issueId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedProjectsProjectIdIndexRoute =
-  AuthenticatedProjectsProjectIdIndexRouteImport.update({
+const AuthedIssuesIndexRoute = AuthedIssuesIndexRouteImport.update({
+  id: '/issues/',
+  path: '/issues/',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedIssuesIssueIdRoute = AuthedIssuesIssueIdRouteImport.update({
+  id: '/issues/$issueId',
+  path: '/issues/$issueId',
+  getParentRoute: () => AuthedRouteRoute,
+} as any)
+const AuthedProjectsProjectIdIndexRoute =
+  AuthedProjectsProjectIdIndexRouteImport.update({
     id: '/projects/$projectId/',
     path: '/projects/$projectId/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AuthedRouteRoute,
   } as any)
-const AuthenticatedProjectsProjectIdIssuesRoute =
-  AuthenticatedProjectsProjectIdIssuesRouteImport.update({
+const AuthedProjectsProjectIdIssuesRoute =
+  AuthedProjectsProjectIdIssuesRouteImport.update({
     id: '/projects/$projectId/issues',
     path: '/projects/$projectId/issues',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AuthedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof AuthedIndexRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
-  '/about': typeof AuthenticatedAboutRoute
-  '/inbox': typeof AuthenticatedInboxRoute
-  '/views': typeof AuthenticatedViewsRoute
-  '/workspace': typeof AuthenticatedWorkspaceRoute
-  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
-  '/issues/': typeof AuthenticatedIssuesIndexRoute
-  '/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
-  '/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/about': typeof AuthedAboutRoute
+  '/inbox': typeof AuthedInboxRoute
+  '/views': typeof AuthedViewsRoute
+  '/workspace': typeof AuthedWorkspaceRoute
+  '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
+  '/issues/': typeof AuthedIssuesIndexRoute
+  '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof AuthenticatedIndexRoute
+  '/': typeof AuthedIndexRoute
   '/login': typeof AuthLoginRoute
   '/register': typeof AuthRegisterRoute
-  '/about': typeof AuthenticatedAboutRoute
-  '/inbox': typeof AuthenticatedInboxRoute
-  '/views': typeof AuthenticatedViewsRoute
-  '/workspace': typeof AuthenticatedWorkspaceRoute
-  '/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
-  '/issues': typeof AuthenticatedIssuesIndexRoute
-  '/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
-  '/projects/$projectId': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/about': typeof AuthedAboutRoute
+  '/inbox': typeof AuthedInboxRoute
+  '/views': typeof AuthedViewsRoute
+  '/workspace': typeof AuthedWorkspaceRoute
+  '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
+  '/issues': typeof AuthedIssuesIndexRoute
+  '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/projects/$projectId': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteRouteWithChildren
-  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authed': typeof AuthedRouteRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/register': typeof AuthRegisterRoute
-  '/_authenticated/about': typeof AuthenticatedAboutRoute
-  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
-  '/_authenticated/views': typeof AuthenticatedViewsRoute
-  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
-  '/_authenticated/': typeof AuthenticatedIndexRoute
-  '/_authenticated/issues/$issueId': typeof AuthenticatedIssuesIssueIdRoute
-  '/_authenticated/issues/': typeof AuthenticatedIssuesIndexRoute
-  '/_authenticated/projects/$projectId/issues': typeof AuthenticatedProjectsProjectIdIssuesRoute
-  '/_authenticated/projects/$projectId/': typeof AuthenticatedProjectsProjectIdIndexRoute
+  '/_authed/about': typeof AuthedAboutRoute
+  '/_authed/inbox': typeof AuthedInboxRoute
+  '/_authed/views': typeof AuthedViewsRoute
+  '/_authed/workspace': typeof AuthedWorkspaceRoute
+  '/_authed/': typeof AuthedIndexRoute
+  '/_authed/issues/$issueId': typeof AuthedIssuesIssueIdRoute
+  '/_authed/issues/': typeof AuthedIssuesIndexRoute
+  '/_authed/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/_authed/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -163,23 +161,23 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_auth'
-    | '/_authenticated'
+    | '/_authed'
     | '/_auth/login'
     | '/_auth/register'
-    | '/_authenticated/about'
-    | '/_authenticated/inbox'
-    | '/_authenticated/views'
-    | '/_authenticated/workspace'
-    | '/_authenticated/'
-    | '/_authenticated/issues/$issueId'
-    | '/_authenticated/issues/'
-    | '/_authenticated/projects/$projectId/issues'
-    | '/_authenticated/projects/$projectId/'
+    | '/_authed/about'
+    | '/_authed/inbox'
+    | '/_authed/views'
+    | '/_authed/workspace'
+    | '/_authed/'
+    | '/_authed/issues/$issueId'
+    | '/_authed/issues/'
+    | '/_authed/projects/$projectId/issues'
+    | '/_authed/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
-  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -191,11 +189,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
+    '/_authed': {
+      id: '/_authed'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      preLoaderRoute: typeof AuthedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/login': {
@@ -212,68 +210,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRegisterRouteImport
       parentRoute: typeof AuthRouteRoute
     }
-    '/_authenticated/': {
-      id: '/_authenticated/'
+    '/_authed/': {
+      id: '/_authed/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/about': {
-      id: '/_authenticated/about'
+    '/_authed/about': {
+      id: '/_authed/about'
       path: '/about'
       fullPath: '/about'
-      preLoaderRoute: typeof AuthenticatedAboutRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedAboutRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/inbox': {
-      id: '/_authenticated/inbox'
+    '/_authed/inbox': {
+      id: '/_authed/inbox'
       path: '/inbox'
       fullPath: '/inbox'
-      preLoaderRoute: typeof AuthenticatedInboxRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedInboxRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/views': {
-      id: '/_authenticated/views'
+    '/_authed/views': {
+      id: '/_authed/views'
       path: '/views'
       fullPath: '/views'
-      preLoaderRoute: typeof AuthenticatedViewsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedViewsRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/workspace': {
-      id: '/_authenticated/workspace'
+    '/_authed/workspace': {
+      id: '/_authed/workspace'
       path: '/workspace'
       fullPath: '/workspace'
-      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedWorkspaceRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/issues/': {
-      id: '/_authenticated/issues/'
+    '/_authed/issues/': {
+      id: '/_authed/issues/'
       path: '/issues'
       fullPath: '/issues/'
-      preLoaderRoute: typeof AuthenticatedIssuesIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedIssuesIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/issues/$issueId': {
-      id: '/_authenticated/issues/$issueId'
+    '/_authed/issues/$issueId': {
+      id: '/_authed/issues/$issueId'
       path: '/issues/$issueId'
       fullPath: '/issues/$issueId'
-      preLoaderRoute: typeof AuthenticatedIssuesIssueIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedIssuesIssueIdRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/projects/$projectId/': {
-      id: '/_authenticated/projects/$projectId/'
+    '/_authed/projects/$projectId/': {
+      id: '/_authed/projects/$projectId/'
       path: '/projects/$projectId'
       fullPath: '/projects/$projectId/'
-      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedProjectsProjectIdIndexRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
-    '/_authenticated/projects/$projectId/issues': {
-      id: '/_authenticated/projects/$projectId/issues'
+    '/_authed/projects/$projectId/issues': {
+      id: '/_authed/projects/$projectId/issues'
       path: '/projects/$projectId/issues'
       fullPath: '/projects/$projectId/issues'
-      preLoaderRoute: typeof AuthenticatedProjectsProjectIdIssuesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthedProjectsProjectIdIssuesRouteImport
+      parentRoute: typeof AuthedRouteRoute
     }
   }
 }
@@ -292,38 +290,37 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
   AuthRouteRouteChildren,
 )
 
-interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
-  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
-  AuthenticatedViewsRoute: typeof AuthenticatedViewsRoute
-  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
-  AuthenticatedIssuesIssueIdRoute: typeof AuthenticatedIssuesIssueIdRoute
-  AuthenticatedIssuesIndexRoute: typeof AuthenticatedIssuesIndexRoute
-  AuthenticatedProjectsProjectIdIssuesRoute: typeof AuthenticatedProjectsProjectIdIssuesRoute
-  AuthenticatedProjectsProjectIdIndexRoute: typeof AuthenticatedProjectsProjectIdIndexRoute
+interface AuthedRouteRouteChildren {
+  AuthedAboutRoute: typeof AuthedAboutRoute
+  AuthedInboxRoute: typeof AuthedInboxRoute
+  AuthedViewsRoute: typeof AuthedViewsRoute
+  AuthedWorkspaceRoute: typeof AuthedWorkspaceRoute
+  AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedIssuesIssueIdRoute: typeof AuthedIssuesIssueIdRoute
+  AuthedIssuesIndexRoute: typeof AuthedIssuesIndexRoute
+  AuthedProjectsProjectIdIssuesRoute: typeof AuthedProjectsProjectIdIssuesRoute
+  AuthedProjectsProjectIdIndexRoute: typeof AuthedProjectsProjectIdIndexRoute
 }
 
-const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAboutRoute: AuthenticatedAboutRoute,
-  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
-  AuthenticatedViewsRoute: AuthenticatedViewsRoute,
-  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
-  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
-  AuthenticatedIssuesIssueIdRoute: AuthenticatedIssuesIssueIdRoute,
-  AuthenticatedIssuesIndexRoute: AuthenticatedIssuesIndexRoute,
-  AuthenticatedProjectsProjectIdIssuesRoute:
-    AuthenticatedProjectsProjectIdIssuesRoute,
-  AuthenticatedProjectsProjectIdIndexRoute:
-    AuthenticatedProjectsProjectIdIndexRoute,
+const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
+  AuthedAboutRoute: AuthedAboutRoute,
+  AuthedInboxRoute: AuthedInboxRoute,
+  AuthedViewsRoute: AuthedViewsRoute,
+  AuthedWorkspaceRoute: AuthedWorkspaceRoute,
+  AuthedIndexRoute: AuthedIndexRoute,
+  AuthedIssuesIssueIdRoute: AuthedIssuesIssueIdRoute,
+  AuthedIssuesIndexRoute: AuthedIssuesIndexRoute,
+  AuthedProjectsProjectIdIssuesRoute: AuthedProjectsProjectIdIssuesRoute,
+  AuthedProjectsProjectIdIndexRoute: AuthedProjectsProjectIdIndexRoute,
 }
 
-const AuthenticatedRouteRouteWithChildren =
-  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
+  AuthedRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
-  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthedRouteRoute: AuthedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

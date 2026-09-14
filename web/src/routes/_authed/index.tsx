@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { ListChecks, Inbox, FolderKanban, Users } from "lucide-react"
 
-export const Route = createFileRoute("/_authenticated/")({
+export const Route = createFileRoute("/_authed/")({
   component: HomeComponent,
 })
 

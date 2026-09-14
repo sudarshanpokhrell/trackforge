@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_authenticated/inbox')({
+export const Route = createFileRoute('/_authed/inbox')({
   component: InboxPage,
 })
 

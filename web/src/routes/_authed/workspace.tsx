@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Users, GitBranch, Clock, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-export const Route = createFileRoute('/_authenticated/workspace')({
+export const Route = createFileRoute('/_authed/workspace')({
   component: WorkspacePage,
 })
 

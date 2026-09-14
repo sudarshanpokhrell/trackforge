@@ -28,6 +28,8 @@ func (app *application) routes() http.Handler {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/register", app.registerUserHandler)
 			r.Post("/login", app.loginUserHandler)
+			r.Post("/logout", app.logoutUserHandler)
+			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)
 		})
 		r.Route("/issues", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)

@@ -6,7 +6,7 @@ import { MOCK_ASSIGNEES } from '@/components/issues/types'
 import { sidebarData } from '@/components/sidebar/sidebar'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_authenticated/projects/$projectId/')({
+export const Route = createFileRoute('/_authed/projects/$projectId/')({
     component: ProjectHome,
 })
 
