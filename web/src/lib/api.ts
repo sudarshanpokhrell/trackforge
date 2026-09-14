@@ -20,6 +20,12 @@ export function getErrorMessage(e: unknown): string {
   return e instanceof Error ? e.message : 'Something went wrong.'
 }
 
+let unauthorizedHandler = () => {}
+
+export function onUnauthorized(handler: () => void) {
+  unauthorizedHandler = handler
+}
+
 export const api = ky.create({
   prefix: '/api/v1',
   timeout: 10000,
@@ -27,8 +33,10 @@ export const api = ky.create({
   headers: { 'X-Requested-With': 'XMLHttpRequest' },
   hooks: {
     beforeError: [
-      ({ error }) => {
+      ({ request, error }) => {
         if (!isHTTPError(error)) return error
+        const isAuthRoute = new URL(request.url).pathname.startsWith('/api/v1/auth/')
+        if (error.response.status === 401 && !isAuthRoute) unauthorizedHandler()
         const detail = (error.data as { error?: string | Record<string, string> })?.error
         const fields = typeof detail === 'object' ? detail : undefined
         const message = typeof detail === 'object' ? Object.values(detail).join(' ') : detail

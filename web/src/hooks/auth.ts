@@ -47,16 +47,9 @@ export function useLogin() {
 }
 
 export function useRegister() {
-  const client = useQueryClient()
-
   return useMutation({
-    mutationFn: async (input: RegisterInput) => {
-      await api.post("auth/register", { json: input })
-      return login({ email: input.email, password: input.password })
-    },
-    onSuccess: ({ user }) => {
-      client.setQueryData(meQuery.queryKey, user)
-    },
+    mutationFn: (input: RegisterInput) =>
+      api.post("auth/register", { json: input }).json<UserResponse>(),
   })
 }
 

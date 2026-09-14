@@ -38,9 +38,9 @@ export default function RegisterForm() {
 
   const onSubmit = async (values: RegisterInput) => {
     try {
-      const { user } = await signUp.mutateAsync(values);
-      toast.success(`Welcome ${user.name}`);
-      await navigate({ to: '/', replace: true });
+      await signUp.mutateAsync(values);
+      toast.success('Account created. Please login to contunue.');
+      await navigate({ to: '/login', replace: true });
     } catch (error) {
       setError('root', { message: getErrorMessage(error) });
     }
