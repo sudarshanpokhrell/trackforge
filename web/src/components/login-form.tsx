@@ -6,9 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { Link, useRouter, useSearch } from '@tanstack/react-router';
 import { getErrorMessage } from '@/lib/api';
-import { useAuth } from '@/providers/auth-provider';
+import {  useLogin } from '@/hooks/auth';
+
+
+export function safeRedirect(redirect: string | undefined) {
+  return redirect?.startsWith("/") && !redirect.startsWith("//") ? redirect : "/"
+}
 
 const GoogleIcon = (
   props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>
@@ -27,8 +32,8 @@ export default function LoginForm() {
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
-  const { login } = useAuth();
-  const navigate = useNavigate();
+  const login = useLogin();
+  const router = useRouter();
   const { redirect } = useSearch({ from: '/_auth/login' });
 
   const {
@@ -42,9 +47,10 @@ export default function LoginForm() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const user = await login(values);
+      const { user } = await login.mutateAsync(values);
       toast.success(`Welcome ${user.name}`);
-      await navigate({ to: redirect ?? '/', replace: true });
+      // redirect is a full href (path + search), so navigate by href rather than `to`.
+      await router.navigate({ href: safeRedirect(redirect), replace: true });
     } catch (error) {
       setError('root', { message: getErrorMessage(error) });
     }

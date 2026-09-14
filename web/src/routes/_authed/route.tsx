@@ -1,27 +1,19 @@
 import { AppSidebar } from "@/components/sidebar/sidebar"
-import { useLogout } from "@/hooks/auth"
-import {
-  createFileRoute,
-  Outlet,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router"
-import { useEffect } from "react"
+import { meQuery } from "@/hooks/auth"
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_authed")({
   beforeLoad: async ({ context, location }) => {
-    if (!context.user) {
+    const user = await context.queryClient.query(meQuery)
+    if (!user) {
       throw redirect({ to: "/login", search: { redirect: location.href } })
     }
-    return { user: context.user } // narrows User | null → User for child routes
+    return { user } 
   },
   component: AuthenticatedLayout,
 })
 
 function AuthenticatedLayout() {
-  const {user} = Route.useRouteContext()
-  const logout = useLogout()
-
   return (
     <div className="flex flex-1 overflow-hidden">
       <AppSidebar />

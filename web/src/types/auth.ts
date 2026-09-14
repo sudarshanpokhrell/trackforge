@@ -13,17 +13,3 @@ export type LoginInput = {
 export type RegisterInput = LoginInput & {
   name: string
 }
-
-
-export type LoginResponse = {
-  user: User
-  token: string
-}
-
-export type AuthContext = {
-  user: User | null
-  isAuthenticated: boolean
-  login: (input: LoginInput) => Promise<User>
-  register: (input: RegisterInput) => Promise<User>
-  logout: () => Promise<void>
-}

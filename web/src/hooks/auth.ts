@@ -1,10 +1,5 @@
 import { api, isApiError } from "@/lib/api"
-import type {
-  LoginInput,
-  LoginResponse,
-  RegisterInput,
-  User,
-} from "@/types/auth"
+import type { LoginInput, RegisterInput, User } from "@/types/auth"
 import {
   queryOptions,
   useMutation,
@@ -13,17 +8,20 @@ import {
 } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 
+type UserResponse = { user: User }
+
 export const meQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async (): Promise<User | null> => {
     try {
-      return await api.get("/auth/me").json<User>()
+      const { user } = await api.get("auth/me").json<UserResponse>()
+      return user
     } catch (e) {
       if (isApiError(e, 401)) return null
       throw e
     }
   },
-  //????
+
   staleTime: Infinity,
   retry: false,
 })
@@ -33,25 +31,32 @@ export function useUser() {
   return data
 }
 
+function login(input: LoginInput) {
+  return api.post("auth/login", { json: input }).json<UserResponse>()
+}
+
 export function useLogin() {
   const client = useQueryClient()
-  const router = useRouter()
 
   return useMutation({
-    mutationFn: (input: LoginInput) =>
-      api.post("auth/login", { json: input }).json<LoginResponse>(),
-
-    onSuccess: async (data) => {
-      client.setQueryData(meQuery.queryKey, data.user)
-      await router.invalidate()
+    mutationFn: login,
+    onSuccess: ({ user }) => {
+      client.setQueryData(meQuery.queryKey, user)
     },
   })
 }
 
 export function useRegister() {
+  const client = useQueryClient()
+
   return useMutation({
-    mutationFn: (input: RegisterInput) =>
-      api.post("auth/register", { json: input }).json<User>(),
+    mutationFn: async (input: RegisterInput) => {
+      await api.post("auth/register", { json: input })
+      return login({ email: input.email, password: input.password })
+    },
+    onSuccess: ({ user }) => {
+      client.setQueryData(meQuery.queryKey, user)
+    },
   })
 }
 
@@ -62,8 +67,9 @@ export function useLogout() {
   return useMutation({
     mutationFn: () => api.post("auth/logout"),
     onSettled: async () => {
+      client.clear()
       client.setQueryData(meQuery.queryKey, null)
-      await router.invalidate()
+      await router.navigate({ to: "/login", replace: true })
     },
   })
 }

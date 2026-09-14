@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { getErrorMessage } from '@/lib/api';
-import { useAuth } from '@/providers/auth-provider';
+import { useRegister } from '@/hooks/auth';
 import type { RegisterInput } from '@/types/auth';
 
 const GoogleIcon = (
@@ -24,7 +24,7 @@ export default function RegisterForm() {
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
   const toggleVisibility = () => setIsVisible((prevState) => !prevState);
-  const { register: signUp } = useAuth();
+  const signUp = useRegister();
   const navigate = useNavigate();
 
   const {
@@ -38,7 +38,7 @@ export default function RegisterForm() {
 
   const onSubmit = async (values: RegisterInput) => {
     try {
-      const user = await signUp(values);
+      const { user } = await signUp.mutateAsync(values);
       toast.success(`Welcome ${user.name}`);
       await navigate({ to: '/', replace: true });
     } catch (error) {

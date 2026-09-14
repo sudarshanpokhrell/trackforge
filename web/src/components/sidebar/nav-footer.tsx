@@ -5,11 +5,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/providers/auth-provider';
+import { useLogout, useUser } from '@/hooks/auth';
 import { ModeToggle } from '../mode-toggle';
 
 export function NavFooter() {
-  const { user, logout } = useAuth();
+  const user = useUser();
+  const logout = useLogout();
 
   return (
     <SidebarFooter className="p-4">
@@ -18,7 +19,11 @@ export function NavFooter() {
           <ModeToggle />
         </SidebarMenuItem>
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={logout} tooltip="Log out">
+          <SidebarMenuButton
+            disabled={logout.isPending}
+            onClick={() => logout.mutate()}
+            tooltip="Log out"
+          >
             <LogOut />
             <span className="truncate">{user?.name ?? 'Log out'}</span>
           </SidebarMenuButton>
