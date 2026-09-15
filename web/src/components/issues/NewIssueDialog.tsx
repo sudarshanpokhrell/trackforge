@@ -6,8 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Plus, Loader2 } from 'lucide-react'
-import { issuesApi } from '@/services/api'
+import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 type FormData = {
@@ -19,7 +18,6 @@ type FormData = {
 
 export function NewIssueDialog({ onSuccess }: { onSuccess?: () => void }) {
   const [open, setOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: {
@@ -30,30 +28,11 @@ export function NewIssueDialog({ onSuccess }: { onSuccess?: () => void }) {
     }
   })
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true)
-    try {
-      const USE_MOCK = true
-      if (USE_MOCK) {
-        console.log('Creating issue:', data)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        toast.success('Issue created successfully!')
-        reset()
-        setOpen(false)
-        onSuccess?.()
-      } else {
-        await issuesApi.create(data)
-        toast.success('Issue created successfully!')
-        reset()
-        setOpen(false)
-        onSuccess?.()
-      }
-    } catch (error) {
-      console.error('Failed to create issue:', error)
-      toast.error('Failed to create issue') 
-    } finally {
-      setIsSubmitting(false)
-    }
+  const onSubmit = () => {
+    toast.success('Issue created successfully!')
+    reset()
+    setOpen(false)
+    onSuccess?.()
   }
 
   return (
@@ -128,9 +107,7 @@ export function NewIssueDialog({ onSuccess }: { onSuccess?: () => void }) {
             <Button variant="outline" type="button" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'Create issue'}
-            </Button>
+            <Button type="submit">Create issue</Button>
           </div>
         </form>
       </DialogContent>

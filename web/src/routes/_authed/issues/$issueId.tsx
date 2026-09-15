@@ -1,18 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Loader2 } from "lucide-react"
-import { issuesApi } from "@/services/api"
-import type { AxiosResponse, AxiosError } from "axios"
+import { ArrowLeft } from "lucide-react"
+import { globalIssues, projectIssues } from "@/components/issues/data"
+import { PRIORITY_LABELS, STATUS_LABELS } from "@/components/issues/types"
 
-type Issue = {
-  id: string
-  title: string
-  status: string
-  priority: string
-  description?: string
-}
+const allIssues = [...globalIssues, ...Object.values(projectIssues).flat()]
 
 export const Route = createFileRoute("/_authed/issues/$issueId")({
   component: IssueDetailPage,
@@ -20,43 +13,7 @@ export const Route = createFileRoute("/_authed/issues/$issueId")({
 
 function IssueDetailPage() {
   const { issueId } = Route.useParams()
-  const [issue, setIssue] = useState<Issue | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    issuesApi
-      .getOne(issueId)
-      .then((response: AxiosResponse) => {
-        setIssue(response.data)
-        setError(null)
-      })
-      .catch((err: AxiosError<{ message?: string }>) => {
-        setError(
-          err.response?.data?.message || err.message || "Failed to fetch issue"
-        )
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [issueId])
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-destructive">
-        <p className="text-sm font-medium">Error</p>
-        <p className="text-sm">{error}</p>
-      </div>
-    )
-  }
+  const issue = allIssues.find((i) => i.id === issueId)
 
   if (!issue) {
     return (
@@ -65,6 +22,8 @@ function IssueDetailPage() {
       </div>
     )
   }
+
+  const isHighPriority = issue.priority === "urgent" || issue.priority === "high"
 
   return (
     <div className="space-y-4">
@@ -75,18 +34,15 @@ function IssueDetailPage() {
       <h1 className="text-2xl font-bold">{issue.title}</h1>
       <div className="flex gap-4">
         <span className="text-sm text-muted-foreground">
-          Status: <Badge variant="outline">{issue.status}</Badge>
+          Status: <Badge variant="outline">{STATUS_LABELS[issue.status]}</Badge>
         </span>
         <span className="text-sm text-muted-foreground">
           Priority:{" "}
-          <Badge
-            variant={issue.priority === "High" ? "destructive" : "secondary"}
-          >
-            {issue.priority}
+          <Badge variant={isHighPriority ? "destructive" : "secondary"}>
+            {PRIORITY_LABELS[issue.priority]}
           </Badge>
         </span>
       </div>
-      {issue.description && <p className="text-sm">{issue.description}</p>}
     </div>
   )
 }

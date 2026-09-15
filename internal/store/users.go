@@ -1,17 +1,37 @@
 package store
 
+//TODO: Don't need to make it repetivate code reusable (one or 2 is. onyl present)
 import (
 	"context"
 	"database/sql"
 	"errors"
 
+	"github.com/lib/pq"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
 	ErrDuplicateEmail = errors.New("email already exists")
+	ErrSetupDone      = errors.New("setup has already been completed")
 )
+
+// App-wide user roles. Distinct from the per-project roles in memberships.go.
+const (
+	UserRoleSuperadmin = "superadmin"
+	UserRoleAdmin      = "admin"
+	UserRoleMember     = "member"
+)
+
+var userRoleRanks = map[string]int{
+	UserRoleMember:     1,
+	UserRoleAdmin:      2,
+	UserRoleSuperadmin: 3,
+}
+
+func UserRoleAtLeast(role, min string) bool {
+	return userRoleRanks[role] != 0 && userRoleRanks[role] >= userRoleRanks[min]
+}
 
 type password struct {
 	text *string
@@ -72,83 +92,82 @@ func ValidateUser(v *validator.Validator, user *User) {
 }
 
 type User struct {
-	ID        string   `json:"id"`
-	Name      string   `json:"name"`
-	Email     string   `json:"email"`
-	Password  password `json:"-"`
-	CreatedAt string   `json:"created_at"`
+	ID                 string   `json:"id"`
+	Name               string   `json:"name"`
+	Email              string   `json:"email"`
+	Password           password `json:"-"`
+	Role               string   `json:"role"`
+	IsActive           bool     `json:"is_active"`
+	MustChangePassword bool     `json:"must_change_password"`
+	CreatedAt          string   `json:"created_at"`
+	UpdatedAt          string   `json:"updated_at"`
 }
 
 type UserStore struct {
 	db *sql.DB
 }
 
+// Create inserts user with the role and must_change_password already set on it.
 func (s *UserStore) Create(ctx context.Context, user *User) error {
-
 	query := `
-		INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id , created_at
+		INSERT INTO users (name, email, password, role, must_change_password)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, is_active, created_at, updated_at
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	err := s.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password.hash).Scan(
+	err := s.db.QueryRowContext(ctx, query, user.Name, user.Email, user.Password.hash, user.Role, user.MustChangePassword).Scan(
 		&user.ID,
+		&user.IsActive,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
-	if err != nil {
-		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key" (23505)`:
-			return ErrDuplicateEmail
-		default:
-			return err
-		}
-	}
-
-	return nil
+	return translateUserError(err)
 }
 
-func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
-
-	query := `SELECT id, name, email , password, created_at FROM users WHERE id = $1 `
+func (s *UserStore) SuperadminExists(ctx context.Context) (bool, error) {
+	query := `SELECT EXISTS (SELECT 1 FROM users WHERE role = 'superadmin')`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, id).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-		&user.Password.hash,
-		&user.CreatedAt,
-	)
+	var exists bool
+	err := s.db.QueryRowContext(ctx, query).Scan(&exists)
 
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrNotFound
-		default:
-			return nil, err
-		}
-	}
+	return exists, err
+}
 
-	return user, nil
+const userColumns = `id, name, email, password, role, is_active, must_change_password, created_at, updated_at`
+
+func (s *UserStore) GetById(ctx context.Context, id string) (*User, error) {
+	query := `SELECT ` + userColumns + ` FROM users WHERE id = $1`
+
+	return s.getOne(ctx, query, id)
 }
 
 func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
-	query := `SELECT id, name, email , password, created_at FROM users WHERE email = $1 `
+	query := `SELECT ` + userColumns + ` FROM users WHERE email = $1`
 
+	return s.getOne(ctx, query, email)
+}
+
+func (s *UserStore) getOne(ctx context.Context, query string, arg any) (*User, error) {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
 	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, email).Scan(
+	err := s.db.QueryRowContext(ctx, query, arg).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,
 		&user.Password.hash,
+		&user.Role,
+		&user.IsActive,
+		&user.MustChangePassword,
 		&user.CreatedAt,
+		&user.UpdatedAt,
 	)
 
 	if err != nil {
@@ -161,4 +180,19 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	}
 
 	return user, nil
+}
+
+func translateUserError(err error) error {
+	var pqErr *pq.Error
+
+	if errors.As(err, &pqErr) && pqErr.Code.Name() == "unique_violation" {
+		switch pqErr.Constraint {
+		case "users_email_key":
+			return ErrDuplicateEmail
+		case "users_single_superadmin":
+			return ErrSetupDone
+		}
+	}
+
+	return err
 }

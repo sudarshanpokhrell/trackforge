@@ -25,8 +25,9 @@ func (app *application) routes() http.Handler {
 	// API Routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/health", app.healthcheckHandler)
+		r.Get("/setup", app.getSetupStatusHandler)
+		r.Post("/setup", app.setupHandler)
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", app.registerUserHandler)
 			r.Post("/login", app.loginUserHandler)
 			r.Post("/logout", app.logoutUserHandler)
 			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)

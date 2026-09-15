@@ -1,5 +1,5 @@
 import { api, isApiError } from "@/lib/api"
-import type { LoginInput, RegisterInput, User } from "@/types/auth"
+import type { LoginInput, SetupInput, SetupStatus, User } from "@/types/auth"
 import {
   queryOptions,
   useMutation,
@@ -46,10 +46,26 @@ export function useLogin() {
   })
 }
 
-export function useRegister() {
+export const setupQuery = queryOptions({
+  queryKey: ["setup"],
+  queryFn: () => api.get("setup").json<SetupStatus>(),
+  staleTime: Infinity,
+})
+
+export function useSetup() {
+  const client = useQueryClient()
+
   return useMutation({
-    mutationFn: (input: RegisterInput) =>
-      api.post("auth/register", { json: input }).json<UserResponse>(),
+    mutationFn: (input: SetupInput) =>
+      api.post("setup", { json: input }).json<UserResponse>(),
+    onSuccess: () => {
+      client.setQueryData(setupQuery.queryKey, (old) =>
+        old ? { ...old, setup_required: false } : old
+      )
+    },
+    onError: (e) => {
+      if (isApiError(e, 409)) client.invalidateQueries({ queryKey: setupQuery.queryKey })
+    },
   })
 }
 

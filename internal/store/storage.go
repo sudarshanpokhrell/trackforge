@@ -17,6 +17,7 @@ var (
 type Storage struct {
 	Users interface {
 		Create(context.Context, *User) error
+		SuperadminExists(context.Context) (bool, error)
 		GetById(context.Context, string) (*User, error)
 		GetByEmail(context.Context, string) (*User, error)
 	}

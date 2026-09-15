@@ -2,6 +2,7 @@ package main
 
 import (
 	"time"
+	_ "time/tzdata"
 
 	"github.com/joho/godotenv"
 	"github.com/sudarshanpokhrell/trackforge/internal/auth"
@@ -16,7 +17,11 @@ const version = "1.0.0"
 type config struct {
 	addr string
 	env  string
-	db   struct {
+	app  struct {
+		name     string
+		timezone *time.Location
+	}
+	db struct {
 		dsn          string
 		maxOpenConns int
 		maxIdleConns int
@@ -63,6 +68,9 @@ func main() {
 	cfg.addr = env.GetString("ADDR", ":"+env.GetString("PORT", "8080"))
 	cfg.env = env.GetString("ENV", "development")
 
+	cfg.app.name = env.GetString("APP_NAME", "TrackForge")
+	appTimezone := env.GetString("APP_TIMEZONE", "UTC")
+
 	cfg.db.dsn = env.GetString("DB_ADDR", "postgres://postgres:postgres@localhost:5432/trackforge?sslmode=disable")
 	cfg.db.maxOpenConns = env.GetInt("DB_MAX_OPEN_CONN", 30)
 	cfg.db.maxIdleConns = env.GetInt("DB_MAX_IDLE_CONN", 30)
@@ -88,6 +96,11 @@ func main() {
 	defer logger.Sync()
 
 	logger.Infof("starting trackforge API v%s", version)
+
+	cfg.app.timezone, err = time.LoadLocation(appTimezone)
+	if err != nil {
+		logger.Fatalf("invalid APP_TIMEZONE %q: %v", appTimezone, err)
+	}
 
 	database, err := db.New(cfg.db.dsn, cfg.db.maxOpenConns, cfg.db.maxIdleConns, cfg.db.maxIdleTime)
 

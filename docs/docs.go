@@ -61,43 +61,44 @@ const docTemplate = `{
                 }
             }
         },
-        "/auth/register": {
+        "/auth/logout": {
             "post": {
-                "description": "Register a new user with name, email, and password",
-                "consumes": [
-                    "application/json"
+                "description": "Clear the auth cookie",
+                "tags": [
+                    "auth"
                 ],
+                "summary": "Logout",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Return the user identified by the auth cookie or bearer token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Register a new user",
-                "parameters": [
-                    {
-                        "description": "User registration details",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.RegisterUserPayload"
-                        }
-                    }
-                ],
+                "summary": "Get the current user",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/store.User"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {}
                     }
                 }
@@ -1521,6 +1522,78 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/setup": {
+            "get": {
+                "description": "Report whether the install still needs its superadmin created",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setup"
+                ],
+                "summary": "Get first-run setup status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.SetupStatusResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "description": "Create the superadmin account. Only works once: after that it returns 409",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setup"
+                ],
+                "summary": "Complete first-run setup",
+                "parameters": [
+                    {
+                        "description": "Superadmin account details",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.SetupPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1608,7 +1681,7 @@ const docTemplate = `{
                 }
             }
         },
-        "main.RegisterUserPayload": {
+        "main.SetupPayload": {
             "type": "object",
             "required": [
                 "email",
@@ -1624,6 +1697,17 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "main.SetupStatusResponse": {
+            "type": "object",
+            "properties": {
+                "app_name": {
+                    "type": "string"
+                },
+                "setup_required": {
+                    "type": "boolean"
                 }
             }
         },
@@ -1764,7 +1848,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "payload": {
-                    "description": "Shape depends on Type, e.g. {\"from\":\"todo\",\"to\":\"done\"} for status_changed.",
                     "type": "object"
                 },
                 "type": {
@@ -1952,7 +2035,19 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "must_change_password": {
+                    "type": "boolean"
+                },
                 "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }

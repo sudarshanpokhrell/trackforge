@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Link, useRouter, useSearch } from '@tanstack/react-router';
+import { useRouter, useSearch } from '@tanstack/react-router';
 import { getErrorMessage } from '@/lib/api';
 import {  useLogin } from '@/hooks/auth';
 
@@ -185,12 +185,9 @@ export default function LoginForm() {
             </Button>
           </form>
 
-          <div className="text-center text-sm">
-            No account?{' '}
-            <Link className="font-medium text-primary hover:underline" to="/register">
-              Create an account
-            </Link>
-          </div>
+          <p className="text-center text-muted-foreground text-sm">
+            No account? Ask your administrator to create one.
+          </p>
         </div>
       </div>
     </div>

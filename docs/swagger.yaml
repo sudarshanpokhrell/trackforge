@@ -54,7 +54,7 @@ definitions:
     - email
     - password
     type: object
-  main.RegisterUserPayload:
+  main.SetupPayload:
     properties:
       email:
         type: string
@@ -66,6 +66,13 @@ definitions:
     - email
     - name
     - password
+    type: object
+  main.SetupStatusResponse:
+    properties:
+      app_name:
+        type: string
+      setup_required:
+        type: boolean
     type: object
   main.UpdateIssueCommentPayload:
     properties:
@@ -156,7 +163,6 @@ definitions:
       issue_id:
         type: integer
       payload:
-        description: Shape depends on Type, e.g. {"from":"todo","to":"done"} for status_changed.
         type: object
       type:
         type: string
@@ -279,7 +285,15 @@ definitions:
         type: string
       id:
         type: string
+      is_active:
+        type: boolean
+      must_change_password:
+        type: boolean
       name:
+        type: string
+      role:
+        type: string
+      updated_at:
         type: string
     type: object
   store.UserSummary:
@@ -329,32 +343,31 @@ paths:
       summary: Login a user
       tags:
       - auth
-  /auth/register:
+  /auth/logout:
     post:
-      consumes:
-      - application/json
-      description: Register a new user with name, email, and password
-      parameters:
-      - description: User registration details
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.RegisterUserPayload'
+      description: Clear the auth cookie
+      responses:
+        "204":
+          description: No Content
+      summary: Logout
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Return the user identified by the auth cookie or bearer token
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/store.User'
-        "400":
-          description: Bad Request
+        "401":
+          description: Unauthorized
           schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      summary: Register a new user
+      security:
+      - BearerAuth: []
+      summary: Get the current user
       tags:
       - auth
   /health:
@@ -1304,6 +1317,56 @@ paths:
       summary: Change a member's role
       tags:
       - memberships
+  /setup:
+    get:
+      description: Report whether the install still needs its superadmin created
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SetupStatusResponse'
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Get first-run setup status
+      tags:
+      - setup
+    post:
+      consumes:
+      - application/json
+      description: 'Create the superadmin account. Only works once: after that it
+        returns 409'
+      parameters:
+      - description: Superadmin account details
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.SetupPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      summary: Complete first-run setup
+      tags:
+      - setup
 securityDefinitions:
   BearerAuth:
     description: JWT from POST /auth/login. Paste it with the scheme included, e.g.

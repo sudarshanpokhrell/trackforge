@@ -88,10 +88,28 @@ func (app *application) AuthTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		if !user.IsActive {
+			app.invalidAuthenticationResponse(w, r)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), userCtx, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) RequireRole(min string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !store.UserRoleAtLeast(app.contextUser(r).Role, min) {
+				app.notPermittedResponse(w, r)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func (app *application) RequireProjectRole(minRole string) func(http.Handler) http.Handler {

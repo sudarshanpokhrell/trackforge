@@ -1,6 +1,6 @@
 'use client';
 
-import { Inbox, Ticket, Home,  Server, Laptop } from 'lucide-react';
+import { Inbox, Ticket,   Server, Laptop } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';
@@ -23,12 +23,6 @@ export const sidebarData: AppSidebarData = {
   },
   navMain: [
     {
-      id: 'home',
-      title: 'Home',
-      url: '/',
-      icon: Home,
-    },
-    {
       id: 'inbox',
       title: 'Inbox',
       url: '/inbox',
@@ -37,7 +31,7 @@ export const sidebarData: AppSidebarData = {
     },
     {
       id: 'issues',
-      title: 'Issues',
+      title: 'My Issues',
       url: '/issues',
       icon: Ticket,
     },

@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
-import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
+import { Route as AuthSetupRouteImport } from './routes/_auth/setup'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as AuthedAboutRouteImport } from './routes/_authed/about'
 import { Route as AuthedInboxRouteImport } from './routes/_authed/inbox'
@@ -36,9 +36,9 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AuthRouteRoute,
 } as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
+const AuthSetupRoute = AuthSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => AuthRouteRoute,
 } as any)
 const AuthedIndexRoute = AuthedIndexRouteImport.update({
@@ -92,7 +92,7 @@ const AuthedProjectsProjectIdIssuesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/login': typeof AuthLoginRoute
-  '/register': typeof AuthRegisterRoute
+  '/setup': typeof AuthSetupRoute
   '/about': typeof AuthedAboutRoute
   '/inbox': typeof AuthedInboxRoute
   '/views': typeof AuthedViewsRoute
@@ -105,7 +105,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
   '/login': typeof AuthLoginRoute
-  '/register': typeof AuthRegisterRoute
+  '/setup': typeof AuthSetupRoute
   '/about': typeof AuthedAboutRoute
   '/inbox': typeof AuthedInboxRoute
   '/views': typeof AuthedViewsRoute
@@ -120,7 +120,7 @@ export interface FileRoutesById {
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_authed': typeof AuthedRouteRouteWithChildren
   '/_auth/login': typeof AuthLoginRoute
-  '/_auth/register': typeof AuthRegisterRoute
+  '/_auth/setup': typeof AuthSetupRoute
   '/_authed/about': typeof AuthedAboutRoute
   '/_authed/inbox': typeof AuthedInboxRoute
   '/_authed/views': typeof AuthedViewsRoute
@@ -136,7 +136,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
-    | '/register'
+    | '/setup'
     | '/about'
     | '/inbox'
     | '/views'
@@ -149,7 +149,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
-    | '/register'
+    | '/setup'
     | '/about'
     | '/inbox'
     | '/views'
@@ -163,7 +163,7 @@ export interface FileRouteTypes {
     | '/_auth'
     | '/_authed'
     | '/_auth/login'
-    | '/_auth/register'
+    | '/_auth/setup'
     | '/_authed/about'
     | '/_authed/inbox'
     | '/_authed/views'
@@ -203,11 +203,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof AuthRouteRoute
     }
-    '/_auth/register': {
-      id: '/_auth/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
+    '/_auth/setup': {
+      id: '/_auth/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AuthSetupRouteImport
       parentRoute: typeof AuthRouteRoute
     }
     '/_authed/': {
@@ -278,12 +278,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthRouteRouteChildren {
   AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
+  AuthSetupRoute: typeof AuthSetupRoute
 }
 
 const AuthRouteRouteChildren: AuthRouteRouteChildren = {
   AuthLoginRoute: AuthLoginRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
+  AuthSetupRoute: AuthSetupRoute,
 }
 
 const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(

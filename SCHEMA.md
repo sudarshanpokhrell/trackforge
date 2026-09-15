@@ -5,11 +5,15 @@
 
 ```
 users
-  id           uuid  pk  default gen_random_uuid()
-  name         varchar(255)
-  email        citext  unique
-  password     bytea            -- bcrypt hash
-  created_at   timestamptz
+  id                    uuid  pk  default gen_random_uuid()
+  name                  varchar(255)
+  email                 citext  unique
+  password              bytea            -- bcrypt hash
+  role                  user_role  not null  default 'member'
+  is_active             boolean    not null  default true    -- users are deactivated, never deleted
+  must_change_password  boolean    not null  default false
+  created_at            timestamptz
+  updated_at            timestamptz      -- maintained by trigger
 
 projects
   id           bigserial  pk
@@ -81,6 +85,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 
 | Index | Why |
 |---|---|
+| `users_single_superadmin` | partial **unique** index on `role` where `role = 'superadmin'`: the database guarantees at most one superadmin, so two racing `POST /setup` requests can't both succeed. Not there for lookups |
 | `idx_project_memberships_user_id` | `project_memberships_unique` is `(project_id, user_id)`; a composite index only serves lookups on a **leading prefix**, so it cannot help `WHERE user_id = $1` — which is what "list my projects" does |
 | `idx_projects_created_by` | same, for the creator half of that query |
 | `idx_projects_lead_id` | "projects I lead" |
@@ -95,6 +100,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 
 | Type | Values |
 |---|---|
+| `user_role` | `superadmin`, `admin`, `member` |
 | `project_role` | `viewer`, `editor`, `admin` |
 | `issue_status` | `backlog`, `todo`, `in-progress`, `done`, `cancelled` |
 | `issue_priority` | `no-priority`, `urgent`, `high`, `medium`, `low` |

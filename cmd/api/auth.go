@@ -10,73 +10,6 @@ import (
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
-type RegisterUserPayload struct {
-	Name     string `json:"name" binding:"required"`
-	Email    string `json:"email" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-// @Summary Register a new user
-// @Description Register a new user with name, email, and password
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param payload body RegisterUserPayload true "User registration details"
-// @Success 201 {object} store.User
-// @Failure 400 {object} error
-// @Failure 500 {object} error
-// @Router /auth/register [post]
-func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
-	var payload RegisterUserPayload
-
-	err := app.readJSON(w, r, &payload)
-
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	user := &store.User{
-		Name:  payload.Name,
-		Email: payload.Email,
-	}
-
-	err = user.Password.Set(payload.Password)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	v := validator.New()
-
-	if store.ValidateUser(v, user); !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-
-	err = app.store.Users.Create(r.Context(), user)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrDuplicateEmail):
-			v.AddError("email", "a user with this email address already exists.")
-			app.failedValidationResponse(w, r, v.Errors)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	err = app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-}
-
 type LoginUserPayload struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
@@ -131,8 +64,8 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !match {
-		v.AddError("email or password", "invalid credentials.")
+	if !match || !user.IsActive {
+		v.AddError("email", "invalid email or password")
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
