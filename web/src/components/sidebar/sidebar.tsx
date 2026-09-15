@@ -5,7 +5,9 @@ import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar'
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';
 import { NavMain } from './nav-main';
+import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/hooks/use-auth';
+import { projectsQuery } from '@/hooks/use-projects';
 import type { User, NavItem, ProjectItem } from './types';
 
 interface AppSidebarData {
@@ -61,11 +63,12 @@ export const sidebarData: AppSidebarData = {
   },
 };
 
-// Nav items only admins and the superadmin can open.
 const ADMIN_NAV_IDS = new Set(['members']);
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useUser();
+  const { data: projects } = useQuery(projectsQuery);
+
   const navMain = sidebarData.navMain.filter(
     (item) => user?.role !== 'member' || !ADMIN_NAV_IDS.has(item.id)
   );
@@ -82,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavCollapsible projects={sidebarData.navCollapsible.projects} />
+        <NavCollapsible projects={projects ?? []} />
       </SidebarContent>
       <NavFooter />
     </Sidebar>

@@ -1,5 +1,5 @@
 'use client';
-import { ChevronDown, LayoutDashboard, Ticket } from 'lucide-react';
+import { ChevronDown, FolderKanban, LayoutDashboard, Ticket } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
   Collapsible,
@@ -17,10 +17,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import type { ProjectItem } from './types';
+import type { Project } from '@/types/projects';
 
 interface NavCollapsibleProps {
-  projects: ProjectItem[];
+  projects: Project[];
 }
 
 export function NavCollapsible({ projects }: NavCollapsibleProps) {
@@ -28,7 +28,7 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
 
   return (
     <div className="space-y-0">
-      {projects && projects.length > 0 && (
+      
         <Collapsible className="group/collapsible" defaultOpen>
           <SidebarGroup>
             <SidebarGroupLabel
@@ -39,13 +39,15 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
               <ChevronDown className="ml-auto transition-transform group-data-open/collapsible:rotate-180" />
             </SidebarGroupLabel>
             <CollapsibleContent>
+            {projects && projects.length > 0 && (
               <SidebarGroupContent>
                 <SidebarMenu>
                   {projects.map((item) => {
                     const homeHref = `/projects/${item.id}`;
                     const issuesHref = `/projects/${item.id}/issues`;
-                    const isProjectActive = pathname.startsWith(`/projects/${item.id}`);
-                    const Icon = item.icon
+                    const projectId = String(item.id);
+                    const isProjectActive =
+                      pathname === homeHref || pathname.startsWith(`${homeHref}/`);
                     return (
                       <Collapsible key={item.id} className="group/project" defaultOpen={isProjectActive}>
                         <SidebarMenuItem>
@@ -53,17 +55,15 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
                             isActive={isProjectActive}
                             render={<CollapsibleTrigger />}
                           >
-                            <div className={`h-4 w-4 shrink-0 rounded `} >
-                              <Icon />
-                            </div>
-                            <span>{item.title}</span>
+                            <FolderKanban />
+                            <span className="truncate">{item.name}</span>
                           </SidebarMenuButton>
                           <CollapsibleContent>
                             <SidebarMenuSub>
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
                                   isActive={pathname === homeHref}
-                                  render={<Link to="/projects/$projectId" params={{ projectId: item.id }} />}
+                                  render={<Link to="/projects/$projectId" params={{ projectId }} />}
                                 >
                                   <LayoutDashboard />
                                   <span>Overview</span>
@@ -72,7 +72,7 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
                                   isActive={pathname === issuesHref}
-                                  render={<Link to="/projects/$projectId/issues" params={{ projectId: item.id }} />}
+                                  render={<Link to="/projects/$projectId/issues" params={{ projectId }} />}
                                 >
                                   <Ticket />
                                   <span>Issues</span>
@@ -86,10 +86,11 @@ export function NavCollapsible({ projects }: NavCollapsibleProps) {
                   })}
                 </SidebarMenu>
               </SidebarGroupContent>
+             )}
             </CollapsibleContent>
           </SidebarGroup>
         </Collapsible>
-      )}
+     
     </div>
   );
 }
