@@ -71,14 +71,29 @@ func ValidateEmail(v *validator.Validator, email string) {
 }
 
 func ValidatePasswordPlaintext(v *validator.Validator, password string) {
-	v.Check(password != "", "password", "must be provided")
-	v.Check(len(password) >= 8, "password", "must be at least 8 bytes long")
-	v.Check(len(password) <= 72, "password", "must not be more that 72 bytes")
+	ValidatePasswordField(v, "password", password)
+}
+
+// ValidatePasswordField applies the password rules, reporting errors under key.
+func ValidatePasswordField(v *validator.Validator, key, password string) {
+	v.Check(password != "", key, "must be provided")
+	v.Check(len(password) >= 8, key, "must be at least 8 bytes long")
+	v.Check(len(password) <= 72, key, "must not be more that 72 bytes")
+}
+
+// ValidateAssignableRole checks a role handed out through user management.
+// superadmin is never assignable: the only way to it is a transfer.
+func ValidateAssignableRole(v *validator.Validator, role string) {
+	v.Check(v.In(role, UserRoleAdmin, UserRoleMember), "role", "must be one of admin or member")
+}
+
+func ValidateUserName(v *validator.Validator, name string) {
+	v.Check(name != "", "name", "must be provided.")
+	v.Check(len(name) <= 500, "name", "must not be more than 500 bytes long")
 }
 
 func ValidateUser(v *validator.Validator, user *User) {
-	v.Check(user.Name != "", "name", "must be provided.")
-	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes long")
+	ValidateUserName(v, user.Name)
 
 	ValidateEmail(v, user.Email)
 
@@ -153,22 +168,72 @@ func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error)
 	return s.getOne(ctx, query, email)
 }
 
+// List returns every user, oldest first. A nil active returns both active and
+// deactivated users.
+func (s *UserStore) List(ctx context.Context, active *bool) ([]*User, error) {
+	query := `SELECT ` + userColumns + ` FROM users
+		WHERE ($1::boolean IS NULL OR is_active = $1)
+		ORDER BY created_at, id`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, active)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []*User{}
+
+	for rows.Next() {
+		user, err := scanUser(rows)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, rows.Err()
+}
+
+// Update writes every mutable field of user (name, role, is_active,
+// must_change_password and the password hash) and refreshes UpdatedAt.
+func (s *UserStore) Update(ctx context.Context, user *User) error {
+	query := `
+		UPDATE users
+		SET name = $1, role = $2, is_active = $3, must_change_password = $4, password = $5
+		WHERE id = $6
+		RETURNING updated_at
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query,
+		user.Name,
+		user.Role,
+		user.IsActive,
+		user.MustChangePassword,
+		user.Password.hash,
+		user.ID,
+	).Scan(&user.UpdatedAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+
+	return translateUserError(err)
+}
+
 func (s *UserStore) getOne(ctx context.Context, query string, arg any) (*User, error) {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	user := &User{}
-	err := s.db.QueryRowContext(ctx, query, arg).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-		&user.Password.hash,
-		&user.Role,
-		&user.IsActive,
-		&user.MustChangePassword,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
+	user, err := scanUser(s.db.QueryRowContext(ctx, query, arg))
 
 	if err != nil {
 		switch {
@@ -180,6 +245,25 @@ func (s *UserStore) getOne(ctx context.Context, query string, arg any) (*User, e
 	}
 
 	return user, nil
+}
+
+// scanUser reads one row selected with userColumns.
+func scanUser(row interface{ Scan(...any) error }) (*User, error) {
+	user := &User{}
+
+	err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Role,
+		&user.IsActive,
+		&user.MustChangePassword,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	return user, err
 }
 
 func translateUserError(err error) error {

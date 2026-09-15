@@ -1,5 +1,5 @@
 import SetupForm from "@/components/setup-form"
-import { setupQuery } from "@/hooks/auth"
+import { setupQuery } from "@/hooks/use-auth"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_auth/setup")({

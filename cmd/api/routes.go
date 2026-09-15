@@ -30,10 +30,28 @@ func (app *application) routes() http.Handler {
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/login", app.loginUserHandler)
 			r.Post("/logout", app.logoutUserHandler)
-			r.With(app.AuthTokenMiddleware).Get("/me", app.getCurrentUserHandler)
+		})
+		r.Route("/me", func(r chi.Router) {
+			r.Use(app.AuthTokenMiddleware)
+			r.Get("/", app.getCurrentUserHandler)
+			r.Patch("/", app.updateCurrentUserHandler)
+			r.Post("/password", app.changePasswordHandler)
+		})
+		r.Route("/users", func(r chi.Router) {
+			r.Use(app.RequireAuth)
+			r.With(app.RequireRole(store.UserRoleAdmin)).Get("/", app.listUsersHandler)
+
+			r.Group(func(r chi.Router) {
+				r.Use(app.RequireRole(store.UserRoleSuperadmin))
+				r.Post("/", app.createUserHandler)
+				r.Patch("/{userID}", app.updateUserHandler)
+				r.Post("/{userID}/deactivate", app.deactivateUserHandler)
+				r.Post("/{userID}/reactivate", app.reactivateUserHandler)
+				r.Post("/{userID}/reset-password", app.resetUserPasswordHandler)
+			})
 		})
 		r.Route("/issues", func(r chi.Router) {
-			r.Use(app.AuthTokenMiddleware)
+			r.Use(app.RequireAuth)
 
 			r.Route("/{issueID}", func(r chi.Router) {
 				r.Group(func(r chi.Router) {
@@ -67,7 +85,7 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/projects", func(r chi.Router) {
-			r.Use(app.AuthTokenMiddleware)
+			r.Use(app.RequireAuth)
 			r.Post("/", app.createProjectHandler)
 			r.Get("/", app.getUserProjectsHandler)
 

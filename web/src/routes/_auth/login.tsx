@@ -1,5 +1,5 @@
 import LoginForm from "@/components/login-form"
-import { setupQuery } from "@/hooks/auth"
+import { setupQuery } from "@/hooks/use-auth"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 type LoginSearch = {

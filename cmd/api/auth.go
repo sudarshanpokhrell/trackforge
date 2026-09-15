@@ -106,18 +106,117 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 
 // @Summary Get the current user
 // @Description Return the user identified by the auth cookie or bearer token
-// @Tags auth
+// @Tags me
 // @Produce json
 // @Success 200 {object} store.User
 // @Failure 401 {object} error
 // @Security BearerAuth
-// @Router /auth/me [get]
+// @Router /me [get]
 func (app *application) getCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	err := app.writeJSON(w, http.StatusOK, envelope{"user": app.contextUser(r)}, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
+
+type UpdateCurrentUserPayload struct {
+	Name string `json:"name"`
+}
+
+// @Summary Update the current user
+// @Description Change your own name
+// @Tags me
+// @Accept json
+// @Produce json
+// @Param payload body UpdateCurrentUserPayload true "New name"
+// @Success 200 {object} store.User
+// @Failure 400 {object} error
+// @Failure 401 {object} error
+// @Failure 422 {object} error
+// @Failure 500 {object} error
+// @Security BearerAuth
+// @Router /me [patch]
+func (app *application) updateCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
+	var payload UpdateCurrentUserPayload
+
+	if err := app.readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	if store.ValidateUserName(v, payload.Name); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	user := app.contextUser(r)
+	user.Name = payload.Name
+
+	app.saveUser(w, r, user)
+}
+
+type ChangePasswordPayload struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+// @Summary Change the current user's password
+// @Description Requires the current password. Clears must_change_password
+// @Tags me
+// @Accept json
+// @Produce json
+// @Param payload body ChangePasswordPayload true "Current and new password"
+// @Success 200 {object} store.User
+// @Failure 400 {object} error
+// @Failure 401 {object} error
+// @Failure 422 {object} error
+// @Failure 500 {object} error
+// @Security BearerAuth
+// @Router /me/password [post]
+func (app *application) changePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	var payload ChangePasswordPayload
+
+	if err := app.readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	v.Check(payload.CurrentPassword != "", "current_password", "must be provided")
+	store.ValidatePasswordField(v, "new_password", payload.NewPassword)
+	v.Check(payload.NewPassword != payload.CurrentPassword, "new_password", "must be different from the current password")
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	user := app.contextUser(r)
+
+	match, err := user.Password.Compare(payload.CurrentPassword)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if !match {
+		v.AddError("current_password", "is incorrect")
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	if err := user.Password.Set(payload.NewPassword); err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	user.MustChangePassword = false
+	app.saveUser(w, r, user)
 }
 
 // @Summary Logout

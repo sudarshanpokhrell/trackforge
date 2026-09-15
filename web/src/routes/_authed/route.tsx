@@ -1,5 +1,5 @@
 import { AppSidebar } from "@/components/sidebar/sidebar"
-import { meQuery } from "@/hooks/auth"
+import { meQuery } from "@/hooks/use-auth"
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_authed")({
@@ -7,6 +7,9 @@ export const Route = createFileRoute("/_authed")({
     const user = await context.queryClient.query(meQuery)
     if (!user) {
       throw redirect({ to: "/login", search: { redirect: location.href } })
+    }
+    if (user.must_change_password) {
+      throw redirect({ to: "/change-password", replace: true })
     }
     return { user } 
   },

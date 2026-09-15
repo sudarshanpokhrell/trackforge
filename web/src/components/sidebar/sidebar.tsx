@@ -1,10 +1,11 @@
 'use client';
 
-import { Inbox, Ticket,   Server, Laptop } from 'lucide-react';
+import { Inbox, Ticket,   Server, Laptop, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';
 import { NavMain } from './nav-main';
+import { useUser } from '@/hooks/use-auth';
 import type { User, NavItem, ProjectItem } from './types';
 
 interface AppSidebarData {
@@ -35,6 +36,12 @@ export const sidebarData: AppSidebarData = {
       url: '/issues',
       icon: Ticket,
     },
+    {
+      id: 'members',
+      title: 'Members',
+      url: '/members',
+      icon: Users,
+    },
   ],
   navCollapsible: {
     projects: [
@@ -54,7 +61,15 @@ export const sidebarData: AppSidebarData = {
   },
 };
 
+// Nav items only admins and the superadmin can open.
+const ADMIN_NAV_IDS = new Set(['members']);
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useUser();
+  const navMain = sidebarData.navMain.filter(
+    (item) => user?.role !== 'member' || !ADMIN_NAV_IDS.has(item.id)
+  );
+
   return (
     <Sidebar {...props}>
       <SidebarHeader className="border-b px-4 py-3">
@@ -66,7 +81,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarData.navMain} />
+        <NavMain items={navMain} />
         <NavCollapsible projects={sidebarData.navCollapsible.projects} />
       </SidebarContent>
       <NavFooter />

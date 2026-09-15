@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { getErrorMessage, isApiError } from '@/lib/api';
-import { setupQuery, useSetup } from '@/hooks/auth';
+import { setupQuery, useSetup } from '@/hooks/use-auth';
 import type { SetupInput } from '@/types/auth';
 
 export default function SetupForm() {

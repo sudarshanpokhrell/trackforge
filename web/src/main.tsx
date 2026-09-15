@@ -5,8 +5,8 @@ import { QueryClientProvider } from "@tanstack/react-query"
 
 import { routeTree } from "./routeTree.gen"
 import { queryClient } from "./lib/query-client"
-import { onUnauthorized } from "./lib/api"
-import { meQuery } from "./hooks/auth"
+import { onPasswordChangeRequired, onUnauthorized } from "./lib/api"
+import { meQuery } from "./hooks/use-auth"
 import "./index.css"
 
 const router = createRouter({
@@ -26,6 +26,12 @@ onUnauthorized(async () => {
   })
 
   queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" })
+})
+
+onPasswordChangeRequired(async () => {
+  // The cached user is stale (e.g. a superadmin reset the password mid-session).
+  await queryClient.invalidateQueries({ queryKey: meQuery.queryKey })
+  await router.navigate({ to: "/change-password", replace: true })
 })
 
 declare module "@tanstack/react-router" {

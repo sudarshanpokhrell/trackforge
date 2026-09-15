@@ -1,4 +1,4 @@
-import { meQuery } from '@/hooks/auth'
+import { meQuery } from '@/hooks/use-auth'
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_auth')({

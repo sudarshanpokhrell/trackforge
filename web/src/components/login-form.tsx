@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useRouter, useSearch } from '@tanstack/react-router';
 import { getErrorMessage } from '@/lib/api';
-import {  useLogin } from '@/hooks/auth';
+import {  useLogin } from '@/hooks/use-auth';
 
 
 export function safeRedirect(redirect: string | undefined) {

@@ -12,6 +12,13 @@ definitions:
       user_id:
         type: string
     type: object
+  main.ChangePasswordPayload:
+    properties:
+      current_password:
+        type: string
+      new_password:
+        type: string
+    type: object
   main.CreateIssueCommentPayload:
     properties:
       content:
@@ -44,6 +51,17 @@ definitions:
       target_date:
         type: string
     type: object
+  main.CreateUserPayload:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        type: string
+    type: object
   main.LoginUserPayload:
     properties:
       email:
@@ -53,6 +71,11 @@ definitions:
     required:
     - email
     - password
+    type: object
+  main.ResetPasswordPayload:
+    properties:
+      password:
+        type: string
     type: object
   main.SetupPayload:
     properties:
@@ -73,6 +96,11 @@ definitions:
         type: string
       setup_required:
         type: boolean
+    type: object
+  main.UpdateCurrentUserPayload:
+    properties:
+      name:
+        type: string
     type: object
   main.UpdateIssueCommentPayload:
     properties:
@@ -114,6 +142,13 @@ definitions:
       start_date:
         type: string
       target_date:
+        type: string
+    type: object
+  main.UpdateUserPayload:
+    properties:
+      name:
+        type: string
+      role:
         type: string
     type: object
   store.Assignee:
@@ -350,24 +385,6 @@ paths:
         "204":
           description: No Content
       summary: Logout
-      tags:
-      - auth
-  /auth/me:
-    get:
-      description: Return the user identified by the auth cookie or bearer token
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/store.User'
-        "401":
-          description: Unauthorized
-          schema: {}
-      security:
-      - BearerAuth: []
-      summary: Get the current user
       tags:
       - auth
   /health:
@@ -770,6 +787,95 @@ paths:
       summary: Edit an issue comment
       tags:
       - issue-comments
+  /me:
+    get:
+      description: Return the user identified by the auth cookie or bearer token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "401":
+          description: Unauthorized
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Get the current user
+      tags:
+      - me
+    patch:
+      consumes:
+      - application/json
+      description: Change your own name
+      parameters:
+      - description: New name
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateCurrentUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Update the current user
+      tags:
+      - me
+  /me/password:
+    post:
+      consumes:
+      - application/json
+      description: Requires the current password. Clears must_change_password
+      parameters:
+      - description: Current and new password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ChangePasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "401":
+          description: Unauthorized
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Change the current user's password
+      tags:
+      - me
   /projects:
     get:
       produces:
@@ -1367,6 +1473,233 @@ paths:
       summary: Complete first-run setup
       tags:
       - setup
+  /users:
+    get:
+      description: Every user, oldest first. Filter with active=true|false; omit it
+        for both
+      parameters:
+      - description: Only active (true) or only deactivated (false) users
+        in: query
+        name: active
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create an admin or member. They must change the password on first
+        login
+      parameters:
+      - description: New user
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Create a user
+      tags:
+      - users
+  /users/{userID}:
+    patch:
+      consumes:
+      - application/json
+      description: Change name and/or role (admin or member). The superadmin's role
+        can't be changed here
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Fields to change
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateUserPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Update a user
+      tags:
+      - users
+  /users/{userID}/deactivate:
+    post:
+      description: The user can no longer log in. Their history, memberships and assignments
+        stay. You can't deactivate yourself
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Deactivate a user
+      tags:
+      - users
+  /users/{userID}/reactivate:
+    post:
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Reactivate a user
+      tags:
+      - users
+  /users/{userID}/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Set a temporary password. The user must change it on their next
+        login
+      parameters:
+      - description: User ID
+        in: path
+        name: userID
+        required: true
+        type: string
+      - description: Temporary password
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.ResetPasswordPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.User'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Reset a user's password
+      tags:
+      - users
 securityDefinitions:
   BearerAuth:
     description: JWT from POST /auth/login. Paste it with the scheme included, e.g.

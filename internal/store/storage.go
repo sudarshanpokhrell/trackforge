@@ -20,6 +20,8 @@ type Storage struct {
 		SuperadminExists(context.Context) (bool, error)
 		GetById(context.Context, string) (*User, error)
 		GetByEmail(context.Context, string) (*User, error)
+		List(ctx context.Context, active *bool) ([]*User, error)
+		Update(context.Context, *User) error
 	}
 
 	Projects interface {

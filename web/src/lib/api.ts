@@ -21,10 +21,17 @@ export function getErrorMessage(e: unknown): string {
 }
 
 let unauthorizedHandler = () => {}
+let passwordChangeRequiredHandler = () => {}
 
 export function onUnauthorized(handler: () => void) {
   unauthorizedHandler = handler
 }
+
+export function onPasswordChangeRequired(handler: () => void) {
+  passwordChangeRequiredHandler = handler
+}
+
+export const PASSWORD_CHANGE_REQUIRED = 'password change required'
 
 export const api = ky.create({
   prefix: '/api/v1',
@@ -40,6 +47,9 @@ export const api = ky.create({
         const detail = (error.data as { error?: string | Record<string, string> })?.error
         const fields = typeof detail === 'object' ? detail : undefined
         const message = typeof detail === 'object' ? Object.values(detail).join(' ') : detail
+        if (error.response.status === 403 && message === PASSWORD_CHANGE_REQUIRED) {
+          passwordChangeRequiredHandler()
+        }
         return new ApiError(error.response.status, message ?? error.response.statusText, fields)
       },
     ],

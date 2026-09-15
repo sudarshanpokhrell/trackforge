@@ -1,5 +1,11 @@
 import { api, isApiError } from "@/lib/api"
-import type { LoginInput, SetupInput, SetupStatus, User } from "@/types/auth"
+import type {
+  ChangePasswordInput,
+  LoginInput,
+  SetupInput,
+  SetupStatus,
+  User,
+} from "@/types/auth"
 import {
   queryOptions,
   useMutation,
@@ -14,7 +20,7 @@ export const meQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async (): Promise<User | null> => {
     try {
-      const { user } = await api.get("auth/me").json<UserResponse>()
+      const { user } = await api.get("/me").json<UserResponse>()
       return user
     } catch (e) {
       if (isApiError(e, 401)) return null
@@ -65,6 +71,30 @@ export function useSetup() {
     },
     onError: (e) => {
       if (isApiError(e, 409)) client.invalidateQueries({ queryKey: setupQuery.queryKey })
+    },
+  })
+}
+
+export function useUpdateMe() {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: { name: string }) =>
+      api.patch("me", { json: input }).json<UserResponse>(),
+    onSuccess: ({ user }) => {
+      client.setQueryData(meQuery.queryKey, user)
+    },
+  })
+}
+
+export function useChangePassword() {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ChangePasswordInput) =>
+      api.post("me/password", { json: input }).json<UserResponse>(),
+    onSuccess: ({ user }) => {
+      client.setQueryData(meQuery.queryKey, user)
     },
   })
 }

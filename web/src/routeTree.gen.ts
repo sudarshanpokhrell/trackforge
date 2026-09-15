@@ -11,13 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as AuthedRouteRouteImport } from './routes/_authed/route'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthSetupRouteImport } from './routes/_auth/setup'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
-import { Route as AuthedAboutRouteImport } from './routes/_authed/about'
 import { Route as AuthedInboxRouteImport } from './routes/_authed/inbox'
-import { Route as AuthedViewsRouteImport } from './routes/_authed/views'
-import { Route as AuthedWorkspaceRouteImport } from './routes/_authed/workspace'
+import { Route as AuthedMembersRouteImport } from './routes/_authed/members'
+import { Route as AuthedProfileRouteImport } from './routes/_authed/profile'
 import { Route as AuthedIssuesIndexRouteImport } from './routes/_authed/issues/index'
 import { Route as AuthedIssuesIssueIdRouteImport } from './routes/_authed/issues/$issueId'
 import { Route as AuthedProjectsProjectIdIndexRouteImport } from './routes/_authed/projects/$projectId/index'
@@ -29,6 +29,11 @@ const AuthRouteRoute = AuthRouteRouteImport.update({
 } as any)
 const AuthedRouteRoute = AuthedRouteRouteImport.update({
   id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -46,24 +51,19 @@ const AuthedIndexRoute = AuthedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedAboutRoute = AuthedAboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => AuthedRouteRoute,
-} as any)
 const AuthedInboxRoute = AuthedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedViewsRoute = AuthedViewsRouteImport.update({
-  id: '/views',
-  path: '/views',
+const AuthedMembersRoute = AuthedMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
-const AuthedWorkspaceRoute = AuthedWorkspaceRouteImport.update({
-  id: '/workspace',
-  path: '/workspace',
+const AuthedProfileRoute = AuthedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthedRouteRoute,
 } as any)
 const AuthedIssuesIndexRoute = AuthedIssuesIndexRouteImport.update({
@@ -91,12 +91,12 @@ const AuthedProjectsProjectIdIssuesRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof AuthLoginRoute
   '/setup': typeof AuthSetupRoute
-  '/about': typeof AuthedAboutRoute
   '/inbox': typeof AuthedInboxRoute
-  '/views': typeof AuthedViewsRoute
-  '/workspace': typeof AuthedWorkspaceRoute
+  '/members': typeof AuthedMembersRoute
+  '/profile': typeof AuthedProfileRoute
   '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/issues/': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
@@ -104,12 +104,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AuthedIndexRoute
+  '/change-password': typeof ChangePasswordRoute
   '/login': typeof AuthLoginRoute
   '/setup': typeof AuthSetupRoute
-  '/about': typeof AuthedAboutRoute
   '/inbox': typeof AuthedInboxRoute
-  '/views': typeof AuthedViewsRoute
-  '/workspace': typeof AuthedWorkspaceRoute
+  '/members': typeof AuthedMembersRoute
+  '/profile': typeof AuthedProfileRoute
   '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/issues': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
@@ -119,12 +119,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_auth': typeof AuthRouteRouteWithChildren
   '/_authed': typeof AuthedRouteRouteWithChildren
+  '/change-password': typeof ChangePasswordRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_auth/setup': typeof AuthSetupRoute
-  '/_authed/about': typeof AuthedAboutRoute
   '/_authed/inbox': typeof AuthedInboxRoute
-  '/_authed/views': typeof AuthedViewsRoute
-  '/_authed/workspace': typeof AuthedWorkspaceRoute
+  '/_authed/members': typeof AuthedMembersRoute
+  '/_authed/profile': typeof AuthedProfileRoute
   '/_authed/': typeof AuthedIndexRoute
   '/_authed/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/_authed/issues/': typeof AuthedIssuesIndexRoute
@@ -135,12 +135,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/change-password'
     | '/login'
     | '/setup'
-    | '/about'
     | '/inbox'
-    | '/views'
-    | '/workspace'
+    | '/members'
+    | '/profile'
     | '/issues/$issueId'
     | '/issues/'
     | '/projects/$projectId/issues'
@@ -148,12 +148,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/change-password'
     | '/login'
     | '/setup'
-    | '/about'
     | '/inbox'
-    | '/views'
-    | '/workspace'
+    | '/members'
+    | '/profile'
     | '/issues/$issueId'
     | '/issues'
     | '/projects/$projectId/issues'
@@ -162,12 +162,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_auth'
     | '/_authed'
+    | '/change-password'
     | '/_auth/login'
     | '/_auth/setup'
-    | '/_authed/about'
     | '/_authed/inbox'
-    | '/_authed/views'
-    | '/_authed/workspace'
+    | '/_authed/members'
+    | '/_authed/profile'
     | '/_authed/'
     | '/_authed/issues/$issueId'
     | '/_authed/issues/'
@@ -178,6 +178,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthRouteRoute: typeof AuthRouteRouteWithChildren
   AuthedRouteRoute: typeof AuthedRouteRouteWithChildren
+  ChangePasswordRoute: typeof ChangePasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -194,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth/login': {
@@ -217,13 +225,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedIndexRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/about': {
-      id: '/_authed/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AuthedAboutRouteImport
-      parentRoute: typeof AuthedRouteRoute
-    }
     '/_authed/inbox': {
       id: '/_authed/inbox'
       path: '/inbox'
@@ -231,18 +232,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedInboxRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/views': {
-      id: '/_authed/views'
-      path: '/views'
-      fullPath: '/views'
-      preLoaderRoute: typeof AuthedViewsRouteImport
+    '/_authed/members': {
+      id: '/_authed/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof AuthedMembersRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
-    '/_authed/workspace': {
-      id: '/_authed/workspace'
-      path: '/workspace'
-      fullPath: '/workspace'
-      preLoaderRoute: typeof AuthedWorkspaceRouteImport
+    '/_authed/profile': {
+      id: '/_authed/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthedProfileRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
     '/_authed/issues/': {
@@ -291,10 +292,9 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 )
 
 interface AuthedRouteRouteChildren {
-  AuthedAboutRoute: typeof AuthedAboutRoute
   AuthedInboxRoute: typeof AuthedInboxRoute
-  AuthedViewsRoute: typeof AuthedViewsRoute
-  AuthedWorkspaceRoute: typeof AuthedWorkspaceRoute
+  AuthedMembersRoute: typeof AuthedMembersRoute
+  AuthedProfileRoute: typeof AuthedProfileRoute
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedIssuesIssueIdRoute: typeof AuthedIssuesIssueIdRoute
   AuthedIssuesIndexRoute: typeof AuthedIssuesIndexRoute
@@ -303,10 +303,9 @@ interface AuthedRouteRouteChildren {
 }
 
 const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
-  AuthedAboutRoute: AuthedAboutRoute,
   AuthedInboxRoute: AuthedInboxRoute,
-  AuthedViewsRoute: AuthedViewsRoute,
-  AuthedWorkspaceRoute: AuthedWorkspaceRoute,
+  AuthedMembersRoute: AuthedMembersRoute,
+  AuthedProfileRoute: AuthedProfileRoute,
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedIssuesIssueIdRoute: AuthedIssuesIssueIdRoute,
   AuthedIssuesIndexRoute: AuthedIssuesIndexRoute,
@@ -321,6 +320,7 @@ const AuthedRouteRouteWithChildren = AuthedRouteRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AuthRouteRoute: AuthRouteRouteWithChildren,
   AuthedRouteRoute: AuthedRouteRouteWithChildren,
+  ChangePasswordRoute: ChangePasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

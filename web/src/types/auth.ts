@@ -24,3 +24,17 @@ export type SetupStatus = {
   setup_required: boolean
   app_name: string
 }
+
+export type AssignableRole = Exclude<UserRole, "superadmin">
+
+export type CreateUserInput = {
+  name: string
+  email: string
+  role: AssignableRole
+  password: string
+}
+
+export type ChangePasswordInput = {
+  current_password: string
+  new_password: string
+}

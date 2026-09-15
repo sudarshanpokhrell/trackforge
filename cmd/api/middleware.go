@@ -112,6 +112,20 @@ func (app *application) RequireRole(min string) func(http.Handler) http.Handler 
 	}
 }
 
+// RequireAuth authenticates the request like AuthTokenMiddleware and also rejects
+// users who still have to change their password. Use AuthTokenMiddleware alone
+// only for the routes such a user needs to reach, like changing that password.
+func (app *application) RequireAuth(next http.Handler) http.Handler {
+	return app.AuthTokenMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.contextUser(r).MustChangePassword {
+			app.errorResponse(w, r, http.StatusForbidden, "password change required")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}))
+}
+
 func (app *application) RequireProjectRole(minRole string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
