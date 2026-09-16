@@ -26,7 +26,7 @@ type ResetPasswordPayload struct {
 }
 
 // @Summary List users
-// @Description Every user, oldest first. Filter with active=true|false; omit it for both
+// @Description Users, oldest first. Filter with active=true|false; omit it for both. Anyone logged in can list active users (project admins need it to add people); only admins and the superadmin see deactivated ones, so for everyone else the filter is always active=true
 // @Tags users
 // @Produce json
 // @Param active query bool false "Only active (true) or only deactivated (false) users"
@@ -50,6 +50,16 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 		active = &value
 	}
 
+	if !store.UserRoleAtLeast(app.contextUser(r).Role, store.UserRoleAdmin) {
+		if active != nil && !*active {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		onlyActive := true
+		active = &onlyActive
+	}
+
 	users, err := app.store.Users.List(r.Context(), active)
 
 	if err != nil {
@@ -63,7 +73,7 @@ func (app *application) listUsersHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // @Summary Create a user
-// @Description Create an admin or member. They must change the password on first login
+// @Description Create an admin or member. Admins may only create members (403 otherwise). The new user must change the password on first login
 // @Tags users
 // @Accept json
 // @Produce json
@@ -105,6 +115,11 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if user.Role != store.UserRoleMember && app.contextUser(r).Role != store.UserRoleSuperadmin {
+		app.notPermittedResponse(w, r)
+		return
+	}
+
 	err := app.store.Users.Create(r.Context(), user)
 
 	if err != nil {
@@ -124,7 +139,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 // @Summary Update a user
-// @Description Change name and/or role (admin or member). The superadmin's role can't be changed here
+// @Description Change name and/or role (admin or member). Admins may only rename members; changing a role is superadmin-only. The superadmin's role can't be changed here
 // @Tags users
 // @Accept json
 // @Produce json
@@ -139,7 +154,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 // @Security BearerAuth
 // @Router /users/{userID} [patch]
 func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request) {
-	user, ok := app.readTargetUser(w, r)
+	user, ok := app.readManagedUser(w, r)
 
 	if !ok {
 		return
@@ -160,6 +175,11 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 	}
 
 	if payload.Role != nil && *payload.Role != user.Role {
+		if app.contextUser(r).Role != store.UserRoleSuperadmin {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
 		store.ValidateAssignableRole(v, *payload.Role)
 		v.Check(user.Role != store.UserRoleSuperadmin, "role", "the superadmin's role can only change by transferring ownership")
 		user.Role = *payload.Role
@@ -174,11 +194,11 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 }
 
 // @Summary Deactivate a user
-// @Description The user can no longer log in. Their history, memberships and assignments stay. You can't deactivate yourself
+// @Description The user can no longer log in. Their history, memberships, project roles and assignments stay. You can't deactivate yourself, and admins may only deactivate members. orphaned_projects lists the projects where they were the only active project admin
 // @Tags users
 // @Produce json
 // @Param userID path string true "User ID"
-// @Success 200 {object} store.User
+// @Success 200 {object} DeactivateUserResponse
 // @Failure 400 {object} error
 // @Failure 403 {object} error
 // @Failure 404 {object} error
@@ -187,7 +207,7 @@ func (app *application) updateUserHandler(w http.ResponseWriter, r *http.Request
 // @Security BearerAuth
 // @Router /users/{userID}/deactivate [post]
 func (app *application) deactivateUserHandler(w http.ResponseWriter, r *http.Request) {
-	user, ok := app.readTargetUser(w, r)
+	user, ok := app.readManagedUser(w, r)
 
 	if !ok {
 		return
@@ -199,10 +219,25 @@ func (app *application) deactivateUserHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	user.IsActive = false
-	app.saveUser(w, r, user)
+
+	if !app.updateUser(w, r, user) {
+		return
+	}
+
+	orphaned, err := app.store.Projects.ListSoleActiveAdminOf(r.Context(), user.ID)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"user": user, "orphaned_projects": orphaned}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 // @Summary Reactivate a user
+// @Description Admins may only reactivate members
 // @Tags users
 // @Produce json
 // @Param userID path string true "User ID"
@@ -214,7 +249,7 @@ func (app *application) deactivateUserHandler(w http.ResponseWriter, r *http.Req
 // @Security BearerAuth
 // @Router /users/{userID}/reactivate [post]
 func (app *application) reactivateUserHandler(w http.ResponseWriter, r *http.Request) {
-	user, ok := app.readTargetUser(w, r)
+	user, ok := app.readManagedUser(w, r)
 
 	if !ok {
 		return
@@ -225,7 +260,7 @@ func (app *application) reactivateUserHandler(w http.ResponseWriter, r *http.Req
 }
 
 // @Summary Reset a user's password
-// @Description Set a temporary password. The user must change it on their next login
+// @Description Set a temporary password. The user must change it on their next login. Admins may only reset members' passwords
 // @Tags users
 // @Accept json
 // @Produce json
@@ -240,7 +275,7 @@ func (app *application) reactivateUserHandler(w http.ResponseWriter, r *http.Req
 // @Security BearerAuth
 // @Router /users/{userID}/reset-password [post]
 func (app *application) resetUserPasswordHandler(w http.ResponseWriter, r *http.Request) {
-	user, ok := app.readTargetUser(w, r)
+	user, ok := app.readManagedUser(w, r)
 
 	if !ok {
 		return
@@ -269,9 +304,65 @@ func (app *application) resetUserPasswordHandler(w http.ResponseWriter, r *http.
 	app.saveUser(w, r, user)
 }
 
-// readTargetUser loads the user named by {userID}. On failure it has already
-// written the response and returns false.
-func (app *application) readTargetUser(w http.ResponseWriter, r *http.Request) (*store.User, bool) {
+// @Summary Transfer superadmin
+// @Description Superadmin only. The target, who must be active, becomes the superadmin and the caller becomes an admin
+// @Tags users
+// @Produce json
+// @Param userID path string true "User ID"
+// @Success 200 {object} store.User
+// @Failure 400 {object} error
+// @Failure 403 {object} error
+// @Failure 404 {object} error
+// @Failure 422 {object} error
+// @Failure 500 {object} error
+// @Security BearerAuth
+// @Router /users/{userID}/make-superadmin [post]
+func (app *application) makeSuperadminHandler(w http.ResponseWriter, r *http.Request) {
+	user, ok := app.readManagedUser(w, r)
+
+	if !ok {
+		return
+	}
+
+	v := validator.New()
+
+	v.Check(user.ID != app.contextUserID(r), "user", "you are already the superadmin")
+	v.Check(user.IsActive, "user", "must be an active user")
+
+	if !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err := app.store.Users.TransferSuperadmin(r.Context(), app.contextUserID(r), user.ID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	user.Role = store.UserRoleSuperadmin
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+type DeactivateUserResponse struct {
+	User             store.User         `json:"user"`
+	OrphanedProjects []store.ProjectRef `json:"orphaned_projects"`
+}
+
+// readManagedUser loads the user named by {userID} and checks the caller may
+// manage them: the superadmin manages anyone, an admin manages members only.
+// Rules about acting on yourself stay with each handler. On failure it has
+// already written the response and returns false.
+func (app *application) readManagedUser(w http.ResponseWriter, r *http.Request) (*store.User, bool) {
 	userID, err := app.readUserIDParam(r)
 
 	if err != nil {
@@ -291,11 +382,39 @@ func (app *application) readTargetUser(w http.ResponseWriter, r *http.Request) (
 		return nil, false
 	}
 
+	if !canManageUser(app.contextUser(r), user) {
+		app.notPermittedResponse(w, r)
+		return nil, false
+	}
+
 	return user, true
+}
+
+func canManageUser(actor, target *store.User) bool {
+	switch actor.Role {
+	case store.UserRoleSuperadmin:
+		return true
+	case store.UserRoleAdmin:
+		return target.Role == store.UserRoleMember
+	default:
+		return false
+	}
 }
 
 // saveUser persists user and writes it back as the response.
 func (app *application) saveUser(w http.ResponseWriter, r *http.Request, user *store.User) {
+	if !app.updateUser(w, r, user) {
+		return
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// updateUser persists user. On failure it has already written the response and
+// returns false.
+func (app *application) updateUser(w http.ResponseWriter, r *http.Request, user *store.User) bool {
 	err := app.store.Users.Update(r.Context(), user)
 
 	if err != nil {
@@ -305,10 +424,8 @@ func (app *application) saveUser(w http.ResponseWriter, r *http.Request, user *s
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
-		return
+		return false
 	}
 
-	if err := app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil); err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
+	return true
 }

@@ -126,28 +126,20 @@ func (app *application) RequireAuth(next http.Handler) http.Handler {
 	}))
 }
 
-// projectAccess is what the caller may do with the project in the URL. It answers
-// "can they see it", never "may they perform this action": that comes from the
-// user's app-wide role through RequireRole.
+// projectAccess is who the caller is in the project in the URL: their project
+// role, and whether they are the superadmin, who counts as an admin of every
+// project. The app-wide admin role plays no part here.
 func (app *application) projectAccess(r *http.Request, projectID int64) (store.ProjectAccess, error) {
-	access := store.ProjectAccess{
-		IsAdmin: store.UserRoleAtLeast(app.contextUser(r).Role, store.UserRoleAdmin),
-	}
+	user := app.contextUser(r)
 
-	member, err := app.store.Memberships.IsMember(r.Context(), app.contextUserID(r), projectID)
+	role, err := app.store.Memberships.GetRole(r.Context(), user.ID, projectID)
 
-	if err != nil {
-		return access, err
-	}
-
-	access.IsMember = member
-
-	return access, nil
+	return store.NewProjectAccess(role, user.Role == store.UserRoleSuperadmin), err
 }
 
-// RequireProjectAccess lets through admins (who reach every project) and members
-// of this one. Everyone else gets a 404 rather than a 403, so the response never
-// tells them a project they have no business seeing exists.
+// RequireProjectAccess lets through the superadmin (who reaches every project)
+// and members of this one. Everyone else gets a 404 rather than a 403, so the
+// response never tells them a project they have no business seeing exists.
 func (app *application) RequireProjectAccess(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		projectID, err := app.readIDParam(r)
@@ -164,14 +156,14 @@ func (app *application) RequireProjectAccess(next http.Handler) http.Handler {
 			return
 		}
 
-		if !access.IsMember {
-			if !access.IsAdmin {
+		if access.Role == "" {
+			if !access.IsSuperadmin {
 				app.notFoundResponse(w, r)
 				return
 			}
 
-			// A membership row would have proved the project exists; an admin
-			// passes without one, so check for it here.
+			// A membership row would have proved the project exists; the
+			// superadmin passes without one, so check for it here.
 			exists, err := app.store.Projects.Exists(r.Context(), projectID)
 
 			if err != nil {
@@ -187,6 +179,20 @@ func (app *application) RequireProjectAccess(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), projectAccessCtx, access)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// RequireProjectAdmin admits project admins and the superadmin. It runs after
+// RequireProjectAccess or RequireIssueAccess, so the caller already can see the
+// project and a refusal is a 403.
+func (app *application) RequireProjectAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !app.contextProjectAccess(r).CanManage {
+			app.notPermittedResponse(w, r)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -223,7 +229,7 @@ func (app *application) RequireIssueAccess(next http.Handler) http.Handler {
 		}
 
 		// The issue was loaded, so its project exists; membership alone decides.
-		if !access.IsAdmin && !access.IsMember {
+		if access.Role == "" && !access.IsSuperadmin {
 			app.notFoundResponse(w, r)
 			return
 		}
@@ -294,10 +300,11 @@ func (app *application) RequireCommentAuthor(next http.Handler) http.Handler {
 	})
 }
 
-// RequireCommentAuthorOrAdmin admits the author or anyone who can moderate.
-func (app *application) RequireCommentAuthorOrAdmin(next http.Handler) http.Handler {
+// RequireCommentAuthorOrProjectAdmin admits the author or anyone who can
+// moderate the project: its admins and the superadmin.
+func (app *application) RequireCommentAuthorOrProjectAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app.contextComment(r).CreatedBy != app.contextUserID(r) && !app.contextIsAdmin(r) {
+		if app.contextComment(r).CreatedBy != app.contextUserID(r) && !app.contextProjectAccess(r).CanManage {
 			app.notPermittedResponse(w, r)
 			return
 		}
@@ -352,9 +359,9 @@ func (app *application) RequireIssueCommentAuthor(next http.Handler) http.Handle
 	})
 }
 
-func (app *application) RequireIssueCommentAuthorOrAdmin(next http.Handler) http.Handler {
+func (app *application) RequireIssueCommentAuthorOrProjectAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if app.contextIssueComment(r).AuthorID != app.contextUserID(r) && !app.contextIsAdmin(r) {
+		if app.contextIssueComment(r).AuthorID != app.contextUserID(r) && !app.contextProjectAccess(r).CanManage {
 			app.notPermittedResponse(w, r)
 			return
 		}

@@ -3,6 +3,7 @@ import type {
   CreateProjectInput,
   Project,
   ProjectDetails,
+  ProjectRole,
   UpdateProjectInput,
 } from "@/types/projects"
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -63,17 +64,28 @@ export function useDeleteProject() {
   })
 }
 
-/**
- * Membership is yes/no — there is no role to send. What a member may do comes
- * from their app-wide role.
- */
 export function useAddProjectMember(projectId: number) {
   const client = useQueryClient()
 
   return useMutation({
-    mutationFn: (userId: string) =>
+    mutationFn: ({ userId, role }: { userId: string; role: ProjectRole }) =>
       api
-        .post(`projects/${projectId}/members`, { json: { user_id: userId } })
+        .post(`projects/${projectId}/members`, { json: { user_id: userId, role } })
+        .json(),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: projectQuery(projectId).queryKey })
+    },
+  })
+}
+
+/** The server refuses (422) to demote a project's last admin. */
+export function useUpdateProjectMemberRole(projectId: number) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ userId, role }: { userId: string; role: ProjectRole }) =>
+      api
+        .patch(`projects/${projectId}/members/${userId}`, { json: { role } })
         .json(),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: projectQuery(projectId).queryKey })
@@ -89,6 +101,8 @@ export function useRemoveProjectMember(projectId: number) {
       api.delete(`projects/${projectId}/members/${userId}`).json(),
     onSuccess: () => {
       client.invalidateQueries({ queryKey: projectQuery(projectId).queryKey })
+      // Removing yourself can take the project out of your list.
+      client.invalidateQueries({ queryKey: projectsQuery.queryKey })
     },
   })
 }

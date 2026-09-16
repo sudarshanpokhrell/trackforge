@@ -17,7 +17,7 @@ type CreateProjectPayload struct {
 }
 
 // @Summary Create a project
-// @Description Admins and the superadmin only. The creator is not added as a member: they already see every project, and the member list is for who works on it.
+// @Description Admins and the superadmin only. The creator becomes the project's first admin.
 // @Tags projects
 // @Accept json
 // @Produce json
@@ -65,7 +65,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // @Summary List the projects the caller can see
-// @Description Admins and the superadmin get every project; a member gets the ones they belong to.
+// @Description The superadmin gets every project; everyone else gets the ones they belong to. Each project has my_role, the caller's role in it.
 // @Tags projects
 // @Produce json
 // @Success 200 {array} store.Project
@@ -73,7 +73,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 // @Security BearerAuth
 // @Router /projects [get]
 func (app *application) listProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	projects, err := app.store.Projects.ListVisibleTo(r.Context(), app.contextUserID(r), app.contextIsAdmin(r))
+	projects, err := app.store.Projects.ListVisibleTo(r.Context(), app.contextUserID(r), app.contextUser(r).Role == store.UserRoleSuperadmin)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -86,7 +86,7 @@ func (app *application) listProjectsHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // @Summary Get a project with its members
-// @Description Includes my_access, which tells the caller which actions to offer.
+// @Description Includes each member's role, and my_access, which tells the caller which actions to offer.
 // @Tags projects
 // @Produce json
 // @Param id path int true "Project ID"
@@ -133,7 +133,7 @@ type UpdateProjectPayload struct {
 }
 
 // @Summary Update a project
-// @Description Partial update; omitted fields keep their current value.
+// @Description Project admins and the superadmin only. Partial update; omitted fields keep their current value.
 // @Tags projects
 // @Accept json
 // @Produce json
@@ -141,6 +141,7 @@ type UpdateProjectPayload struct {
 // @Param payload body UpdateProjectPayload true "Fields to change"
 // @Success 200 {object} store.Project
 // @Failure 400 {object} error
+// @Failure 403 {object} error
 // @Failure 404 {object} error
 // @Failure 409 {object} error
 // @Failure 422 {object} error
@@ -210,11 +211,13 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 }
 
 // @Summary Delete a project
+// @Description Project admins and the superadmin only.
 // @Tags projects
 // @Produce json
 // @Param id path int true "Project ID"
 // @Success 200 {object} object
 // @Failure 400 {object} error
+// @Failure 403 {object} error
 // @Failure 404 {object} error
 // @Failure 500 {object} error
 // @Security BearerAuth

@@ -150,7 +150,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admins and the superadmin only — not even the author. A member who wants an issue gone sets its status to cancelled, which keeps the history. Its comments and activity trail go with it.",
+                "description": "Anyone in the project. Its comments and activity trail go with it; setting the status to cancelled instead keeps the history.",
                 "produces": [
                     "application/json"
                 ],
@@ -176,10 +176,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {}
-                    },
-                    "403": {
-                        "description": "Forbidden",
                         "schema": {}
                     },
                     "404": {
@@ -812,7 +808,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admins and the superadmin get every project; a member gets the ones they belong to.",
+                "description": "The superadmin gets every project; everyone else gets the ones they belong to. Each project has my_role, the caller's role in it.",
                 "produces": [
                     "application/json"
                 ],
@@ -842,7 +838,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admins and the superadmin only. The creator is not added as a member: they already see every project, and the member list is for who works on it.",
+                "description": "Admins and the superadmin only. The creator becomes the project's first admin.",
                 "consumes": [
                     "application/json"
                 ],
@@ -897,7 +893,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Includes my_access, which tells the caller which actions to offer.",
+                "description": "Includes each member's role, and my_access, which tells the caller which actions to offer.",
                 "produces": [
                     "application/json"
                 ],
@@ -941,7 +937,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Partial update; omitted fields keep their current value.",
+                "description": "Project admins and the superadmin only. Partial update; omitted fields keep their current value.",
                 "consumes": [
                     "application/json"
                 ],
@@ -981,6 +977,10 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {}
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {}
@@ -1005,6 +1005,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Project admins and the superadmin only.",
                 "produces": [
                     "application/json"
                 ],
@@ -1030,6 +1031,10 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {}
                     },
                     "404": {
@@ -1399,7 +1404,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admins and the superadmin only. Membership is yes/no: what a member may do comes from their app-wide role.",
+                "description": "Project admins and the superadmin only. Role is admin or contributor, and defaults to contributor.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1469,7 +1474,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Admins and the superadmin only. The member is unassigned from every issue in the project.",
+                "description": "Project admins and the superadmin only. The member is unassigned from every issue in the project. Removing the last admin returns 422.",
                 "produces": [
                     "application/json"
                 ],
@@ -1510,6 +1515,81 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Project admins and the superadmin only. A project always keeps at least one admin, so demoting the last one returns 422.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "memberships"
+                ],
+                "summary": "Change a member's project role",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New role",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateProjectMemberPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Membership"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
                         "schema": {}
                     },
                     "500": {
@@ -1598,7 +1678,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Every user, oldest first. Filter with active=true|false; omit it for both",
+                "description": "Users, oldest first. Filter with active=true|false; omit it for both. Anyone logged in can list active users (project admins need it to add people); only admins and the superadmin see deactivated ones, so for everyone else the filter is always active=true",
                 "produces": [
                     "application/json"
                 ],
@@ -1644,7 +1724,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create an admin or member. They must change the password on first login",
+                "description": "Create an admin or member. Admins may only create members (403 otherwise). The new user must change the password on first login",
                 "consumes": [
                     "application/json"
                 ],
@@ -1699,7 +1779,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Change name and/or role (admin or member). The superadmin's role can't be changed here",
+                "description": "Change name and/or role (admin or member). Admins may only rename members; changing a role is superadmin-only. The superadmin's role can't be changed here",
                 "consumes": [
                     "application/json"
                 ],
@@ -1765,7 +1845,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "The user can no longer log in. Their history, memberships and assignments stay. You can't deactivate yourself",
+                "description": "The user can no longer log in. Their history, memberships, project roles and assignments stay. You can't deactivate yourself, and admins may only deactivate members. orphaned_projects lists the projects where they were the only active project admin",
                 "produces": [
                     "application/json"
                 ],
@@ -1773,6 +1853,60 @@ const docTemplate = `{
                     "users"
                 ],
                 "summary": "Deactivate a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/main.DeactivateUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/users/{userID}/make-superadmin": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Superadmin only. The target, who must be active, becomes the superadmin and the caller becomes an admin",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Transfer superadmin",
                 "parameters": [
                     {
                         "type": "string",
@@ -1819,6 +1953,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Admins may only reactivate members",
                 "produces": [
                     "application/json"
                 ],
@@ -1868,7 +2003,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Set a temporary password. The user must change it on their next login",
+                "description": "Set a temporary password. The user must change it on their next login. Admins may only reset members' passwords",
                 "consumes": [
                     "application/json"
                 ],
@@ -1940,6 +2075,10 @@ const docTemplate = `{
         "main.AddProjectMemberPayload": {
             "type": "object",
             "properties": {
+                "role": {
+                    "description": "Role defaults to contributor.",
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
                 }
@@ -2020,6 +2159,20 @@ const docTemplate = `{
                 },
                 "role": {
                     "type": "string"
+                }
+            }
+        },
+        "main.DeactivateUserResponse": {
+            "type": "object",
+            "properties": {
+                "orphaned_projects": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/store.ProjectRef"
+                    }
+                },
+                "user": {
+                    "$ref": "#/definitions/store.User"
                 }
             }
         },
@@ -2113,6 +2266,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.UpdateProjectMemberPayload": {
+            "type": "object",
+            "properties": {
+                "role": {
                     "type": "string"
                 }
             }
@@ -2258,6 +2419,9 @@ const docTemplate = `{
                 "project_id": {
                     "type": "integer"
                 },
+                "role": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
                 }
@@ -2277,6 +2441,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "my_role": {
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"
@@ -2298,11 +2465,14 @@ const docTemplate = `{
         "store.ProjectAccess": {
             "type": "object",
             "properties": {
-                "is_admin": {
+                "can_manage": {
                     "type": "boolean"
                 },
-                "is_member": {
+                "is_superadmin": {
                     "type": "boolean"
+                },
+                "role": {
+                    "type": "string"
                 }
             }
         },
@@ -2359,6 +2529,9 @@ const docTemplate = `{
                 "my_access": {
                     "$ref": "#/definitions/store.ProjectAccess"
                 },
+                "my_role": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2391,7 +2564,21 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "role": {
+                    "type": "string"
+                },
                 "user_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "store.ProjectRef": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
                     "type": "string"
                 }
             }

@@ -1,15 +1,26 @@
 import { AddMemberDialog } from '@/components/projects/add-member-dialog'
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import { projectQuery, useRemoveProjectMember } from '@/hooks/use-projects'
+import {
+    projectQuery,
+    useRemoveProjectMember,
+    useUpdateProjectMemberRole,
+} from '@/hooks/use-projects'
 import { getErrorMessage, isApiError } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import type { ProjectDetails, ProjectMember } from '@/types/projects'
+import type { ProjectDetails, ProjectMember, ProjectRole } from '@/types/projects'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { format } from 'date-fns'
-import { Calendar, FolderKanban, X } from 'lucide-react'
+import { Calendar, FolderKanban, MoreHorizontal, ShieldCheck, UserMinus, UserRound } from 'lucide-react'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authed/projects/$projectId/')({
@@ -58,7 +69,7 @@ function ProjectHome() {
                             {project.name}
                         </h1>
                     </div>
-                    {project.my_access.is_admin && <ProjectSettingsMenu project={project} />}
+                    {project.my_access.can_manage && <ProjectSettingsMenu project={project} />}
                 </div>
                 {project.description && (
                     <p className="max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
@@ -90,7 +101,7 @@ function ProjectHome() {
                                     </span>
                                 )}
                             </h2>
-                            {project.my_access.is_admin && (
+                            {project.my_access.can_manage && (
                                 <AddMemberDialog projectId={id} members={project.members} />
                             )}
                         </div>
@@ -115,7 +126,11 @@ function ProjectNotFound() {
 
 function MemberList({ project }: { project: ProjectDetails }) {
     const removeMember = useRemoveProjectMember(project.id)
+    const updateRole = useUpdateProjectMemberRole(project.id)
+    const busy = removeMember.isPending || updateRole.isPending
 
+    // The server keeps at least one admin per project and answers 422 otherwise,
+    // so its message is shown as is.
     const onRemove = async (member: ProjectMember) => {
         try {
             await removeMember.mutateAsync(member.user_id)
@@ -125,11 +140,20 @@ function MemberList({ project }: { project: ProjectDetails }) {
         }
     }
 
+    const onChangeRole = async (member: ProjectMember, role: ProjectRole) => {
+        try {
+            await updateRole.mutateAsync({ userId: member.user_id, role })
+            toast.success(`${member.name} is now a project ${role}.`)
+        } catch (e) {
+            toast.error(getErrorMessage(e))
+        }
+    }
+
     if (project.members.length === 0) {
         return (
             <p className="text-[14px] text-muted-foreground">
                 No members yet.
-                {project.my_access.is_admin && ' Add the people who work on this project.'}
+                {project.my_access.can_manage && ' Add the people who work on this project.'}
             </p>
         )
     }
@@ -161,16 +185,40 @@ function MemberList({ project }: { project: ProjectDetails }) {
                                 Deactivated
                             </Badge>
                         )}
+                        {member.role === 'admin' && (
+                            <Badge variant="secondary" className="shrink-0">
+                                Admin
+                            </Badge>
+                        )}
                     </div>
-                    {project.my_access.is_admin && (
-                        <button
-                            aria-label={`Remove ${member.name}`}
-                            onClick={() => onRemove(member)}
-                            disabled={removeMember.isPending}
-                            className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted/50 hover:text-foreground focus-visible:opacity-100 disabled:pointer-events-none group-hover:opacity-100"
-                        >
-                            <X className="size-3.5" />
-                        </button>
+                    {project.my_access.can_manage && (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger
+                                aria-label={`Manage ${member.name}`}
+                                disabled={busy}
+                                className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted/50 hover:text-foreground focus-visible:opacity-100 disabled:pointer-events-none group-hover:opacity-100 data-[popup-open]:opacity-100"
+                            >
+                                <MoreHorizontal className="size-3.5" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                {member.role === 'admin' ? (
+                                    <DropdownMenuItem onClick={() => onChangeRole(member, 'contributor')}>
+                                        <UserRound className="size-4" />
+                                        Make contributor
+                                    </DropdownMenuItem>
+                                ) : (
+                                    <DropdownMenuItem onClick={() => onChangeRole(member, 'admin')}>
+                                        <ShieldCheck className="size-4" />
+                                        Make admin
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem variant="destructive" onClick={() => onRemove(member)}>
+                                    <UserMinus className="size-4" />
+                                    Remove from project
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     )}
                 </div>
             ))}

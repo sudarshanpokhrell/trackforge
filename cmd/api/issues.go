@@ -229,13 +229,12 @@ func (app *application) updateIssueHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // @Summary Delete an issue
-// @Description Admins and the superadmin only — not even the author. A member who wants an issue gone sets its status to cancelled, which keeps the history. Its comments and activity trail go with it.
+// @Description Anyone in the project. Its comments and activity trail go with it; setting the status to cancelled instead keeps the history.
 // @Tags issues
 // @Produce json
 // @Param issueID path int true "Issue ID"
 // @Success 200 {object} object
 // @Failure 400 {object} error
-// @Failure 403 {object} error
 // @Failure 404 {object} error
 // @Failure 500 {object} error
 // @Security BearerAuth

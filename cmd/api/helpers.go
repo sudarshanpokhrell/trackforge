@@ -167,18 +167,12 @@ func (app *application) contextIssueComment(r *http.Request) *store.IssueComment
 	return comment
 }
 
-// contextProjectAccess reports what the caller may do with the project the
-// access middleware resolved for this request.
+// contextProjectAccess reports who the caller is in the project the access
+// middleware resolved for this request.
 func (app *application) contextProjectAccess(r *http.Request) store.ProjectAccess {
 	access, ok := r.Context().Value(projectAccessCtx).(store.ProjectAccess)
 	if !ok {
 		panic("missing project access in request context")
 	}
 	return access
-}
-
-// contextIsAdmin answers the app-wide question, so it works on routes with no
-// project in the path.
-func (app *application) contextIsAdmin(r *http.Request) bool {
-	return store.UserRoleAtLeast(app.contextUser(r).Role, store.UserRoleAdmin)
 }

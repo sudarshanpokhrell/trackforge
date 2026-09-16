@@ -22,6 +22,7 @@ type Storage struct {
 		GetByEmail(context.Context, string) (*User, error)
 		List(ctx context.Context, active *bool) ([]*User, error)
 		Update(context.Context, *User) error
+		TransferSuperadmin(ctx context.Context, fromID, toID string) error
 	}
 
 	Projects interface {
@@ -30,13 +31,15 @@ type Storage struct {
 		GetByID(ctx context.Context, projectID int64) (*Project, error)
 		GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error)
 		ListVisibleTo(ctx context.Context, userID string, all bool) ([]*Project, error)
+		ListSoleActiveAdminOf(ctx context.Context, userID string) ([]ProjectRef, error)
 		Update(context.Context, *Project) error
 		Delete(ctx context.Context, projectID int64) error
 	}
 
 	Memberships interface {
-		Create(ctx context.Context, userID string, projectID int64) error
-		IsMember(ctx context.Context, userID string, projectID int64) (bool, error)
+		Create(ctx context.Context, userID string, projectID int64, role string) error
+		GetRole(ctx context.Context, userID string, projectID int64) (string, error)
+		UpdateRole(ctx context.Context, userID string, projectID int64, role string) error
 		Delete(ctx context.Context, userID string, projectID int64) error
 	}
 	Issues interface {

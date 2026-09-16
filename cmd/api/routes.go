@@ -39,16 +39,18 @@ func (app *application) routes() http.Handler {
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Use(app.RequireAuth)
-			r.With(app.RequireRole(store.UserRoleAdmin)).Get("/", app.listUsersHandler)
+			r.Get("/", app.listUsersHandler)
 
 			r.Group(func(r chi.Router) {
-				r.Use(app.RequireRole(store.UserRoleSuperadmin))
+				r.Use(app.RequireRole(store.UserRoleAdmin))
 				r.Post("/", app.createUserHandler)
 				r.Patch("/{userID}", app.updateUserHandler)
 				r.Post("/{userID}/deactivate", app.deactivateUserHandler)
 				r.Post("/{userID}/reactivate", app.reactivateUserHandler)
 				r.Post("/{userID}/reset-password", app.resetUserPasswordHandler)
 			})
+
+			r.With(app.RequireRole(store.UserRoleSuperadmin)).Post("/{userID}/make-superadmin", app.makeSuperadminHandler)
 		})
 		r.Route("/issues", func(r chi.Router) {
 			r.Use(app.RequireAuth)
@@ -65,12 +67,12 @@ func (app *application) routes() http.Handler {
 				r.Delete("/assignees/{userID}", app.removeIssueAssigneeHandler)
 				r.Post("/comments", app.createIssueCommentHandler)
 
-				r.With(app.RequireRole(store.UserRoleAdmin)).Delete("/", app.deleteIssueHandler)
+				r.Delete("/", app.deleteIssueHandler)
 
 				r.Group(func(r chi.Router) {
 					r.Use(app.LoadIssueComment)
 					r.With(app.RequireIssueCommentAuthor).Patch("/comments/{commentID}", app.updateIssueCommentHandler)
-					r.With(app.RequireIssueCommentAuthorOrAdmin).Delete("/comments/{commentID}", app.deleteIssueCommentHandler)
+					r.With(app.RequireIssueCommentAuthorOrProjectAdmin).Delete("/comments/{commentID}", app.deleteIssueCommentHandler)
 				})
 			})
 		})
@@ -86,10 +88,11 @@ func (app *application) routes() http.Handler {
 				r.Get("/", app.getProjectByIDHandler)
 
 				r.Group(func(r chi.Router) {
-					r.Use(app.RequireRole(store.UserRoleAdmin))
+					r.Use(app.RequireProjectAdmin)
 					r.Put("/", app.updateProjectHandler)
 					r.Delete("/", app.deleteProjectHandler)
 					r.Post("/members", app.addProjectMemberHandler)
+					r.Patch("/members/{userID}", app.updateProjectMemberHandler)
 					r.Delete("/members/{userID}", app.removeProjectMemberHandler)
 				})
 
@@ -105,7 +108,7 @@ func (app *application) routes() http.Handler {
 					r.Route("/{commentID}", func(r chi.Router) {
 						r.Use(app.LoadProjectComment)
 						r.With(app.RequireCommentAuthor).Patch("/", app.updateProjectCommentHandler)
-						r.With(app.RequireCommentAuthorOrAdmin).Delete("/", app.deleteProjectCommentHandler)
+						r.With(app.RequireCommentAuthorOrProjectAdmin).Delete("/", app.deleteProjectCommentHandler)
 					})
 				})
 			})

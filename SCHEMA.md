@@ -26,10 +26,11 @@ projects
   created_at   timestamptz
   updated_at   timestamptz      -- maintained by trigger
 
-project_memberships              -- membership is yes/no: users.role decides what you may do
+project_memberships              -- who is in a project, and their role in it
   id           bigserial  pk
   project_id   bigint  not null  → projects(id)  ON DELETE CASCADE
   user_id      uuid    not null  → users(id)     ON DELETE CASCADE
+  role         project_member_role  not null  default 'contributor'
   created_at   timestamptz
   updated_at   timestamptz      -- maintained by trigger
   UNIQUE (project_id, user_id)             -- one row per person per project
@@ -92,6 +93,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 |---|---|
 | `users_single_superadmin` | partial **unique** index on `role` where `role = 'superadmin'`: the database guarantees at most one superadmin, so two racing `POST /setup` requests can't both succeed. Not there for lookups |
 | `idx_project_memberships_user_id` | `project_memberships_unique` is `(project_id, user_id)`; a composite index only serves lookups on a **leading prefix**, so it cannot help `WHERE user_id = $1` — which is what "list my projects" does |
+| `idx_project_memberships_admins` | partial index on `project_id` where `role = 'admin'`: "who are the admins of project X", which the last-admin check asks before every demotion or removal |
 | `idx_projects_created_by` | "projects I created"; also keeps the `ON DELETE RESTRICT` check on `users` from scanning the table |
 | `idx_project_comments_project_id_created_at` | the feed read — one project's comments, newest first. Composite, so a single index serves both the filter and the ordering and Postgres never sorts. Only pays off once the query carries a `LIMIT` |
 | `idx_issues_project_id_created_at` | the board/list read — one project's issues, newest first; same composite reasoning as the comment feed |
@@ -105,6 +107,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 | Type | Values |
 |---|---|
 | `user_role` | `superadmin`, `admin`, `member` |
+| `project_member_role` | `admin`, `contributor` |
 | `issue_status` | `backlog`, `todo`, `in-progress`, `done`, `cancelled` |
 | `issue_priority` | `no-priority`, `urgent`, `high`, `medium`, `low` |
 | `issue_activity_type` | `created`, `title_changed`, `description_changed`, `status_changed`, `priority_changed`, `assignee_changed`, `label_added`, `label_removed` |
@@ -116,15 +119,31 @@ Migrations create enums inside a `DO $$ ... IF NOT EXISTS (SELECT 1 FROM pg_type
 ## 3. Access model
 
 One install is one organization, so there is no workspace table: the whole app is
-the workspace. Authorization has exactly two inputs.
+the workspace. Authorization has two independent layers, both read from the
+database on every request and never carried in the JWT, so a promotion, demotion
+or deactivation takes effect immediately.
 
-- **`users.role`** (`superadmin` > `admin` > `member`) decides *what* you may do.
-  It is read from the database on every request, never carried in the JWT, so a
-  promotion, demotion or deactivation takes effect immediately.
-- **`project_memberships`** decides *which projects you can see*. It is yes/no;
-  there is no per-project role and no project lead. Admins and the superadmin see
-  every project without a membership row, but still have to be added as members to
-  be **assigned** issues.
+- **`users.role`** (`superadmin` > `admin` > `member`) decides what you may do *to
+  the organization*. The superadmin creates admins and members; an admin creates and
+  manages members only; admins and the superadmin create projects.
+- **`project_memberships.role`** (`admin`, `contributor`) decides what you may do
+  *inside one project*, and a membership row is what lets you see it at all. A
+  project admin edits the project and manages its members and their roles; a
+  contributor does the work (issues, comments). The creator of a project becomes
+  its admin in the same transaction that inserts it.
+
+The two layers don't imply each other: an app admin sees only the projects they're
+in, and an app member can be a project admin. The one exception is the
+**superadmin**, who sees every project and counts as its admin without a membership
+row — but still has to be added as a member to be **assigned** issues.
+
+**A project always keeps at least one admin.** The database can't express that as a
+constraint, so `MembershipStore` demotes or removes inside a transaction that first
+locks every membership row of the project (`SELECT … FOR UPDATE`) and refuses to
+drop the last admin. The lock makes two admins demoting each other at once
+serialize: the second sees the first's result and is refused. Deactivating a user
+does not touch their project roles, so a project can end up with no *active* admin;
+the deactivate endpoint reports those projects, and the superadmin can step in.
 
 No access to a project is a `404`, not a `403`: a `403` would confirm that a
 project you have no business knowing about exists.

@@ -6,81 +6,166 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
+	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
-var ErrDuplicateMembership = errors.New("user is already a member of this project")
+var (
+	ErrDuplicateMembership = errors.New("user is already a member of this project")
+	ErrLastProjectAdmin    = errors.New("a project needs at least one admin")
+)
 
-// Membership is a plain yes/no: the user is in the project or not. What they may
-// do there comes from users.role, not from the project.
+const (
+	ProjectRoleAdmin       = "admin"
+	ProjectRoleContributor = "contributor"
+)
+
+func ValidateProjectRole(v *validator.Validator, role string) {
+	v.Check(v.In(role, ProjectRoleAdmin, ProjectRoleContributor), "role", "must be one of admin or contributor")
+}
+
 type Membership struct {
 	ProjectID int64  `json:"project_id"`
 	UserID    string `json:"user_id"`
+	Role      string `json:"role"`
 }
 
 type MembershipStore struct {
 	db *sql.DB
 }
 
-func (s *MembershipStore) Create(ctx context.Context, userId string, projectId int64) error {
+func (s *MembershipStore) Create(ctx context.Context, userId string, projectId int64, role string) error {
 	query := `
-		INSERT INTO project_memberships (project_id, user_id)
-		VALUES ($1, $2)
+		INSERT INTO project_memberships (project_id, user_id, role)
+		VALUES ($1, $2, $3)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, query, projectId, userId)
+	_, err := s.db.ExecContext(ctx, query, projectId, userId, role)
 
 	return translateMembershipError(err)
 }
 
-func (s *MembershipStore) IsMember(ctx context.Context, userId string, projectId int64) (bool, error) {
+func (s *MembershipStore) GetRole(ctx context.Context, userId string, projectId int64) (string, error) {
 	query := `
-		SELECT EXISTS (
-			SELECT 1 FROM project_memberships
-			WHERE project_id = $1 AND user_id = $2
-		)
-	`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
-	defer cancel()
-
-	var member bool
-
-	err := s.db.QueryRowContext(ctx, query, projectId, userId).Scan(&member)
-
-	return member, err
-}
-
-// Delete removes the membership. The composite foreign key on issue_assignees
-// cascades, so the user is unassigned from every issue in the project.
-func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId int64) error {
-	query := `
-		DELETE FROM project_memberships
+		SELECT role FROM project_memberships
 		WHERE project_id = $1 AND user_id = $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	result, err := s.db.ExecContext(ctx, query, projectId, userId)
+	var role string
+
+	err := s.db.QueryRowContext(ctx, query, projectId, userId).Scan(&role)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
+	}
+
+	return role, err
+}
+
+// UpdateRole changes the user's role in the project. Demoting the last admin
+// fails with ErrLastProjectAdmin.
+func (s *MembershipStore) UpdateRole(ctx context.Context, userId string, projectId int64, role string) error {
+	query := `
+		UPDATE project_memberships SET role = $3
+		WHERE project_id = $1 AND user_id = $2
+	`
+
+	return s.changeKeepingAnAdmin(ctx, userId, projectId, role != ProjectRoleAdmin, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx, query, projectId, userId, role)
+		return err
+	})
+}
+
+// Delete removes the membership. The composite foreign key on issue_assignees
+// cascades, so the user is unassigned from every issue in the project. Removing
+// the last admin fails with ErrLastProjectAdmin.
+func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId int64) error {
+	query := `
+		DELETE FROM project_memberships
+		WHERE project_id = $1 AND user_id = $2
+	`
+
+	return s.changeKeepingAnAdmin(ctx, userId, projectId, true, func(tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx, query, projectId, userId)
+		return err
+	})
+}
+
+// changeKeepingAnAdmin runs change on the user's membership inside a transaction
+// that first locks every membership row of the project. dropsAdmin says whether
+// the change takes the user out of the admin role; if they are the only admin,
+// it is refused. The lock is what stops two admins demoting each other at once:
+// the second transaction waits, then sees the first one's result.
+func (s *MembershipStore) changeKeepingAnAdmin(ctx context.Context, userId string, projectId int64, dropsAdmin bool, change func(*sql.Tx) error) error {
+	query := `
+		SELECT user_id, role FROM project_memberships
+		WHERE project_id = $1
+		FOR UPDATE
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
 
 	if err != nil {
 		return err
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	defer tx.Rollback()
+
+	rows, err := tx.QueryContext(ctx, query, projectId)
 
 	if err != nil {
 		return err
 	}
 
-	if rowsAffected == 0 {
+	var (
+		targetRole string
+		admins     int
+	)
+
+	for rows.Next() {
+		var memberID, role string
+
+		if err := rows.Scan(&memberID, &role); err != nil {
+			rows.Close()
+			return err
+		}
+
+		if role == ProjectRoleAdmin {
+			admins++
+		}
+
+		if memberID == userId {
+			targetRole = role
+		}
+	}
+
+	rows.Close()
+
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	if targetRole == "" {
 		return ErrNotFound
 	}
 
-	return nil
+	if dropsAdmin && targetRole == ProjectRoleAdmin && admins == 1 {
+		return ErrLastProjectAdmin
+	}
+
+	if err := change(tx); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func translateMembershipError(err error) error {

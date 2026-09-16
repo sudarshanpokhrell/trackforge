@@ -1,3 +1,5 @@
+export type ProjectRole = "admin" | "contributor"
+
 export interface Project {
   id: number
   name: string
@@ -8,6 +10,8 @@ export interface Project {
   created_at: string
   updated_at: string
   version: number
+  /** The current user's role in the project. Absent for the superadmin outside it. */
+  my_role?: ProjectRole
 }
 
 export interface ProjectMember {
@@ -15,6 +19,7 @@ export interface ProjectMember {
   name: string
   email: string
   is_active: boolean
+  role: ProjectRole
   joined_at: string
 }
 
@@ -23,8 +28,11 @@ export interface ProjectMember {
  * request, so the UI never re-derives permissions from the user's role.
  */
 export interface ProjectAccess {
-  is_admin: boolean
-  is_member: boolean
+  /** Absent when the current user isn't a member (only the superadmin gets in then). */
+  role?: ProjectRole
+  is_superadmin: boolean
+  /** Project admins and the superadmin: settings, members and their roles. */
+  can_manage: boolean
 }
 
 export interface ProjectDetails extends Project {
@@ -40,3 +48,8 @@ export type CreateProjectInput = {
 }
 
 export type UpdateProjectInput = Partial<CreateProjectInput>
+
+export interface ProjectRef {
+  id: number
+  name: string
+}

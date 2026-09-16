@@ -1,4 +1,5 @@
 import { CreateMemberDialog } from "@/components/members/create-member-dialog"
+import { MemberActions, canManageUser } from "@/components/members/member-actions"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns";
 
@@ -34,7 +35,7 @@ function MembersPage() {
         <div className="space-y-1">
           <h1 className="text-headline">Members</h1>
         </div>
-        {isSuperadmin && <CreateMemberDialog />}
+        <CreateMemberDialog canCreateAdmin={isSuperadmin} />
       </div>
 
       {error ? (
@@ -53,13 +54,16 @@ function MembersPage() {
                 <th className="px-4 py-2 font-medium">Role</th>
                 <th className="px-4 py-2 font-medium">Status</th>
                 <th className="px-4 py-2 font-medium">Joined</th>
+                <th className="px-4 py-2">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {isPending &&
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i}>
-                    <td className="px-4 py-3" colSpan={isSuperadmin ? 5 : 4}>
+                    <td className="px-4 py-3" colSpan={5}>
                       <Skeleton className="h-8 w-full" />
                     </td>
                   </tr>
@@ -68,7 +72,7 @@ function MembersPage() {
                 <tr>
                   <td
                     className="px-4 py-10 text-center text-muted-foreground"
-                    colSpan={isSuperadmin ? 5 : 4}
+                    colSpan={5}
                   >
                     No members.
                   </td>
@@ -109,6 +113,9 @@ function MembersPage() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {format(new Date(user.created_at), "dd MMM yyyy")}
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {canManageUser(me, user) && <MemberActions me={me} user={user} />}
                   </td>
                 </tr>
               ))}

@@ -31,7 +31,8 @@ type Values = {
   password: string
 }
 
-export function CreateMemberDialog() {
+/** Admins may only create members, so they get no role picker. */
+export function CreateMemberDialog({ canCreateAdmin }: { canCreateAdmin: boolean }) {
   const [open, setOpen] = useState(false)
   const createUser = useCreateUser()
 
@@ -113,27 +114,29 @@ export function CreateMemberDialog() {
             )}
           </div>
 
-          <div>
-            <Label htmlFor="role">Role</Label>
-            <Controller
-              control={control}
-              name="role"
-              render={({ field }) => (
-                <Select
-                  value={field.value}
-                  onValueChange={(v) => v && field.onChange(v)}
-                >
-                  <SelectTrigger id="role" className="mt-2 w-full h-9">
-                    <SelectValue className="capitalize" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </div>
+          {canCreateAdmin && (
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Controller
+                control={control}
+                name="role"
+                render={({ field }) => (
+                  <Select
+                    value={field.value}
+                    onValueChange={(v) => v && field.onChange(v)}
+                  >
+                    <SelectTrigger id="role" className="mt-2 w-full h-9">
+                      <SelectValue className="capitalize" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          )}
 
           <div>
             <Label htmlFor="password">Temporary password</Label>

@@ -18,7 +18,7 @@ import {
 import { useAddProjectMember } from "@/hooks/use-projects"
 import { usersQuery } from "@/hooks/use-user"
 import { getErrorMessage } from "@/lib/api"
-import type { ProjectMember } from "@/types/projects"
+import type { ProjectMember, ProjectRole } from "@/types/projects"
 import { useQuery } from "@tanstack/react-query"
 import { Loader2, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -34,6 +34,7 @@ export function AddMemberDialog({
   const [open, setOpen] = useState(false)
   // null, not "", so the trigger shows its placeholder while nothing is picked.
   const [userId, setUserId] = useState<string | null>(null)
+  const [role, setRole] = useState<ProjectRole>("contributor")
   const [error, setError] = useState<string | null>(null)
 
   const { data: users, isPending } = useQuery(usersQuery)
@@ -50,6 +51,7 @@ export function AddMemberDialog({
     setOpen(next)
     if (!next) {
       setUserId(null)
+      setRole("contributor")
       setError(null)
     }
   }
@@ -57,7 +59,7 @@ export function AddMemberDialog({
   const onSubmit = async () => {
     if (!userId) return
     try {
-      await addMember.mutateAsync(userId)
+      await addMember.mutateAsync({ userId, role })
       toast.success(
         `${candidates.find((u) => u.id === userId)?.name ?? "Member"} added.`
       )
@@ -84,38 +86,56 @@ export function AddMemberDialog({
           <DialogTitle>Add member</DialogTitle>
         </DialogHeader>
 
-        <div className="py-2">
-          <Label htmlFor="member">Person</Label>
-          <Select value={userId} onValueChange={(v) => v && setUserId(v)}>
-            <SelectTrigger id="member" className="mt-2 h-9 w-full">
-              {/* The value is a user id, so it has to be mapped back to a name;
-                  left alone, the trigger would show a raw UUID. */}
-              <SelectValue
-                placeholder={
-                  isPending
-                    ? "Loading…"
-                    : candidates.length === 0
-                      ? "Everyone is already a member"
-                      : "Select a person"
-                }
-              >
-                {(value: string | null) => {
-                  const user = candidates.find((u) => u.id === value)
-                  return user ? `${user.name} · ${user.email}` : null
-                }}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {candidates.map((u) => (
-                <SelectItem key={u.id} value={u.id}>
-                  {u.name} · {u.email}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Members see this project and can be assigned its issues.
-          </p>
+        <div className="space-y-5 py-2">
+          <div>
+            <Label htmlFor="member">Person</Label>
+            <Select value={userId} onValueChange={(v) => v && setUserId(v)}>
+              <SelectTrigger id="member" className="mt-2 h-9 w-full">
+                {/* The value is a user id, so it has to be mapped back to a name;
+                    left alone, the trigger would show a raw UUID. */}
+                <SelectValue
+                  placeholder={
+                    isPending
+                      ? "Loading…"
+                      : candidates.length === 0
+                        ? "Everyone is already a member"
+                        : "Select a person"
+                  }
+                >
+                  {(value: string | null) => {
+                    const user = candidates.find((u) => u.id === value)
+                    return user ? `${user.name} · ${user.email}` : null
+                  }}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {candidates.map((u) => (
+                  <SelectItem key={u.id} value={u.id}>
+                    {u.name} · {u.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="member-role">Project role</Label>
+            <Select value={role} onValueChange={(v) => v && setRole(v)}>
+              <SelectTrigger id="member-role" className="mt-2 h-9 w-full">
+                <SelectValue className="capitalize" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="contributor">Contributor</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {role === "admin"
+                ? "Admins also edit the project and manage its members."
+                : "Contributors work on issues and comments, and can be assigned."}
+            </p>
+          </div>
+
           {error && (
             <p className="mt-2 text-sm text-destructive" role="alert">
               {error}

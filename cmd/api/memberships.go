@@ -10,10 +10,16 @@ import (
 
 type AddProjectMemberPayload struct {
 	UserID string `json:"user_id"`
+	// Role defaults to contributor.
+	Role string `json:"role"`
+}
+
+type UpdateProjectMemberPayload struct {
+	Role string `json:"role"`
 }
 
 // @Summary Add a member to a project
-// @Description Admins and the superadmin only. Membership is yes/no: what a member may do comes from their app-wide role.
+// @Description Project admins and the superadmin only. Role is admin or contributor, and defaults to contributor.
 // @Tags memberships
 // @Accept json
 // @Produce json
@@ -43,9 +49,16 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	if payload.Role == "" {
+		payload.Role = store.ProjectRoleContributor
+	}
+
 	v := validator.New()
 
-	if v.Check(validator.UUIDRX.MatchString(payload.UserID), "user_id", "must be a valid user id"); !v.Valid() {
+	v.Check(validator.UUIDRX.MatchString(payload.UserID), "user_id", "must be a valid user id")
+	store.ValidateProjectRole(v, payload.Role)
+
+	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
@@ -70,7 +83,7 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.store.Memberships.Create(r.Context(), payload.UserID, projectID)
+	err = app.store.Memberships.Create(r.Context(), payload.UserID, projectID, payload.Role)
 
 	if err != nil {
 		switch {
@@ -87,6 +100,7 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 	membership := store.Membership{
 		ProjectID: projectID,
 		UserID:    payload.UserID,
+		Role:      payload.Role,
 	}
 
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"membership": membership}, nil); err != nil {
@@ -94,8 +108,71 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 	}
 }
 
+// @Summary Change a member's project role
+// @Description Project admins and the superadmin only. A project always keeps at least one admin, so demoting the last one returns 422.
+// @Tags memberships
+// @Accept json
+// @Produce json
+// @Param id path int true "Project ID"
+// @Param userID path string true "User ID"
+// @Param payload body UpdateProjectMemberPayload true "New role"
+// @Success 200 {object} store.Membership
+// @Failure 400 {object} error
+// @Failure 403 {object} error
+// @Failure 404 {object} error
+// @Failure 422 {object} error
+// @Failure 500 {object} error
+// @Security BearerAuth
+// @Router /projects/{id}/members/{userID} [patch]
+func (app *application) updateProjectMemberHandler(w http.ResponseWriter, r *http.Request) {
+	projectID, err := app.readIDParam(r)
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	userID, err := app.readUserIDParam(r)
+
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	var payload UpdateProjectMemberPayload
+
+	if err := app.readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+
+	if store.ValidateProjectRole(v, payload.Role); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.store.Memberships.UpdateRole(r.Context(), userID, projectID, payload.Role)
+
+	if err != nil {
+		app.membershipChangeErrorResponse(w, r, err)
+		return
+	}
+
+	membership := store.Membership{
+		ProjectID: projectID,
+		UserID:    userID,
+		Role:      payload.Role,
+	}
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"membership": membership}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
 // @Summary Remove a member from a project
-// @Description Admins and the superadmin only. The member is unassigned from every issue in the project.
+// @Description Project admins and the superadmin only. The member is unassigned from every issue in the project. Removing the last admin returns 422.
 // @Tags memberships
 // @Produce json
 // @Param id path int true "Project ID"
@@ -104,6 +181,7 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 // @Failure 400 {object} error
 // @Failure 403 {object} error
 // @Failure 404 {object} error
+// @Failure 422 {object} error
 // @Failure 500 {object} error
 // @Security BearerAuth
 // @Router /projects/{id}/members/{userID} [delete]
@@ -125,16 +203,24 @@ func (app *application) removeProjectMemberHandler(w http.ResponseWriter, r *htt
 	err = app.store.Memberships.Delete(r.Context(), userID, projectID)
 
 	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.membershipChangeErrorResponse(w, r, err)
 		return
 	}
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "member removed successfully"}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+// membershipChangeErrorResponse maps the errors of changing or removing an
+// existing membership.
+func (app *application) membershipChangeErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	switch {
+	case errors.Is(err, store.ErrNotFound):
+		app.notFoundResponse(w, r)
+	case errors.Is(err, store.ErrLastProjectAdmin):
+		app.errorResponse(w, r, http.StatusUnprocessableEntity, err.Error())
+	default:
 		app.serverErrorResponse(w, r, err)
 	}
 }

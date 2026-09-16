@@ -229,6 +229,49 @@ func (s *UserStore) Update(ctx context.Context, user *User) error {
 	return translateUserError(err)
 }
 
+// TransferSuperadmin hands the superadmin role from one user to another, who
+// must be active. The current superadmin becomes an admin first, then the target
+// is promoted, in one transaction: that order is what satisfies the unique index
+// allowing a single superadmin.
+func (s *UserStore) TransferSuperadmin(ctx context.Context, fromID, toID string) error {
+	demote := `UPDATE users SET role = 'admin' WHERE id = $1 AND role = 'superadmin'`
+	promote := `UPDATE users SET role = 'superadmin' WHERE id = $1 AND is_active`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	tx, err := s.db.BeginTx(ctx, nil)
+
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	for _, step := range []struct {
+		query string
+		id    string
+	}{{demote, fromID}, {promote, toID}} {
+		result, err := tx.ExecContext(ctx, step.query, step.id)
+
+		if err != nil {
+			return translateUserError(err)
+		}
+
+		rows, err := result.RowsAffected()
+
+		if err != nil {
+			return err
+		}
+
+		if rows == 0 {
+			return ErrNotFound
+		}
+	}
+
+	return tx.Commit()
+}
+
 func (s *UserStore) getOne(ctx context.Context, query string, arg any) (*User, error) {
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
