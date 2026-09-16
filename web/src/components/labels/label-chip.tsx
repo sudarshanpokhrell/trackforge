@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { Tag } from 'lucide-react'
 import type { LabelSummary } from '@/types/issues'
 
 export function LabelDot({ color, className }: { color: string; className?: string }) {
@@ -22,6 +23,20 @@ export function LabelChip({ label, className }: { label: LabelSummary; className
     >
       <LabelDot color={label.color} />
       <span className="truncate">{label.name}</span>
+    </span>
+  )
+}
+
+/** A tag in the label's color on a faint wash of the same color. */
+export function LabelIcon({ color, className }: { color: string; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn('flex size-7 shrink-0 items-center justify-center rounded-md', className)}
+      // Label colors are 6-digit hex, so a two-digit suffix sets the alpha.
+      style={{ backgroundColor: `${color}1f`, color }}
+    >
+      <Tag className="size-3.5" />
     </span>
   )
 }

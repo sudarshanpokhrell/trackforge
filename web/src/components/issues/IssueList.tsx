@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cn } from '@/lib/utils'
+import { TabBar, type TabBarItem } from '@/components/ui/tab-bar'
 import { IssueGroup } from './IssueGroup'
 import { STATUS_ORDER } from './types'
 import type { Issue, Tab } from './types'
@@ -19,31 +19,21 @@ export function IssueList({ issues, showProject }: IssueListProps) {
         ? issues.filter((i) => i.status === 'in-progress' || i.status === 'todo')
         : issues.filter((i) => i.status === 'backlog')
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'active', label: 'Active' },
-    { key: 'backlog', label: 'Backlog' },
-    { key: 'all', label: 'All issues' },
+  const tabs: TabBarItem<Tab>[] = [
+    { value: 'active', label: 'Active' },
+    { value: 'backlog', label: 'Backlog' },
+    { value: 'all', label: 'All issues' },
   ]
 
   return (
     <div className="flex flex-col">
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-border pb-3">
-        {tabs.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={cn(
-              'rounded-full px-3.5 py-1 text-sm transition-colors',
-              tab === key
-                ? 'bg-surface-2 text-foreground font-medium ring-1 ring-border'
-                : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <TabBar
+        aria-label="Issue views"
+        tabs={tabs}
+        value={tab}
+        onValueChange={setTab}
+        className="border-b border-border pb-3"
+      />
 
       <div>
         {STATUS_ORDER.map((status) => {

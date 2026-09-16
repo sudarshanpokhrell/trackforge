@@ -84,7 +84,6 @@ export function useAddProjectMember(projectId: number) {
   })
 }
 
-/** The server refuses (422) to demote a project's last admin. */
 export function useUpdateProjectMemberRole(projectId: number) {
   const client = useQueryClient()
 

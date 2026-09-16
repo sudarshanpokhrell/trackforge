@@ -29,6 +29,7 @@
     "ky": "^2.1.0",
     "lucide-react": "^1.33.0",
     "react": "^19.2.6",
+    "react-colorful": "^5.8.1",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.6",
     "react-hook-form": "^7.85.0",
