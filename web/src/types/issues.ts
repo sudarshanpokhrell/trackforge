@@ -39,6 +39,13 @@ export interface Assignee {
   name: string
 }
 
+/** A label as it appears on an issue. */
+export interface LabelSummary {
+  id: number
+  name: string
+  color: string
+}
+
 export interface Issue {
   id: number
   project_id: number
@@ -51,6 +58,7 @@ export interface Issue {
   created_at: string
   updated_at: string
   assignees: Assignee[]
+  labels: LabelSummary[]
 }
 
 export type CreateIssueInput = {
@@ -58,9 +66,11 @@ export type CreateIssueInput = {
   description?: string | null
   status?: IssueStatus
   priority?: IssuePriority
+  /** Applied in the same transaction; each must belong to the project. */
+  label_ids?: number[]
 }
 
-export type UpdateIssueInput = Partial<CreateIssueInput>
+export type UpdateIssueInput = Partial<Omit<CreateIssueInput, 'label_ids'>>
 
 export interface UserSummary {
   id: string

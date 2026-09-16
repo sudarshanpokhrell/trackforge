@@ -121,6 +121,16 @@ func (app *application) readIssueIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
+func (app *application) readLabelIDParam(r *http.Request) (int64, error) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "labelID"), 10, 64)
+
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid label id parameter")
+	}
+
+	return id, nil
+}
+
 func (app *application) readUserIDParam(r *http.Request) (string, error) {
 	userID := chi.URLParam(r, "userID")
 
@@ -165,6 +175,14 @@ func (app *application) contextIssueComment(r *http.Request) *store.IssueComment
 		panic("missing issue comment in request context")
 	}
 	return comment
+}
+
+func (app *application) contextLabel(r *http.Request) *store.Label {
+	label, ok := r.Context().Value(labelCtx).(*store.Label)
+	if !ok {
+		panic("missing label in request context")
+	}
+	return label
 }
 
 // contextProjectAccess reports who the caller is in the project the access

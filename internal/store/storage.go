@@ -43,13 +43,23 @@ type Storage struct {
 		Delete(ctx context.Context, userID string, projectID int64) error
 	}
 	Issues interface {
-		Create(context.Context, *Issue) error
+		Create(ctx context.Context, issue *Issue, labelIDs []int64) error
 		GetByID(ctx context.Context, issueID int64) (*Issue, error)
 		ListByProject(ctx context.Context, projectID int64) ([]*Issue, error)
 		Update(ctx context.Context, issue *Issue, before Issue, actorID string) error
 		AddAssignee(ctx context.Context, issueID, projectID int64, userID, actorID string) error
 		RemoveAssignee(ctx context.Context, issueID int64, userID, actorID string) error
+		AddLabel(ctx context.Context, issueID, projectID, labelID int64, actorID string) (LabelSummary, bool, error)
+		RemoveLabel(ctx context.Context, issueID, labelID int64, actorID string) error
 		Delete(ctx context.Context, issueID int64) error
+	}
+
+	Labels interface {
+		Create(context.Context, *Label) error
+		GetByID(ctx context.Context, labelID int64) (*Label, error)
+		ListByProject(ctx context.Context, projectID int64) ([]*Label, error)
+		Update(context.Context, *Label) error
+		Delete(ctx context.Context, labelID int64) (int64, error)
 	}
 
 	Activities interface {
@@ -80,6 +90,7 @@ func NewStorage(db *sql.DB) Storage {
 		Memberships: &MembershipStore{db},
 		Comments:    &CommentStore{db},
 		Issues:      &IssueStore{db},
+		Labels:      &LabelStore{db},
 		Activities:  &ActivityStore{db},
 
 		IssueComments: &IssueCommentStore{db},

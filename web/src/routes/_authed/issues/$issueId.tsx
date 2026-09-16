@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { issueQuery, useDeleteIssue } from "@/hooks/use-issues"
 import { Skeleton } from "@/components/ui/skeleton"
 import { toast } from "sonner"
+import { IssueLabels } from "@/components/labels/issue-labels"
 
 export const Route = createFileRoute("/_authed/issues/$issueId")({
   component: IssueDetailPage,
@@ -81,6 +82,9 @@ function IssueDetailPage() {
             {PRIORITY_LABELS[issue.priority]}
           </Badge>
         </span>
+      </div>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        Labels: <IssueLabels issue={issue} />
       </div>
     </div>
   )

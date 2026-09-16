@@ -14,10 +14,12 @@ type CreateIssuePayload struct {
 	Description *string `json:"description"`
 	Status      *string `json:"status"`
 	Priority    *string `json:"priority"`
+	// LabelIDs are applied in the same transaction; each must belong to the project.
+	LabelIDs []int64 `json:"label_ids"`
 }
 
 // @Summary Create an issue on a project
-// @Description Omitting status or priority falls back to 'backlog' and 'no-priority'.
+// @Description Omitting status or priority falls back to 'backlog' and 'no-priority'. label_ids must all belong to the project, or nothing is created (422).
 // @Tags issues
 // @Accept json
 // @Produce json
@@ -72,13 +74,22 @@ func (app *application) createIssueHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	v.Check(len(payload.LabelIDs) <= 20, "label_ids", "must not have more than 20 labels")
+
+	for _, labelID := range payload.LabelIDs {
+		v.Check(labelID > 0, "label_ids", "must be valid label ids")
+	}
+
 	if store.ValidateIssue(v, &issue); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	if err := app.store.Issues.Create(r.Context(), &issue); err != nil {
+	if err := app.store.Issues.Create(r.Context(), &issue, payload.LabelIDs); err != nil {
 		switch {
+		case errors.Is(err, store.ErrLabelNotInProject):
+			v.AddError("label_ids", err.Error())
+			app.failedValidationResponse(w, r, v.Errors)
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r)
 		default:
@@ -87,15 +98,13 @@ func (app *application) createIssueHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	issue.Assignees = []store.Assignee{}
-
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"issue": issue}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
 // @Summary List a project's issues
-// @Description Issues are returned newest first, each with its assignees.
+// @Description Issues are returned newest first, each with its assignees and labels.
 // @Tags issues
 // @Produce json
 // @Param id path int true "Project ID"

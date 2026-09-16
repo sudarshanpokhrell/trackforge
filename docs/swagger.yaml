@@ -5,6 +5,11 @@ definitions:
       user_id:
         type: string
     type: object
+  main.AddIssueLabelPayload:
+    properties:
+      label_id:
+        type: integer
+    type: object
   main.AddProjectMemberPayload:
     properties:
       role:
@@ -29,11 +34,24 @@ definitions:
     properties:
       description:
         type: string
+      label_ids:
+        description: LabelIDs are applied in the same transaction; each must belong
+          to the project.
+        items:
+          type: integer
+        type: array
       priority:
         type: string
       status:
         type: string
       title:
+        type: string
+    type: object
+  main.CreateLabelPayload:
+    properties:
+      color:
+        type: string
+      name:
         type: string
     type: object
   main.CreateProjectCommentPayload:
@@ -128,6 +146,13 @@ definitions:
       title:
         type: string
     type: object
+  main.UpdateLabelPayload:
+    properties:
+      color:
+        type: string
+      name:
+        type: string
+    type: object
   main.UpdateProjectCommentPayload:
     properties:
       content:
@@ -177,6 +202,10 @@ definitions:
         type: string
       id:
         type: integer
+      labels:
+        items:
+          $ref: '#/definitions/store.LabelSummary'
+        type: array
       priority:
         type: string
       project_id:
@@ -225,6 +254,32 @@ definitions:
         type: string
       version:
         type: integer
+    type: object
+  store.Label:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      project_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  store.LabelSummary:
+    properties:
+      color:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
     type: object
   store.Membership:
     properties:
@@ -809,6 +864,87 @@ paths:
       summary: Edit an issue comment
       tags:
       - issue-comments
+  /issues/{issueID}/labels:
+    post:
+      consumes:
+      - application/json
+      description: Anyone in the project. The label must belong to the issue's project
+        (422 otherwise). Applying a label the issue already has changes nothing and
+        returns 200.
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Label to apply
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.AddIssueLabelPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.LabelSummary'
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.LabelSummary'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Apply a label to an issue
+      tags:
+      - issues
+  /issues/{issueID}/labels/{labelID}:
+    delete:
+      parameters:
+      - description: Issue ID
+        in: path
+        name: issueID
+        required: true
+        type: integer
+      - description: Label ID
+        in: path
+        name: labelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Remove a label from an issue
+      tags:
+      - issues
   /me:
     get:
       description: Return the user identified by the auth cookie or bearer token
@@ -1228,7 +1364,7 @@ paths:
       - comments
   /projects/{id}/issues:
     get:
-      description: Issues are returned newest first, each with its assignees.
+      description: Issues are returned newest first, each with its assignees and labels.
       parameters:
       - description: Project ID
         in: path
@@ -1262,6 +1398,7 @@ paths:
       consumes:
       - application/json
       description: Omitting status or priority falls back to 'backlog' and 'no-priority'.
+        label_ids must all belong to the project, or nothing is created (422).
       parameters:
       - description: Project ID
         in: path
@@ -1298,6 +1435,177 @@ paths:
       summary: Create an issue on a project
       tags:
       - issues
+  /projects/{id}/labels:
+    get:
+      description: Sorted by name. Anyone in the project may read them.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Label'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: List a project's labels
+      tags:
+      - labels
+    post:
+      consumes:
+      - application/json
+      description: 'Project admins and the superadmin only. Names are unique within
+        the project, ignoring case. Color is a hex value like #e11d48.'
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label to create
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateLabelPayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Label'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Create a label on a project
+      tags:
+      - labels
+  /projects/{id}/labels/{labelID}:
+    delete:
+      description: Project admins and the superadmin only. The label comes off every
+        issue; their activity keeps a snapshot of it. The response says how many issues
+        had it.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label ID
+        in: path
+        name: labelID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Delete a label
+      tags:
+      - labels
+    patch:
+      consumes:
+      - application/json
+      description: Project admins and the superadmin only. Fields left out are unchanged.
+        Issues' past activity keeps the name and color the label had then.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Label ID
+        in: path
+        name: labelID
+        required: true
+        type: integer
+      - description: Fields to change
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateLabelPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Label'
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Edit a label
+      tags:
+      - labels
   /projects/{id}/members:
     post:
       consumes:

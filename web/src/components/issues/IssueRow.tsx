@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { usersQuery } from '@/hooks/use-user'
 import { format } from 'date-fns'
 import { Link } from '@tanstack/react-router'
+import { IssueLabels } from '@/components/labels/issue-labels'
 
 interface IssueRowProps {
   issue: Issue
@@ -77,6 +78,8 @@ export function IssueRow({ issue, showProject }: IssueRowProps) {
           Project {issue.project_id}
         </span>
       )}
+
+      <IssueLabels issue={issue} compact />
 
       <AssigneePopover
         current={assignee?.id}

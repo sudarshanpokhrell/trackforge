@@ -55,8 +55,8 @@ issues
   version      integer  not null  default 1
   created_at   timestamptz
   updated_at   timestamptz      -- maintained by trigger
-  UNIQUE (id, project_id)  -- redundant on its own; it is what issue_assignees'
-                           -- composite FK points at
+  UNIQUE (id, project_id)  -- redundant on its own; it is what the composite FKs
+                           -- of issue_assignees and issue_labels point at
 
 issue_assignees                  -- join table: an issue may have many assignees
   issue_id     bigint  not null  → issues(id)  ON DELETE CASCADE
@@ -68,6 +68,28 @@ issue_assignees                  -- join table: an issue may have many assignees
       → issues(id, project_id)              ON DELETE CASCADE
   FOREIGN KEY (project_id, user_id)
       → project_memberships(project_id, user_id)  ON DELETE CASCADE
+
+labels                           -- per project; part of the project's settings
+  id           bigserial  pk
+  project_id   bigint  not null  → projects(id)  ON DELETE CASCADE
+  name         citext  not null           -- "Bug" and "bug" are the same label
+  color        text    not null  CHECK (color ~ '^#[0-9a-fA-F]{6}$')
+  created_by   uuid              → users(id)     ON DELETE SET NULL
+  created_at   timestamptz
+  updated_at   timestamptz      -- maintained by trigger
+  UNIQUE (project_id, name)                -- unique within a project, not app-wide
+  UNIQUE (id, project_id)                  -- what issue_labels' composite FK points at
+
+issue_labels                     -- join table: an issue may have many labels
+  issue_id     bigint  not null
+  label_id     bigint  not null
+  project_id   bigint  not null           -- denormalised from the issue
+  created_at   timestamptz
+  PRIMARY KEY (issue_id, label_id)         -- a label is on an issue at most once
+  FOREIGN KEY (issue_id, project_id)
+      → issues(id, project_id)              ON DELETE CASCADE
+  FOREIGN KEY (label_id, project_id)
+      → labels(id, project_id)              ON DELETE CASCADE
 
 issue_comments
   id           bigserial  pk
@@ -98,6 +120,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 | `idx_project_comments_project_id_created_at` | the feed read — one project's comments, newest first. Composite, so a single index serves both the filter and the ordering and Postgres never sorts. Only pays off once the query carries a `LIMIT` |
 | `idx_issues_project_id_created_at` | the board/list read — one project's issues, newest first; same composite reasoning as the comment feed |
 | `idx_issue_assignees_user_id` | "issues assigned to me". The PK `(issue_id, user_id)` already answers "who is on this issue"; it cannot answer this one, since `user_id` is not a leading prefix — the same reason `idx_project_memberships_user_id` exists |
+| `idx_issue_labels_label_id` | "issues with label X". The PK `(issue_id, label_id)` only answers "labels on this issue" |
 | `idx_issues_author_id` | "issues I filed"; also keeps the `ON DELETE RESTRICT` check on `users` from scanning the table |
 | `idx_issue_comments_issue_id_created_at` | one issue's comment thread, newest first |
 | `idx_issue_activities_issue_created` | one issue's timeline, **oldest first** — an audit trail reads forward, unlike the comment feeds |
@@ -114,7 +137,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 
 Migrations create enums inside a `DO $$ ... IF NOT EXISTS (SELECT 1 FROM pg_type ...)` guard, because bare `CREATE TYPE` has no `IF NOT EXISTS` form and would break a re-run.
 
-> `label_added` / `label_removed` are declared but unused — there is no labels table yet. Enum values are painful to remove once present, so they were left in place rather than added later.
+> `label_added` / `label_removed` payloads snapshot the label (`{"label_id", "name", "color"}`), so an issue's timeline still reads right after the label is renamed or deleted.
 
 ## 3. Access model
 
@@ -129,7 +152,8 @@ or deactivation takes effect immediately.
 - **`project_memberships.role`** (`admin`, `contributor`) decides what you may do
   *inside one project*, and a membership row is what lets you see it at all. A
   project admin edits the project and manages its members and their roles; a
-  contributor does the work (issues, comments). The creator of a project becomes
+  contributor does the work (issues, comments, applying labels). Labels themselves
+  (create, rename, recolor, delete) are project settings, so project admins own them. The creator of a project becomes
   its admin in the same transaction that inserts it.
 
 The two layers don't imply each other: an app admin sees only the projects they're
@@ -165,3 +189,12 @@ Assigning a non-member therefore surfaces as SQLSTATE `23503` on
 `issue_assignees_member_fk`, which the store turns into `ErrNotProjectMember` and
 the handler into a `422`.
 
+### The label rule is a foreign key too
+
+A label on an issue must come from the issue's own project. `issue_labels` carries
+`project_id` the same way `issue_assignees` does, with
+`(issue_id, project_id) → issues(id, project_id)` and
+`(label_id, project_id) → labels(id, project_id)`. Applying a label from another
+project (or one that doesn't exist) surfaces as SQLSTATE `23503` on
+`issue_labels_label_fk`, which the store turns into `ErrLabelNotInProject` and the
+handler into a `422`. Deleting a label cascades it off every issue.

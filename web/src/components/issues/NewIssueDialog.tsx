@@ -7,6 +7,10 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { LabelChip } from '@/components/labels/label-chip'
+import { LabelPicker } from '@/components/labels/label-picker'
+import { projectLabelsQuery } from '@/hooks/use-labels'
 import { toast } from 'sonner'
 import { useCreateIssue } from '@/hooks/use-issues'
 import type { IssueStatus, IssuePriority } from '@/types/issues'
@@ -20,6 +24,8 @@ type FormData = {
 
 export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; onSuccess?: () => void }) {
   const [open, setOpen] = useState(false)
+  const [labelIds, setLabelIds] = useState<number[]>([])
+  const { data: labels = [] } = useQuery({ ...projectLabelsQuery(projectId), enabled: open })
   const { mutateAsync: createIssue, isPending } = useCreateIssue(projectId)
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
@@ -38,9 +44,11 @@ export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; on
         description: data.description,
         status: data.status,
         priority: data.priority,
+        label_ids: labelIds,
       })
       toast.success('Issue created successfully!')
       reset()
+      setLabelIds([])
       setOpen(false)
       onSuccess?.()
     } catch (err) {
@@ -118,6 +126,28 @@ export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; on
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Labels</Label>
+            <LabelPicker
+              projectId={projectId}
+              selected={labelIds}
+              onToggle={(label, checked) =>
+                setLabelIds((ids) =>
+                  checked ? [...ids, label.id] : ids.filter((id) => id !== label.id)
+                )
+              }
+              className="flex min-h-9 w-full flex-wrap items-center gap-1 rounded-md border border-input px-2.5 py-1.5 text-left outline-none"
+            >
+              {labelIds.length === 0 ? (
+                <span className="text-sm text-muted-foreground">Add labels</span>
+              ) : (
+                labels
+                  .filter((l) => labelIds.includes(l.id))
+                  .map((l) => <LabelChip key={l.id} label={l} />)
+              )}
+            </LabelPicker>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

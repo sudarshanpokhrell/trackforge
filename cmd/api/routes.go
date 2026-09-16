@@ -65,6 +65,8 @@ func (app *application) routes() http.Handler {
 				r.Patch("/", app.updateIssueHandler)
 				r.Post("/assignees", app.addIssueAssigneeHandler)
 				r.Delete("/assignees/{userID}", app.removeIssueAssigneeHandler)
+				r.Post("/labels", app.addIssueLabelHandler)
+				r.Delete("/labels/{labelID}", app.removeIssueLabelHandler)
 				r.Post("/comments", app.createIssueCommentHandler)
 
 				r.Delete("/", app.deleteIssueHandler)
@@ -94,6 +96,21 @@ func (app *application) routes() http.Handler {
 					r.Post("/members", app.addProjectMemberHandler)
 					r.Patch("/members/{userID}", app.updateProjectMemberHandler)
 					r.Delete("/members/{userID}", app.removeProjectMemberHandler)
+				})
+
+				r.Route("/labels", func(r chi.Router) {
+					r.Get("/", app.listLabelsHandler)
+
+					r.Group(func(r chi.Router) {
+						r.Use(app.RequireProjectAdmin)
+						r.Post("/", app.createLabelHandler)
+
+						r.Route("/{labelID}", func(r chi.Router) {
+							r.Use(app.LoadLabel)
+							r.Patch("/", app.updateLabelHandler)
+							r.Delete("/", app.deleteLabelHandler)
+						})
+					})
 				})
 
 				r.Route("/issues", func(r chi.Router) {

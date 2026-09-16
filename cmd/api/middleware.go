@@ -18,6 +18,7 @@ const projectAccessCtx contextKey = "project_access"
 const commentCtx contextKey = "comment"
 const issueCtx contextKey = "issue"
 const issueCommentCtx contextKey = "issue_comment"
+const labelCtx contextKey = "label"
 
 const authCookieName = "jwt_token"
 
@@ -283,6 +284,47 @@ func (app *application) LoadProjectComment(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), commentCtx, comment)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// LoadLabel loads the label named by the URL and puts it in context. Like
+// LoadProjectComment it runs after RequireProjectAccess and adds the check that
+// the label belongs to the project in the path.
+func (app *application) LoadLabel(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		projectID, err := app.readIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		labelID, err := app.readLabelIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		label, err := app.store.Labels.GetByID(r.Context(), labelID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		if label.ProjectID != projectID {
+			app.notFoundResponse(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), labelCtx, label)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

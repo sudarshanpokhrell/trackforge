@@ -1,3 +1,4 @@
+import { LabelsSection } from '@/components/labels/labels-section'
 import { AddMemberDialog } from '@/components/projects/add-member-dialog'
 import { ProjectSettingsMenu } from '@/components/projects/project-settings-menu'
 import { Badge } from '@/components/ui/badge'
@@ -88,6 +89,7 @@ function ProjectHome() {
                             {formatDate(project.target_date)}
                         </DetailRow>
                     </Section>
+                    <LabelsSection projectId={id} canManage={project.my_access.can_manage} />
                 </div>
 
                 <div className="flex flex-col gap-8">

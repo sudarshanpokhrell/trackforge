@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-// The issue_activity_type enum. label_added / label_removed exist in the enum
-// but have no labels table behind them yet, so nothing writes them.
 const (
 	ActivityCreated            = "created"
 	ActivityTitleChanged       = "title_changed"
