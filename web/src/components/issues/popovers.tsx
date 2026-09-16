@@ -125,7 +125,7 @@ export function AssigneePopover({ current, onChange, children }: AssigneePopover
               onClick={(e) => { e.stopPropagation(); onChange(a.id) }}
               className="gap-4"
             >
-              <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-primary text-primary-foreground border border-black/50">
+              <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-surface-3 text-ink-muted ring-1 ring-hairline-strong">
                 {a.name ? a.name[0].toUpperCase() : '?'}
               </div>
               <span className="flex-1">{a.name}</span>

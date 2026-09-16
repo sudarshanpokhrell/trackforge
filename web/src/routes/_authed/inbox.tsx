@@ -50,9 +50,9 @@ function InboxPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold tracking-tight">Inbox</h1>
+          <h1 className="text-headline">Inbox</h1>
           {unreadCount > 0 && (
-            <Badge variant="default" className="rounded-full px-2.5 py-0.5 text-xs">
+            <Badge variant="default" className="px-2.5 py-0.5 text-xs">
               {unreadCount} unread
             </Badge>
           )}
@@ -63,13 +63,13 @@ function InboxPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
         {notifications.map((item) => (
           <div
             key={item.id}
             className={cn(
-              'flex items-center gap-4 border-b px-4 py-3 last:border-0 hover:bg-muted/30',
-              !item.read && 'bg-muted/10'
+              'flex items-center gap-4 border-b px-4 py-3 transition-colors last:border-0 hover:bg-surface-2',
+              item.read && 'text-ink-muted'
             )}
           >
             <div className="mt-0.5">

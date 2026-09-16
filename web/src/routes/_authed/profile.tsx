@@ -39,12 +39,12 @@ function ProfilePage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-10 py-4">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-headline">Profile</h1>
         <p className="text-sm text-muted-foreground">Your account details and password.</p>
       </div>
 
       <section className="space-y-5">
-        <h2 className="border-b pb-2 text-sm font-medium">Account</h2>
+        <h2 className="border-b pb-2 text-eyebrow text-ink-subtle">Account</h2>
 
         <dl className="grid grid-cols-[8rem_1fr] gap-y-3 text-sm">
           <dt className="text-muted-foreground">Email</dt>
@@ -80,7 +80,7 @@ function ProfilePage() {
       </section>
 
       <section className="space-y-5">
-        <h2 className="border-b pb-2 text-sm font-medium">Password</h2>
+        <h2 className="border-b pb-2 text-eyebrow text-ink-subtle">Password</h2>
         <ChangePasswordForm
           className="max-w-sm space-y-5"
           onSuccess={() => {

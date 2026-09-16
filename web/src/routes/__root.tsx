@@ -1,6 +1,6 @@
 import { Outlet, createRootRouteWithContext } from "@tanstack/react-router"
 import { type QueryClient } from "@tanstack/react-query"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider, useTheme } from "@/components/theme-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from 'sonner'
 
@@ -14,13 +14,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
   return (
-    <ThemeProvider storageKey="trackforge-theme">
+    <ThemeProvider defaultTheme="dark" storageKey="trackforge-theme">
       <SidebarProvider>
-        <div className="flex min-h-screen flex-col bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary w-full">
-          <Toaster position="top-right" richColors closeButton />
+        <div className="flex min-h-screen flex-col bg-background text-foreground antialiased w-full">
+          <ThemedToaster />
           <Outlet/>
         </div>
       </SidebarProvider>
     </ThemeProvider>
   )
+}
+
+function ThemedToaster() {
+  const { theme } = useTheme()
+  return <Toaster position="top-right" theme={theme} closeButton />
 }

@@ -18,7 +18,7 @@ export function IssueGroup({ status, issues, showProject }: IssueGroupProps) {
   return (
     <div>
       {/* Group header */}
-      <div className="group/header flex items-center gap-2 px-4 py-2 hover:bg-muted/20 transition-colors select-none">
+      <div className="group/header flex items-center gap-2 border-b border-border/60 bg-surface-1 px-4 py-2 transition-colors select-none">
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="text-muted-foreground hover:text-foreground transition-colors"

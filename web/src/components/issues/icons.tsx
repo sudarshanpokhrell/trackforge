@@ -18,7 +18,7 @@ const statusConfig: Record<Status, { icon: React.ElementType; className: string 
   backlog: { icon: CircleDashed, className: 'text-muted-foreground/50' },
   todo: { icon: Circle, className: 'text-muted-foreground' },
   'in-progress': { icon: Timer, className: 'text-amber-400' },
-  done: { icon: CircleCheck, className: 'text-blue-500' },
+  done: { icon: CircleCheck, className: 'text-success' },
   cancelled: { icon: CircleX, className: 'text-muted-foreground/60' },
 }
 

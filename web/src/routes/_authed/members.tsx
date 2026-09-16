@@ -32,7 +32,7 @@ function MembersPage() {
     <div className="mx-auto flex flex-col gap-6 px-5 py-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-xl font-semibold tracking-tight">Members</h1>
+          <h1 className="text-headline">Members</h1>
         </div>
         {isSuperadmin && <CreateMemberDialog />}
       </div>
@@ -45,9 +45,9 @@ function MembersPage() {
           {getErrorMessage(error)}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl border bg-card shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
           <table className="w-full text-sm">
-            <thead className="bg-muted/40 text-left text-xs text-muted-foreground">
+            <thead className="border-b bg-surface-2/60 text-left text-caption text-ink-subtle">
               <tr>
                 <th className="px-4 py-2 font-medium">Name</th>
                 <th className="px-4 py-2 font-medium">Role</th>
@@ -80,7 +80,7 @@ function MembersPage() {
                   className={cn(!user.is_active && "text-muted-foreground")}
                 >
                   <td className="flex items-center gap-2  px-4 py-3">
-                    <div className="rounded-full h-8 w-8 bg-primary-foreground  flex justify-center items-center">
+                    <div className="flex size-8 items-center justify-center rounded-full bg-surface-3 text-xs font-medium text-ink-muted ring-1 ring-hairline-strong">
                         {user.name.toUpperCase()[0]}
                     </div>
                     <div>
@@ -95,7 +95,7 @@ function MembersPage() {
                   <td className="px-4 py-3">
                     <Badge
                       variant={user.role === "member" ? "outline" : "secondary"}
-                      className="capitalize p-2"
+                      className="capitalize"
                     >
                       {user.role}
                     </Badge>

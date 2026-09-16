@@ -28,16 +28,16 @@ export function IssueList({ issues, showProject }: IssueListProps) {
   return (
     <div className="flex flex-col">
       {/* Tab bar */}
-      <div className="flex items-center gap-1 border-b border-border/60 pb-2 mb-1">
+      <div className="flex items-center gap-1 border-b border-border pb-3">
         {tabs.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={cn(
-              'rounded px-3 py-1 text-sm transition-colors',
+              'rounded-full px-3.5 py-1 text-sm transition-colors',
               tab === key
-                ? 'bg-muted text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                ? 'bg-surface-2 text-foreground font-medium ring-1 ring-border'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             {label}

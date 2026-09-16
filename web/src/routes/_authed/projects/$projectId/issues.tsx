@@ -35,7 +35,7 @@ function RouteComponent() {
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Issues</h2>
+        <h2 className="text-headline">Issues</h2>
         <NewIssueDialog projectId={pId} />
       </div>
       <IssueList issues={issues || []} showProject={false} />

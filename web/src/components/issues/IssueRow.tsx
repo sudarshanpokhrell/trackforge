@@ -30,7 +30,7 @@ export function IssueRow({ issue, showProject }: IssueRowProps) {
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="group/row flex items-center gap-2 border-b border-border/30 px-4 py-[7px] text-base transition-colors hover:bg-muted/30 cursor-default"
+      className="group/row flex items-center gap-2 border-b border-border/60 px-4 py-[7px] text-base transition-colors hover:bg-surface-1 cursor-default"
     >
       <div className="w-4 shrink-0 flex items-center justify-center">
         <div
@@ -73,7 +73,7 @@ export function IssueRow({ issue, showProject }: IssueRowProps) {
 
       {showProject && issue.project_id && (
         <span className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
-          <span className="size-2 rounded-sm bg-primary/70" />
+          <span className="size-2 rounded-xs bg-ink-tertiary" />
           Project {issue.project_id}
         </span>
       )}
@@ -90,7 +90,7 @@ export function IssueRow({ issue, showProject }: IssueRowProps) {
       >
         <button className="flex items-center rounded hover:bg-muted transition-colors p-0.5 cursor-pointer outline-none">
           {assigneeUser ? (
-            <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-primary text-primary-foreground border border-black/50">
+            <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-surface-3 text-ink-muted ring-1 ring-hairline-strong">
               {assigneeUser.name ? assigneeUser.name[0].toUpperCase() : '?'}
             </div>
           ) : (

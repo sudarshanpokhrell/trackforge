@@ -51,10 +51,10 @@ function ProjectHome() {
             <div className="flex flex-col gap-4">
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex flex-col gap-3">
-                        <div className="flex size-12 items-center justify-center rounded-xl">
-                            <FolderKanban className="size-8 text-muted-foreground" />
+                        <div className="flex size-12 items-center justify-center rounded-xl border bg-card shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
+                            <FolderKanban className="size-6 text-ink-subtle" />
                         </div>
-                        <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+                        <h1 className="text-display-md text-foreground">
                             {project.name}
                         </h1>
                     </div>
@@ -81,7 +81,7 @@ function ProjectHome() {
 
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                        <div className="flex items-center justify-between border-b border-border pb-2">
                             <h2 className="text-sm font-medium text-foreground">
                                 Members
                                 {project.members.length > 0 && (
@@ -140,7 +140,7 @@ function MemberList({ project }: { project: ProjectDetails }) {
                 <div key={member.user_id} className="group flex items-center gap-3 text-[14px]">
                     <div
                         className={cn(
-                            'flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-bold',
+                            'flex size-6 shrink-0 items-center justify-center rounded-full bg-surface-3 text-[10px] font-medium text-ink-muted ring-1 ring-hairline-strong',
                             !member.is_active && 'opacity-50'
                         )}
                     >
@@ -181,7 +181,7 @@ function MemberList({ project }: { project: ProjectDetails }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
     return (
         <div className="flex flex-col gap-4">
-            <h2 className="border-b border-border/40 pb-2 text-sm font-medium text-foreground">
+            <h2 className="border-b border-border pb-2 text-sm font-medium text-foreground">
                 {title}
             </h2>
             <div className="flex flex-col gap-3">{children}</div>

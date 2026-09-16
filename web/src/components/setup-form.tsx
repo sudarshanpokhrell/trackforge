@@ -44,13 +44,16 @@ export default function SetupForm() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center">
-      <div className="mx-auto w-full max-w-sm space-y-6">
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-2xl border bg-card p-8 shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
         <div className="space-y-2 text-center">
-          <h1 className="text-balance font-semibold text-3xl">
+          <div className="mx-auto mb-5 flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.25)]">
+            TF
+          </div>
+          <h1 className="text-balance text-headline">
             Set up {status?.app_name ?? 'TrackForge'}
           </h1>
-          <p className="text-pretty text-muted-foreground">
+          <p className="text-pretty text-body-sm text-ink-subtle">
             Create the superadmin account. You'll use it to add everyone else.
           </p>
         </div>

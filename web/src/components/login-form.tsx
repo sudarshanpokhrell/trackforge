@@ -57,11 +57,14 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center">
-      <div className="mx-auto w-full max-w-sm space-y-6">
+    <div className="flex min-h-dvh items-center justify-center p-4">
+      <div className="mx-auto w-full max-w-[400px] space-y-6 rounded-2xl border bg-card p-8 shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
         <div className="space-y-2 text-center">
-          <h1 className="text-balance font-semibold text-3xl">Welcome back</h1>
-          <p className="text-pretty text-muted-foreground">
+          <div className="mx-auto mb-5 flex size-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.25)]">
+            TF
+          </div>
+          <h1 className="text-balance text-headline">Welcome back</h1>
+          <p className="text-pretty text-body-sm text-ink-subtle">
             Sign in to access to your dashboard and projects.
           </p>
         </div>
@@ -117,7 +120,7 @@ export default function LoginForm() {
               <div>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <a className="text-primary text-sm hover:underline" href="#">
+                  <a className="text-primary-ink text-sm hover:underline" href="#">
                     Forgot Password?
                   </a>
                 </div>

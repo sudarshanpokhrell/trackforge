@@ -70,7 +70,7 @@ function IssueDetailPage() {
           Delete
         </Button>
       </div>
-      <h1 className="text-2xl font-bold">{issue.title}</h1>
+      <h1 className="text-headline">{issue.title}</h1>
       <div className="flex gap-4">
         <span className="text-sm text-muted-foreground flex gap-2 items-center">
           Status: <Badge variant="outline">{STATUS_LABELS[issue.status]}</Badge>
