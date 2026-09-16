@@ -22,7 +22,25 @@ type FormData = {
   priority: IssuePriority
 }
 
-export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; onSuccess?: () => void }) {
+/**
+ * `trigger` follows the base-ui `render` convention used across the app: pass a
+ * bare element for the styling and its content as children. Without one it is
+ * a "New issue" button.
+ */
+export function NewIssueDialog({
+  projectId,
+  onSuccess,
+  defaultStatus = 'todo',
+  trigger,
+  children,
+}: {
+  projectId: number
+  onSuccess?: () => void
+  /** The status the form starts on, e.g. the board column it was opened from. */
+  defaultStatus?: IssueStatus
+  trigger?: React.ReactElement
+  children?: React.ReactNode
+}) {
   const [open, setOpen] = useState(false)
   const [labelIds, setLabelIds] = useState<number[]>([])
   const { data: labels = [] } = useQuery({ ...projectLabelsQuery(projectId), enabled: open })
@@ -32,7 +50,7 @@ export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; on
     defaultValues: {
       title: '',
       description: '',
-      status: 'todo',
+      status: defaultStatus,
       priority: 'medium',
     }
   })
@@ -51,18 +69,20 @@ export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; on
       setLabelIds([])
       setOpen(false)
       onSuccess?.()
-    } catch (err) {
+    } catch {
       toast.error('Failed to create issue')
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className={buttonVariants()}
-      >
-        <Plus className="mr-1 size-4" />
-        New issue
+      <DialogTrigger render={trigger} className={trigger ? undefined : buttonVariants()}>
+        {children ?? (
+          <>
+            <Plus className="mr-1 size-4" />
+            New issue
+          </>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -94,7 +114,7 @@ export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; on
               <Label htmlFor="status">Status</Label>
               <Select
                 onValueChange={(value) => setValue('status', value as IssueStatus)}
-                defaultValue="todo"
+                defaultValue={defaultStatus}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />

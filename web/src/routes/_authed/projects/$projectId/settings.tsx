@@ -9,12 +9,7 @@ import { TabBar, type TabBarItem } from "@/components/ui/tab-bar"
 import { projectQuery } from "@/hooks/use-projects"
 import { getErrorMessage, isApiError } from "@/lib/api"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
-
-export const Route = createFileRoute("/_authed/projects/$projectId/settings")({
-  component: RouteComponent,
-})
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
 
 type Tab = "overview" | "labels" | "members" | "sprints"
 
@@ -25,10 +20,21 @@ const tabs: TabBarItem<Tab>[] = [
   { value: "sprints", label: "Sprints" },
 ]
 
+export const Route = createFileRoute("/_authed/projects/$projectId/settings")({
+  // Optional, so links here needn't pass it. An unknown ?tab= is dropped rather
+  // than matching no panel and leaving the page blank.
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } => ({
+    tab: tabs.find((t) => t.value === search.tab)?.value,
+  }),
+  component: RouteComponent,
+})
+
 function RouteComponent() {
   const { projectId } = Route.useParams()
   const id = Number(projectId)
-  const [tab, setTab] = useState<Tab>("overview")
+
+  const { tab = "overview" } = Route.useSearch()
+  const navigate = useNavigate()
 
   const {
     data: project,
@@ -38,6 +44,10 @@ function RouteComponent() {
     ...projectQuery(id),
     enabled: Number.isInteger(id) && id > 0,
   })
+
+  const handleTabChange = (next: Tab) => {
+    navigate({ to: ".", search: (prev) => ({ ...prev, tab: next }) })
+  }
 
   if (!Number.isInteger(id) || id <= 0) return <ProjectNotFound />
 
@@ -69,17 +79,24 @@ function RouteComponent() {
         aria-label="Project settings"
         tabs={tabs}
         value={tab}
-        onValueChange={setTab}
+        onValueChange={handleTabChange}
         className="border-b border-border pb-3"
       />
 
       {tab === "overview" && (
         <div className="flex flex-col gap-6">
           <OverviewSettings key={project.version} project={project} />
-          {project.my_access.can_manage && <DeleteProjectSection project={project} />}
+          {project.my_access.can_manage && (
+            <DeleteProjectSection project={project} />
+          )}
         </div>
       )}
-      {tab === "labels" && <LabelsSettings projectId={id} canManage={project.my_access.can_manage} />}
+      {tab === "labels" && (
+        <LabelsSettings
+          projectId={id}
+          canManage={project.my_access.can_manage}
+        />
+      )}
       {tab === "members" && <MembersSettings project={project} />}
       {tab === "sprints" && <SprintsSettings />}
     </main>

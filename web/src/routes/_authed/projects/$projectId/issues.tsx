@@ -16,28 +16,29 @@ function RouteComponent() {
 
   if (isPending) {
     return (
-      <div className="p-6 space-y-4">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-24 w-full" />
+      <div className="flex flex-col gap-4 px-6 py-6">
+        <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="p-6 text-destructive">
+      <div className="px-6 py-6 text-sm text-destructive">
         Failed to load issues.
       </div>
     )
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6 flex  justify-end">
-        <NewIssueDialog projectId={pId} />
-      </div>
-      <IssueList issues={issues || []} showProject={false} />
+    <div className="flex h-full flex-col px-6 py-6">
+      <IssueList
+        issues={issues}
+        showProject={false}
+        projectId={pId}
+        actions={<NewIssueDialog projectId={pId} />}
+      />
     </div>
   )
 }

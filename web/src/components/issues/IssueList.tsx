@@ -1,59 +1,125 @@
 import { useState } from 'react'
+import { LayoutList, SquareKanban } from 'lucide-react'
 import { TabBar, type TabBarItem } from '@/components/ui/tab-bar'
+import { cn } from '@/lib/utils'
+import { IssueBoard } from './IssueBoard'
 import { IssueGroup } from './IssueGroup'
 import { STATUS_ORDER } from './types'
-import type { Issue, Tab } from './types'
+import type { Issue, Status, Tab } from './types'
+
+type View = 'list' | 'board'
+
+const VIEW_KEY = 'trackforge:issues-view'
+
+const tabs: TabBarItem<Tab>[] = [
+  { value: 'active', label: 'Active' },
+  { value: 'backlog', label: 'Backlog' },
+  { value: 'all', label: 'All issues' },
+]
+
+const TAB_STATUSES: Record<Tab, Status[]> = {
+  active: ['in-progress', 'todo'],
+  backlog: ['backlog'],
+  all: STATUS_ORDER,
+}
+
+// A remembered view is a convenience; storage can be missing or blocked.
+function readView(): View {
+  try {
+    return localStorage.getItem(VIEW_KEY) === 'board' ? 'board' : 'list'
+  } catch {
+    return 'list'
+  }
+}
 
 interface IssueListProps {
   issues: Issue[]
   showProject?: boolean
+  /** Lets an empty board column offer to add an issue to this project. */
+  projectId?: number
+  /** Rendered at the right end of the toolbar, e.g. a "New issue" button. */
+  actions?: React.ReactNode
 }
 
-export function IssueList({ issues, showProject }: IssueListProps) {
+export function IssueList({ issues, showProject, projectId, actions }: IssueListProps) {
   const [tab, setTab] = useState<Tab>('all')
+  const [view, setView] = useState<View>(readView)
 
-  const visible =
-    tab === 'all'
-      ? issues
-      : tab === 'active'
-        ? issues.filter((i) => i.status === 'in-progress' || i.status === 'todo')
-        : issues.filter((i) => i.status === 'backlog')
+  const changeView = (next: View) => {
+    setView(next)
+    try {
+      localStorage.setItem(VIEW_KEY, next)
+    } catch {
+      // Not remembered; the view still switches.
+    }
+  }
 
-  const tabs: TabBarItem<Tab>[] = [
-    { value: 'active', label: 'Active' },
-    { value: 'backlog', label: 'Backlog' },
-    { value: 'all', label: 'All issues' },
+  const statuses = TAB_STATUSES[tab]
+  const visible = issues.filter((i) => statuses.includes(i.status))
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <TabBar aria-label="Issue views" tabs={tabs} value={tab} onValueChange={setTab} />
+        <div className="flex items-center gap-2">
+          <ViewToggle value={view} onChange={changeView} />
+          {actions}
+        </div>
+      </div>
+
+      {view === 'board' ? (
+        <IssueBoard issues={visible} statuses={statuses} projectId={projectId} />
+      ) : (
+        <div className="overflow-hidden rounded-xl border border-border">
+          {STATUS_ORDER.map((status) => {
+            const group = visible.filter((i) => i.status === status)
+            if (group.length === 0) return null
+            return (
+              <IssueGroup
+                key={status}
+                status={status}
+                issues={group}
+                showProject={showProject}
+                projectId={projectId}
+              />
+            )
+          })}
+          {visible.length === 0 && (
+            <div className="py-16 text-center text-sm text-muted-foreground">
+              No issues in this view.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ViewToggle({ value, onChange }: { value: View; onChange: (view: View) => void }) {
+  const options = [
+    { value: 'list' as const, label: 'List view', icon: LayoutList },
+    { value: 'board' as const, label: 'Board view', icon: SquareKanban },
   ]
 
   return (
-    <div className="flex flex-col">
-      <TabBar
-        aria-label="Issue views"
-        tabs={tabs}
-        value={tab}
-        onValueChange={setTab}
-        className="border-b border-border pb-3"
-      />
-
-      <div>
-        {STATUS_ORDER.map((status) => {
-          const group = visible.filter((i) => i.status === status)
-          if (group.length === 0) return null
-          return (
-            <IssueGroup
-              key={status}
-              status={status}
-              issues={group}
-              showProject={showProject}
-            />
-          )
-        })}
-        {visible.length === 0 && (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            No issues in this view.
-          </div>
-        )}
-      </div>
+    <div role="radiogroup" aria-label="Layout" className="flex items-center rounded-lg border border-border p-0.5">
+      {options.map(({ value: option, label, icon: Icon }) => (
+        <button
+          key={option}
+          type="button"
+          role="radio"
+          aria-checked={value === option}
+          aria-label={label}
+          title={label}
+          onClick={() => onChange(option)}
+          className={cn(
+            'flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground',
+            value === option && 'bg-surface-2 text-foreground'
+          )}
+        >
+          <Icon className="size-4" />
+        </button>
+      ))}
     </div>
   )
 }
