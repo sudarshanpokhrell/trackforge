@@ -19,6 +19,7 @@ projects
   id           bigserial  pk
   name         text  not null
   description  text
+  emoji        text  not null  default ''   -- '' means none; the UI shows a generic icon
   start_date   date
   target_date  date
   created_by   uuid  not null  → users(id)  ON DELETE RESTRICT

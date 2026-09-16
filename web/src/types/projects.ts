@@ -4,6 +4,8 @@ export interface Project {
   id: number
   name: string
   description: string
+  /** "" when the project has none. */
+  emoji: string
   start_date: string | null
   target_date: string | null
   created_by: string
@@ -43,6 +45,7 @@ export interface ProjectDetails extends Project {
 export type CreateProjectInput = {
   name: string
   description: string
+  emoji?: string
   start_date?: string | null
   target_date?: string | null
 }

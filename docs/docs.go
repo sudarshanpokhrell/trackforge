@@ -2529,6 +2529,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "emoji": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },
@@ -2688,6 +2691,9 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
+                    "type": "string"
+                },
+                "emoji": {
                     "type": "string"
                 },
                 "name": {
@@ -2891,6 +2897,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "emoji": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -2967,6 +2976,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "description": {
+                    "type": "string"
+                },
+                "emoji": {
                     "type": "string"
                 },
                 "id": {

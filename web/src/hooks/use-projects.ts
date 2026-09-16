@@ -45,7 +45,12 @@ export function useUpdateProject(id: number) {
   return useMutation({
     mutationFn: (input: UpdateProjectInput) =>
       api.put(`projects/${id}`, { json: input }).json<{ project: Project }>(),
-    onSuccess: () => {
+    onSuccess: ({ project }) => {
+      // Write the result in straight away so inline edits don't flash the old
+      // value until the refetch lands.
+      client.setQueryData(projectQuery(id).queryKey, (old) =>
+        old ? { ...old, ...project } : old
+      )
       client.invalidateQueries({ queryKey: projectQuery(id).queryKey })
       client.invalidateQueries({ queryKey: projectsQuery.queryKey })
     },

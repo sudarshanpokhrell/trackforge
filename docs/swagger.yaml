@@ -63,6 +63,8 @@ definitions:
     properties:
       description:
         type: string
+      emoji:
+        type: string
       name:
         type: string
       start_date:
@@ -166,6 +168,8 @@ definitions:
   main.UpdateProjectPayload:
     properties:
       description:
+        type: string
+      emoji:
         type: string
       name:
         type: string
@@ -298,6 +302,8 @@ definitions:
         type: string
       description:
         type: string
+      emoji:
+        type: string
       id:
         type: integer
       my_role:
@@ -348,6 +354,8 @@ definitions:
       created_by:
         type: string
       description:
+        type: string
+      emoji:
         type: string
       id:
         type: integer

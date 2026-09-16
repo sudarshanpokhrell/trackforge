@@ -13,6 +13,7 @@ type Project struct {
 	ID          int64      `json:"id"`
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
+	Emoji       string     `json:"emoji"`
 	StartDate   *time.Time `json:"start_date"`
 	TargetDate  *time.Time `json:"target_date"`
 	CreatedBy   string     `json:"created_by"`
@@ -62,6 +63,8 @@ func ValidateProject(v *validator.Validator, p *Project) {
 	v.Check(p.Name != "", "name", "must be provided")
 	v.Check(len(p.Name) <= 255, "name", "must not be more than 255 bytes long")
 	v.Check(len(p.Description) <= 2000, "description", "must not be more than 2000 bytes long")
+	// Room for the longest ZWJ sequences with skin tones, not for free text.
+	v.Check(len(p.Emoji) <= 64, "emoji", "must not be more than 64 bytes long")
 
 	if p.StartDate != nil && p.TargetDate != nil {
 		v.Check(!p.TargetDate.Before(*p.StartDate), "target_date", "must not be before the start date")
@@ -76,8 +79,8 @@ type ProjectStore struct {
 // transaction, so a project never exists without an admin.
 func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 	query := `
-		INSERT INTO projects (name, description, start_date, target_date, created_by)
-		VALUES ($1, $2, $3::date, $4::date, $5)
+		INSERT INTO projects (name, description, emoji, start_date, target_date, created_by)
+		VALUES ($1, $2, $3, $4::date, $5::date, $6)
 		RETURNING id, created_at, updated_at, version
 	`
 
@@ -100,6 +103,7 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 	err = tx.QueryRowContext(ctx, query,
 		p.Name,
 		p.Description,
+		p.Emoji,
 		p.StartDate,
 		p.TargetDate,
 		p.CreatedBy,
@@ -133,7 +137,7 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 // one place to change it.
 func (s *ProjectStore) ListVisibleTo(ctx context.Context, userID string, all bool) ([]*Project, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version, COALESCE(pm.role::text, '')
 		FROM projects p
 		LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1
@@ -161,6 +165,7 @@ func (s *ProjectStore) ListVisibleTo(ctx context.Context, userID string, all boo
 			&project.ID,
 			&project.Name,
 			&project.Description,
+			&project.Emoji,
 			&project.StartDate,
 			&project.TargetDate,
 			&project.CreatedBy,
@@ -232,7 +237,7 @@ func (s *ProjectStore) ListSoleActiveAdminOf(ctx context.Context, userID string)
 
 func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version,
 			m_user.id, m_user.name, m_user.email, m_user.is_active, pm.role, pm.created_at
 		FROM projects p
@@ -270,6 +275,7 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 			&details.ID,
 			&details.Name,
 			&details.Description,
+			&details.Emoji,
 			&details.StartDate,
 			&details.TargetDate,
 			&details.CreatedBy,
@@ -330,7 +336,7 @@ func (s *ProjectStore) Exists(ctx context.Context, projectID int64) (bool, error
 
 func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version
 		FROM projects p
 		WHERE p.id = $1
@@ -345,6 +351,7 @@ func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, 
 		&project.ID,
 		&project.Name,
 		&project.Description,
+		&project.Emoji,
 		&project.StartDate,
 		&project.TargetDate,
 		&project.CreatedBy,
@@ -370,10 +377,11 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 		UPDATE projects
 		SET name = $1,
 			description = $2,
-			start_date = $3::date,
-			target_date = $4::date,
+			emoji = $3,
+			start_date = $4::date,
+			target_date = $5::date,
 			version = version + 1
-		WHERE id = $5 AND version = $6
+		WHERE id = $6 AND version = $7
 		RETURNING updated_at, version
 	`
 
@@ -383,6 +391,7 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 	err := s.db.QueryRowContext(ctx, query,
 		p.Name,
 		p.Description,
+		p.Emoji,
 		p.StartDate,
 		p.TargetDate,
 		p.ID,

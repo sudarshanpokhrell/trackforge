@@ -12,6 +12,7 @@ import (
 type CreateProjectPayload struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
+	Emoji       string     `json:"emoji"`
 	StartDate   *time.Time `json:"start_date"`
 	TargetDate  *time.Time `json:"target_date"`
 }
@@ -40,6 +41,7 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 	project := store.Project{
 		Name:        payload.Name,
 		Description: payload.Description,
+		Emoji:       payload.Emoji,
 		StartDate:   payload.StartDate,
 		TargetDate:  payload.TargetDate,
 		CreatedBy:   app.contextUserID(r),
@@ -128,6 +130,7 @@ func (app *application) getProjectByIDHandler(w http.ResponseWriter, r *http.Req
 type UpdateProjectPayload struct {
 	Name        *string    `json:"name"`
 	Description *string    `json:"description"`
+	Emoji       *string    `json:"emoji"`
 	StartDate   *time.Time `json:"start_date"`
 	TargetDate  *time.Time `json:"target_date"`
 }
@@ -180,6 +183,9 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 	}
 	if payload.Description != nil {
 		project.Description = *payload.Description
+	}
+	if payload.Emoji != nil {
+		project.Emoji = *payload.Emoji
 	}
 	if payload.StartDate != nil {
 		project.StartDate = payload.StartDate

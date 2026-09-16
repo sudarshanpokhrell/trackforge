@@ -1,5 +1,5 @@
 'use client';
-import { ChevronDown, FolderKanban, LayoutDashboard, Plus, Ticket } from 'lucide-react';
+import { ChevronDown, LayoutDashboard, Plus, Ticket } from 'lucide-react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import {
   Collapsible,
@@ -18,6 +18,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { CreateProjectDialog } from '@/components/projects/create-project-dialog';
+import { ProjectIcon } from '@/components/projects/project-icon';
 import type { Project } from '@/types/projects';
 
 interface NavCollapsibleProps {
@@ -79,7 +80,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                             isActive={isProjectActive}
                             render={<CollapsibleTrigger />}
                           >
-                            <FolderKanban />
+                            <ProjectIcon emoji={item.emoji} className="size-4 text-sm" />
                             <span className="truncate">{item.name}</span>
                           </SidebarMenuButton>
                           <CollapsibleContent>
