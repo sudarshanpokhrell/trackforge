@@ -3,7 +3,6 @@ import {
   CircleDashed,
   CircleCheck,
   CircleX,
-  Copy,
   Timer,
   Minus,
   SignalLow,
@@ -21,7 +20,6 @@ const statusConfig: Record<Status, { icon: React.ElementType; className: string 
   'in-progress': { icon: Timer, className: 'text-amber-400' },
   done: { icon: CircleCheck, className: 'text-blue-500' },
   cancelled: { icon: CircleX, className: 'text-muted-foreground/60' },
-  duplicate: { icon: Copy, className: 'text-muted-foreground/50' },
 }
 
 export function StatusIcon({ status, className }: { status: Status; className?: string }) {

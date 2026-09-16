@@ -10,10 +10,9 @@ interface IssueGroupProps {
   status: Status
   issues: Issue[]
   showProject?: boolean
-  onUpdate: (id: string, changes: Partial<Issue>) => void
 }
 
-export function IssueGroup({ status, issues, showProject, onUpdate }: IssueGroupProps) {
+export function IssueGroup({ status, issues, showProject }: IssueGroupProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   return (
@@ -44,7 +43,6 @@ export function IssueGroup({ status, issues, showProject, onUpdate }: IssueGroup
           key={issue.id}
           issue={issue}
           showProject={showProject}
-          onUpdate={onUpdate}
         />
       ))}
     </div>

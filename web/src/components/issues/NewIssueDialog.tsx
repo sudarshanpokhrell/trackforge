@@ -8,31 +8,44 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
 import { toast } from 'sonner'
+import { useCreateIssue } from '@/hooks/use-issues'
+import type { IssueStatus, IssuePriority } from '@/types/issues'
 
 type FormData = {
   title: string
   description: string
-  status: string
-  priority: string
+  status: IssueStatus
+  priority: IssuePriority
 }
 
-export function NewIssueDialog({ onSuccess }: { onSuccess?: () => void }) {
+export function NewIssueDialog({ projectId, onSuccess }: { projectId: number; onSuccess?: () => void }) {
   const [open, setOpen] = useState(false)
+  const { mutateAsync: createIssue, isPending } = useCreateIssue(projectId)
 
   const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: {
       title: '',
       description: '',
-      status: 'Todo',
-      priority: 'Medium',
+      status: 'todo',
+      priority: 'medium',
     }
   })
 
-  const onSubmit = () => {
-    toast.success('Issue created successfully!')
-    reset()
-    setOpen(false)
-    onSuccess?.()
+  const onSubmit = async (data: FormData) => {
+    try {
+      await createIssue({
+        title: data.title,
+        description: data.description,
+        status: data.status,
+        priority: data.priority,
+      })
+      toast.success('Issue created successfully!')
+      reset()
+      setOpen(false)
+      onSuccess?.()
+    } catch (err) {
+      toast.error('Failed to create issue')
+    }
   }
 
   return (
@@ -72,42 +85,46 @@ export function NewIssueDialog({ onSuccess }: { onSuccess?: () => void }) {
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select
-                onValueChange={(value) => setValue('status', value as string)}
-                defaultValue="Todo"
+                onValueChange={(value) => setValue('status', value as IssueStatus)}
+                defaultValue="todo"
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Todo">Todo</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Done">Done</SelectItem>
+                  <SelectItem value="backlog">Backlog</SelectItem>
+                  <SelectItem value="todo">Todo</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="done">Done</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="priority">Priority</Label>
               <Select
-                onValueChange={(value) => setValue('priority', value as string)}
-                defaultValue="Medium"
+                onValueChange={(value) => setValue('priority', value as IssuePriority)}
+                defaultValue="medium"
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="no-priority">No priority</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" type="button" onClick={() => setOpen(false)}>
+            <Button variant="outline" type="button" onClick={() => setOpen(false)} disabled={isPending}>
               Cancel
             </Button>
-            <Button type="submit">Create issue</Button>
+            <Button type="submit" disabled={isPending}>Create issue</Button>
           </div>
         </form>
       </DialogContent>

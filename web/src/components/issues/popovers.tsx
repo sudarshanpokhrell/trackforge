@@ -8,17 +8,16 @@ import {
   DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import { StatusIcon, PriorityIcon } from './icons'
-import { cn } from '@/lib/utils'
 import {
   STATUS_ORDER,
   STATUS_LABELS,
   PRIORITY_ORDER,
   PRIORITY_LABELS,
-  MOCK_ASSIGNEES,
   type Status,
   type Priority,
 } from './types'
-
+import { useQuery } from '@tanstack/react-query'
+import { usersQuery } from '@/hooks/use-user'
 
 interface StatusPopoverProps {
   current: Status
@@ -55,7 +54,6 @@ export function StatusPopover({ current, onChange, children }: StatusPopoverProp
   )
 }
 
-
 interface PriorityPopoverProps {
   current: Priority
   onChange: (priority: Priority) => void
@@ -91,7 +89,6 @@ export function PriorityPopover({ current, onChange, children }: PriorityPopover
   )
 }
 
-
 interface AssigneePopoverProps {
   current?: string
   onChange: (assigneeId: string | undefined) => void
@@ -99,6 +96,8 @@ interface AssigneePopoverProps {
 }
 
 export function AssigneePopover({ current, onChange, children }: AssigneePopoverProps) {
+  const { data: users = [] } = useQuery(usersQuery)
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -120,14 +119,14 @@ export function AssigneePopover({ current, onChange, children }: AssigneePopover
             <span className="flex-1">No assignee</span>
             {!current && <Check className="size-3.5 text-muted-foreground" />}
           </DropdownMenuItem>
-          {MOCK_ASSIGNEES.map((a) => (
+          {users.map((a) => (
             <DropdownMenuItem
               key={a.id}
               onClick={(e) => { e.stopPropagation(); onChange(a.id) }}
               className="gap-4"
             >
-              <div className={cn('size-5 rounded-full flex items-center justify-center text-[9px] font-bold', a.color)}>
-                {a.initials}
+              <div className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold bg-primary text-primary-foreground border border-black/50">
+                {a.name ? a.name[0].toUpperCase() : '?'}
               </div>
               <span className="flex-1">{a.name}</span>
               {current === a.id && <Check className="size-3.5 text-muted-foreground" />}

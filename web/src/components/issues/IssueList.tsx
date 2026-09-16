@@ -5,19 +5,12 @@ import { STATUS_ORDER } from './types'
 import type { Issue, Tab } from './types'
 
 interface IssueListProps {
-  initialIssues: Issue[]
+  issues: Issue[]
   showProject?: boolean
 }
 
-export function IssueList({ initialIssues, showProject }: IssueListProps) {
-  const [issues, setIssues] = useState<Issue[]>(initialIssues)
+export function IssueList({ issues, showProject }: IssueListProps) {
   const [tab, setTab] = useState<Tab>('all')
-
-  const handleUpdate = (id: string, changes: Partial<Issue>) => {
-    setIssues((prev) =>
-      prev.map((issue) => (issue.id === id ? { ...issue, ...changes } : issue))
-    )
-  }
 
   const visible =
     tab === 'all'
@@ -62,7 +55,6 @@ export function IssueList({ initialIssues, showProject }: IssueListProps) {
               status={status}
               issues={group}
               showProject={showProject}
-              onUpdate={handleUpdate}
             />
           )
         })}
