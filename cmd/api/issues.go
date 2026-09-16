@@ -229,7 +229,7 @@ func (app *application) updateIssueHandler(w http.ResponseWriter, r *http.Reques
 }
 
 // @Summary Delete an issue
-// @Description Only the issue's author or a project admin may delete it. Its comments and activity trail go with it.
+// @Description Admins and the superadmin only — not even the author. A member who wants an issue gone sets its status to cancelled, which keeps the history. Its comments and activity trail go with it.
 // @Tags issues
 // @Produce json
 // @Param issueID path int true "Issue ID"
@@ -294,21 +294,6 @@ func (app *application) addIssueAssigneeHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// The foreign key only proves the user exists; assigning work to someone
-	// with no access to the project is what we actually want to rule out.
-	_, err := app.store.Memberships.GetRole(r.Context(), payload.UserID, issue.ProjectID)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			v.AddError("user_id", "must be a member of this project")
-			app.failedValidationResponse(w, r, v.Errors)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
 	user, err := app.store.Users.GetById(r.Context(), payload.UserID)
 
 	if err != nil {
@@ -321,12 +306,17 @@ func (app *application) addIssueAssigneeHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err = app.store.Issues.AddAssignee(r.Context(), issue.ID, payload.UserID, app.contextUserID(r))
+	// Assigning work to someone with no access to the project is ruled out by a
+	// foreign key, so there is no membership check to race against here.
+	err = app.store.Issues.AddAssignee(r.Context(), issue.ID, issue.ProjectID, payload.UserID, app.contextUserID(r))
 
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrDuplicateAssignee):
 			app.conflictResponse(w, r, err)
+		case errors.Is(err, store.ErrNotProjectMember):
+			v.AddError("user_id", err.Error())
+			app.failedValidationResponse(w, r, v.Errors)
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r)
 		default:

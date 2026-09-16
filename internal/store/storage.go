@@ -26,18 +26,17 @@ type Storage struct {
 
 	Projects interface {
 		Create(context.Context, *Project) error
+		Exists(ctx context.Context, projectID int64) (bool, error)
 		GetByID(ctx context.Context, projectID int64) (*Project, error)
 		GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error)
-		GetProjectsByUserID(ctx context.Context, userID string) ([]*Project, error)
+		ListVisibleTo(ctx context.Context, userID string, all bool) ([]*Project, error)
 		Update(context.Context, *Project) error
-		UpdateLead(ctx context.Context, projectID int64, leadID *string) (*Project, error)
 		Delete(ctx context.Context, projectID int64) error
 	}
 
 	Memberships interface {
-		Create(ctx context.Context, userID, role string, projectID int64) error
-		GetRole(ctx context.Context, userID string, projectID int64) (string, error)
-		UpdateRole(ctx context.Context, userID, role string, projectID int64) error
+		Create(ctx context.Context, userID string, projectID int64) error
+		IsMember(ctx context.Context, userID string, projectID int64) (bool, error)
 		Delete(ctx context.Context, userID string, projectID int64) error
 	}
 	Issues interface {
@@ -45,7 +44,7 @@ type Storage struct {
 		GetByID(ctx context.Context, issueID int64) (*Issue, error)
 		ListByProject(ctx context.Context, projectID int64) ([]*Issue, error)
 		Update(ctx context.Context, issue *Issue, before Issue, actorID string) error
-		AddAssignee(ctx context.Context, issueID int64, userID, actorID string) error
+		AddAssignee(ctx context.Context, issueID, projectID int64, userID, actorID string) error
 		RemoveAssignee(ctx context.Context, issueID int64, userID, actorID string) error
 		Delete(ctx context.Context, issueID int64) error
 	}

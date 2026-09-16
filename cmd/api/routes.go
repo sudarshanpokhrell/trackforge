@@ -54,68 +54,58 @@ func (app *application) routes() http.Handler {
 			r.Use(app.RequireAuth)
 
 			r.Route("/{issueID}", func(r chi.Router) {
-				r.Group(func(r chi.Router) {
-					r.Use(app.RequireIssueRole(store.RoleViewer))
-					r.Get("/", app.getIssueHandler)
-					r.Get("/activities", app.listIssueActivitiesHandler)
-					r.Get("/comments", app.listIssueCommentsHandler)
-				})
+				r.Use(app.RequireIssueAccess)
+
+				r.Get("/", app.getIssueHandler)
+				r.Get("/activities", app.listIssueActivitiesHandler)
+				r.Get("/comments", app.listIssueCommentsHandler)
+
+				r.Patch("/", app.updateIssueHandler)
+				r.Post("/assignees", app.addIssueAssigneeHandler)
+				r.Delete("/assignees/{userID}", app.removeIssueAssigneeHandler)
+				r.Post("/comments", app.createIssueCommentHandler)
+
+				r.With(app.RequireRole(store.UserRoleAdmin)).Delete("/", app.deleteIssueHandler)
 
 				r.Group(func(r chi.Router) {
-					r.Use(app.RequireIssueRole(store.RoleEditor))
-					r.Patch("/", app.updateIssueHandler)
-					r.Post("/assignees", app.addIssueAssigneeHandler)
-					r.Delete("/assignees/{userID}", app.removeIssueAssigneeHandler)
-					r.Post("/comments", app.createIssueCommentHandler)
-				})
-
-				r.Group(func(r chi.Router) {
-					r.Use(app.RequireIssueRole(store.RoleEditor))
-					r.Use(app.RequireIssueCommentOwnership)
-					r.Patch("/comments/{commentID}", app.updateIssueCommentHandler)
-					r.Delete("/comments/{commentID}", app.deleteIssueCommentHandler)
-				})
-
-				r.Group(func(r chi.Router) {
-					r.Use(app.RequireIssueRole(store.RoleEditor))
-					r.Use(app.RequireIssueOwnership)
-					r.Delete("/", app.deleteIssueHandler)
+					r.Use(app.LoadIssueComment)
+					r.With(app.RequireIssueCommentAuthor).Patch("/comments/{commentID}", app.updateIssueCommentHandler)
+					r.With(app.RequireIssueCommentAuthorOrAdmin).Delete("/comments/{commentID}", app.deleteIssueCommentHandler)
 				})
 			})
 		})
 
 		r.Route("/projects", func(r chi.Router) {
 			r.Use(app.RequireAuth)
-			r.Post("/", app.createProjectHandler)
-			r.Get("/", app.getUserProjectsHandler)
+			r.With(app.RequireRole(store.UserRoleAdmin)).Post("/", app.createProjectHandler)
+			r.Get("/", app.listProjectsHandler)
 
 			r.Route("/{id}", func(r chi.Router) {
-				r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectByIDHandler)
-				r.With(app.RequireProjectRole(store.RoleEditor)).Put("/", app.updateProjectHandler)
-				r.With(app.RequireProjectRole(store.RoleAdmin)).Delete("/", app.deleteProjectHandler)
-				r.With(app.RequireProjectRole(store.RoleAdmin)).Put("/lead", app.updateProjectLeadHandler)
+				r.Use(app.RequireProjectAccess)
 
-				r.Route("/members", func(r chi.Router) {
-					r.Use(app.RequireProjectRole(store.RoleAdmin))
-					r.Post("/", app.addProjectMemberHandler)
-					r.Patch("/{userID}", app.updateProjectMemberRoleHandler)
-					r.Delete("/{userID}", app.removeProjectMemberHandler)
+				r.Get("/", app.getProjectByIDHandler)
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.RequireRole(store.UserRoleAdmin))
+					r.Put("/", app.updateProjectHandler)
+					r.Delete("/", app.deleteProjectHandler)
+					r.Post("/members", app.addProjectMemberHandler)
+					r.Delete("/members/{userID}", app.removeProjectMemberHandler)
 				})
 
 				r.Route("/issues", func(r chi.Router) {
-					r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.listProjectIssuesHandler)
-					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createIssueHandler)
+					r.Get("/", app.listProjectIssuesHandler)
+					r.Post("/", app.createIssueHandler)
 				})
 
 				r.Route("/comments", func(r chi.Router) {
-					r.With(app.RequireProjectRole(store.RoleViewer)).Get("/", app.getProjectCommentsHandler)
-					r.With(app.RequireProjectRole(store.RoleEditor)).Post("/", app.createProjectCommentHandler)
+					r.Get("/", app.getProjectCommentsHandler)
+					r.Post("/", app.createProjectCommentHandler)
 
 					r.Route("/{commentID}", func(r chi.Router) {
-						r.Use(app.RequireProjectRole(store.RoleEditor))
-						r.Use(app.RequireCommentOwnership)
-						r.Patch("/", app.updateProjectCommentHandler)
-						r.Delete("/", app.deleteProjectCommentHandler)
+						r.Use(app.LoadProjectComment)
+						r.With(app.RequireCommentAuthor).Patch("/", app.updateProjectCommentHandler)
+						r.With(app.RequireCommentAuthorOrAdmin).Delete("/", app.deleteProjectCommentHandler)
 					})
 				})
 			})

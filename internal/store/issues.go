@@ -32,7 +32,10 @@ var (
 	IssuePriorities = []string{PriorityNone, PriorityUrgent, PriorityHigh, PriorityMedium, PriorityLow}
 )
 
-var ErrDuplicateAssignee = errors.New("user is already assigned to this issue")
+var (
+	ErrDuplicateAssignee = errors.New("user is already assigned to this issue")
+	ErrNotProjectMember  = errors.New("user is not a member of this project")
+)
 
 type Assignee struct {
 	ID   string `json:"id"`
@@ -377,10 +380,14 @@ func equalStringPtr(a, b *string) bool {
 
 // AddAssignee puts a user on an issue and records it. Assignment lives in its
 // own table, so it leaves the issue row — and its version — untouched.
-func (s *IssueStore) AddAssignee(ctx context.Context, issueID int64, userID, actorID string) error {
+//
+// project_id is carried on the row so a composite foreign key can hold the rule
+// that an assignee is a project member; that is why the check below needs no
+// membership query of its own.
+func (s *IssueStore) AddAssignee(ctx context.Context, issueID, projectID int64, userID, actorID string) error {
 	query := `
-		INSERT INTO issue_assignees (issue_id, user_id)
-		VALUES ($1, $2)
+		INSERT INTO issue_assignees (issue_id, project_id, user_id)
+		VALUES ($1, $2, $3)
 		ON CONFLICT (issue_id, user_id) DO NOTHING
 	`
 
@@ -395,11 +402,14 @@ func (s *IssueStore) AddAssignee(ctx context.Context, issueID int64, userID, act
 
 	defer tx.Rollback()
 
-	result, err := tx.ExecContext(ctx, query, issueID, userID)
+	result, err := tx.ExecContext(ctx, query, issueID, projectID, userID)
 
 	if err != nil {
 		var pqErr *pq.Error
 		if errors.As(err, &pqErr) && pqErr.Code.Name() == "foreign_key_violation" {
+			if pqErr.Constraint == "issue_assignees_member_fk" {
+				return ErrNotProjectMember
+			}
 			return ErrNotFound
 		}
 		return err

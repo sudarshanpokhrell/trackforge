@@ -17,12 +17,14 @@ type CreateProjectPayload struct {
 }
 
 // @Summary Create a project
+// @Description Admins and the superadmin only. The creator is not added as a member: they already see every project, and the member list is for who works on it.
 // @Tags projects
 // @Accept json
 // @Produce json
 // @Param payload body CreateProjectPayload true "Project details"
 // @Success 201 {object} store.Project
 // @Failure 400 {object} error
+// @Failure 403 {object} error
 // @Failure 422 {object} error
 // @Failure 500 {object} error
 // @Security BearerAuth
@@ -62,16 +64,16 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-// @Summary List the caller's projects
+// @Summary List the projects the caller can see
+// @Description Admins and the superadmin get every project; a member gets the ones they belong to.
 // @Tags projects
 // @Produce json
 // @Success 200 {array} store.Project
 // @Failure 500 {object} error
 // @Security BearerAuth
 // @Router /projects [get]
-func (app *application) getUserProjectsHandler(w http.ResponseWriter, r *http.Request) {
-	userId := app.contextUserID(r)
-	projects, err := app.store.Projects.GetProjectsByUserID(r.Context(), userId)
+func (app *application) listProjectsHandler(w http.ResponseWriter, r *http.Request) {
+	projects, err := app.store.Projects.ListVisibleTo(r.Context(), app.contextUserID(r), app.contextIsAdmin(r))
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -84,6 +86,7 @@ func (app *application) getUserProjectsHandler(w http.ResponseWriter, r *http.Re
 }
 
 // @Summary Get a project with its members
+// @Description Includes my_access, which tells the caller which actions to offer.
 // @Tags projects
 // @Produce json
 // @Param id path int true "Project ID"
@@ -112,6 +115,8 @@ func (app *application) getProjectByIDHandler(w http.ResponseWriter, r *http.Req
 		}
 		return
 	}
+
+	project.MyAccess = app.contextProjectAccess(r)
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"project": project}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -193,79 +198,6 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 		switch {
 		case errors.Is(err, store.ErrEditConflict):
 			app.editConflictResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	if err := app.writeJSON(w, http.StatusOK, envelope{"project": project}, nil); err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-
-// UpdateProjectLeadPayload carries the user to put in charge of the project.
-type UpdateProjectLeadPayload struct {
-	LeadID string `json:"lead_id"`
-}
-
-// @Summary Set a project's lead
-// @Description Puts a user in charge of the project. They must already be a member of it. Use DELETE to unassign.
-// @Tags projects
-// @Accept json
-// @Produce json
-// @Param id path int true "Project ID"
-// @Param payload body UpdateProjectLeadPayload true "The new lead"
-// @Success 200 {object} store.Project
-// @Failure 400 {object} error
-// @Failure 404 {object} error
-// @Failure 422 {object} error
-// @Failure 500 {object} error
-// @Security BearerAuth
-// @Router /projects/{id}/lead [put]
-func (app *application) updateProjectLeadHandler(w http.ResponseWriter, r *http.Request) {
-	projectID, err := app.readIDParam(r)
-
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	var payload UpdateProjectLeadPayload
-
-	if err := app.readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	v := validator.New()
-
-	v.Check(payload.LeadID != "", "lead_id", "must be provided")
-	v.Check(validator.UUIDRX.MatchString(payload.LeadID), "lead_id", "must be a valid user id")
-
-	if !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-
-	// Only a member of the project can lead it.
-	if _, err := app.store.Memberships.GetRole(r.Context(), payload.LeadID, projectID); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			v.AddError("lead_id", "must be a member of the project")
-			app.failedValidationResponse(w, r, v.Errors)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	project, err := app.store.Projects.UpdateLead(r.Context(), projectID, &payload.LeadID)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			app.notFoundResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}

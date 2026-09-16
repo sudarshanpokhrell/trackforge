@@ -150,7 +150,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Only the issue's author or a project admin may delete it. Its comments and activity trail go with it.",
+                "description": "Admins and the superadmin only — not even the author. A member who wants an issue gone sets its status to cancelled, which keeps the history. Its comments and activity trail go with it.",
                 "produces": [
                     "application/json"
                 ],
@@ -812,13 +812,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Admins and the superadmin get every project; a member gets the ones they belong to.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "projects"
                 ],
-                "summary": "List the caller's projects",
+                "summary": "List the projects the caller can see",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -841,6 +842,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Admins and the superadmin only. The creator is not added as a member: they already see every project, and the member list is for who works on it.",
                 "consumes": [
                     "application/json"
                 ],
@@ -873,6 +875,10 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {}
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
                     "422": {
                         "description": "Unprocessable Entity",
                         "schema": {}
@@ -891,6 +897,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Includes my_access, which tells the caller which actions to offer.",
                 "produces": [
                     "application/json"
                 ],
@@ -1385,68 +1392,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/projects/{id}/lead": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Puts a user in charge of the project. They must already be a member of it. Use DELETE to unassign.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "projects"
-                ],
-                "summary": "Set a project's lead",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "The new lead",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.UpdateProjectLeadPayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/store.Project"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {}
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {}
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {}
-                    }
-                }
-            }
-        },
         "/projects/{id}/members": {
             "post": {
                 "security": [
@@ -1454,7 +1399,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Role defaults to \"editor\" when omitted.",
+                "description": "Admins and the superadmin only. Membership is yes/no: what a member may do comes from their app-wide role.",
                 "consumes": [
                     "application/json"
                 ],
@@ -1494,6 +1439,10 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {}
                     },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
                     "404": {
                         "description": "Not Found",
                         "schema": {}
@@ -1520,6 +1469,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Admins and the superadmin only. The member is unassigned from every issue in the project.",
                 "produces": [
                     "application/json"
                 ],
@@ -1554,74 +1504,12 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {}
                     },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {}
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {}
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "memberships"
-                ],
-                "summary": "Change a member's role",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Project ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "userID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "New role",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.UpdateProjectMemberRolePayload"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/store.Membership"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {}
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {}
-                    },
-                    "422": {
-                        "description": "Unprocessable Entity",
                         "schema": {}
                     },
                     "500": {
@@ -2052,9 +1940,6 @@ const docTemplate = `{
         "main.AddProjectMemberPayload": {
             "type": "object",
             "properties": {
-                "role": {
-                    "type": "string"
-                },
                 "user_id": {
                     "type": "string"
                 }
@@ -2232,22 +2117,6 @@ const docTemplate = `{
                 }
             }
         },
-        "main.UpdateProjectLeadPayload": {
-            "type": "object",
-            "properties": {
-                "lead_id": {
-                    "type": "string"
-                }
-            }
-        },
-        "main.UpdateProjectMemberRolePayload": {
-            "type": "object",
-            "properties": {
-                "role": {
-                    "type": "string"
-                }
-            }
-        },
         "main.UpdateProjectPayload": {
             "type": "object",
             "properties": {
@@ -2389,9 +2258,6 @@ const docTemplate = `{
                 "project_id": {
                     "type": "integer"
                 },
-                "role": {
-                    "type": "string"
-                },
                 "user_id": {
                     "type": "string"
                 }
@@ -2412,9 +2278,6 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "lead_id": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
@@ -2429,6 +2292,17 @@ const docTemplate = `{
                 },
                 "version": {
                     "type": "integer"
+                }
+            }
+        },
+        "store.ProjectAccess": {
+            "type": "object",
+            "properties": {
+                "is_admin": {
+                    "type": "boolean"
+                },
+                "is_member": {
+                    "type": "boolean"
                 }
             }
         },
@@ -2476,14 +2350,14 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "lead_id": {
-                    "type": "string"
-                },
                 "members": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/store.ProjectMember"
                     }
+                },
+                "my_access": {
+                    "$ref": "#/definitions/store.ProjectAccess"
                 },
                 "name": {
                     "type": "string"
@@ -2508,13 +2382,13 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "is_active": {
+                    "type": "boolean"
+                },
                 "joined_at": {
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
-                },
-                "role": {
                     "type": "string"
                 },
                 "user_id": {

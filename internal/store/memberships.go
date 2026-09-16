@@ -6,92 +6,68 @@ import (
 	"errors"
 
 	"github.com/lib/pq"
-	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
 
 var ErrDuplicateMembership = errors.New("user is already a member of this project")
 
-const (
-	RoleViewer = "viewer"
-	RoleEditor = "editor"
-	RoleAdmin  = "admin"
-)
-
-var roleRanks = map[string]int{
-	RoleViewer: 1,
-	RoleEditor: 2,
-	RoleAdmin:  3,
-}
-
-func RoleAtLeast(role, min string) bool {
-	return roleRanks[role] != 0 && roleRanks[role] >= roleRanks[min]
-}
-
-func ValidateRole(v *validator.Validator, role string) {
-	v.Check(v.In(role, RoleViewer, RoleEditor, RoleAdmin), "role", "must be one of viewer, editor or admin")
-}
-
+// Membership is a plain yes/no: the user is in the project or not. What they may
+// do there comes from users.role, not from the project.
 type Membership struct {
 	ProjectID int64  `json:"project_id"`
 	UserID    string `json:"user_id"`
-	Role      string `json:"role"`
 }
 
 type MembershipStore struct {
 	db *sql.DB
 }
 
-func (s *MembershipStore) Create(ctx context.Context, userId, role string, projectId int64) error {
+func (s *MembershipStore) Create(ctx context.Context, userId string, projectId int64) error {
 	query := `
-		INSERT INTO project_memberships (project_id, user_id, role)
-		VALUES ($1, $2, $3)
+		INSERT INTO project_memberships (project_id, user_id)
+		VALUES ($1, $2)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	_, err := s.db.ExecContext(ctx, query, projectId, userId, role)
+	_, err := s.db.ExecContext(ctx, query, projectId, userId)
 
 	return translateMembershipError(err)
 }
 
-func (s *MembershipStore) GetRole(ctx context.Context, userId string, projectId int64) (string, error) {
+func (s *MembershipStore) IsMember(ctx context.Context, userId string, projectId int64) (bool, error) {
 	query := `
-		SELECT role FROM project_memberships
-		WHERE project_id = $1 AND user_id = $2
+		SELECT EXISTS (
+			SELECT 1 FROM project_memberships
+			WHERE project_id = $1 AND user_id = $2
+		)
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	var role string
+	var member bool
 
-	err := s.db.QueryRowContext(ctx, query, projectId, userId).Scan(&role)
+	err := s.db.QueryRowContext(ctx, query, projectId, userId).Scan(&member)
 
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", ErrNotFound
-		}
-		return "", err
-	}
-
-	return role, nil
+	return member, err
 }
 
-func (s *MembershipStore) UpdateRole(ctx context.Context, userId, role string, projectId int64) error {
+// Delete removes the membership. The composite foreign key on issue_assignees
+// cascades, so the user is unassigned from every issue in the project.
+func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId int64) error {
 	query := `
-		UPDATE project_memberships
-		SET role = $3
+		DELETE FROM project_memberships
 		WHERE project_id = $1 AND user_id = $2
 	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
 
-	result, err := s.db.ExecContext(ctx, query, projectId, userId, role)
+	result, err := s.db.ExecContext(ctx, query, projectId, userId)
 
 	if err != nil {
-		return translateMembershipError(err)
+		return err
 	}
 
 	rowsAffected, err := result.RowsAffected()
@@ -105,53 +81,6 @@ func (s *MembershipStore) UpdateRole(ctx context.Context, userId, role string, p
 	}
 
 	return nil
-}
-
-func (s *MembershipStore) Delete(ctx context.Context, userId string, projectId int64) error {
-	query := `
-		DELETE FROM project_memberships
-		WHERE project_id = $1 AND user_id = $2
-	`
-
-	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
-	defer cancel()
-
-	tx, err := s.db.BeginTx(ctx, nil)
-
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback()
-
-	result, err := tx.ExecContext(ctx, query, projectId, userId)
-
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrNotFound
-	}
-
-	_, err = tx.ExecContext(ctx, `
-		UPDATE projects
-		SET lead_id = NULL,
-			version = version + 1
-		WHERE id = $1 AND lead_id = $2
-	`, projectId, userId)
-
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
 }
 
 func translateMembershipError(err error) error {

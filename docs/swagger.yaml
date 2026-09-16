@@ -7,8 +7,6 @@ definitions:
     type: object
   main.AddProjectMemberPayload:
     properties:
-      role:
-        type: string
       user_id:
         type: string
     type: object
@@ -123,16 +121,6 @@ definitions:
       content:
         type: string
     type: object
-  main.UpdateProjectLeadPayload:
-    properties:
-      lead_id:
-        type: string
-    type: object
-  main.UpdateProjectMemberRolePayload:
-    properties:
-      role:
-        type: string
-    type: object
   main.UpdateProjectPayload:
     properties:
       description:
@@ -225,8 +213,6 @@ definitions:
     properties:
       project_id:
         type: integer
-      role:
-        type: string
       user_id:
         type: string
     type: object
@@ -240,8 +226,6 @@ definitions:
         type: string
       id:
         type: integer
-      lead_id:
-        type: string
       name:
         type: string
       start_date:
@@ -252,6 +236,13 @@ definitions:
         type: string
       version:
         type: integer
+    type: object
+  store.ProjectAccess:
+    properties:
+      is_admin:
+        type: boolean
+      is_member:
+        type: boolean
     type: object
   store.ProjectComment:
     properties:
@@ -282,12 +273,12 @@ definitions:
         type: string
       id:
         type: integer
-      lead_id:
-        type: string
       members:
         items:
           $ref: '#/definitions/store.ProjectMember'
         type: array
+      my_access:
+        $ref: '#/definitions/store.ProjectAccess'
       name:
         type: string
       start_date:
@@ -303,11 +294,11 @@ definitions:
     properties:
       email:
         type: string
+      is_active:
+        type: boolean
       joined_at:
         type: string
       name:
-        type: string
-      role:
         type: string
       user_id:
         type: string
@@ -406,8 +397,9 @@ paths:
       - health
   /issues/{issueID}:
     delete:
-      description: Only the issue's author or a project admin may delete it. Its comments
-        and activity trail go with it.
+      description: Admins and the superadmin only — not even the author. A member
+        who wants an issue gone sets its status to cancelled, which keeps the history.
+        Its comments and activity trail go with it.
       parameters:
       - description: Issue ID
         in: path
@@ -878,6 +870,8 @@ paths:
       - me
   /projects:
     get:
+      description: Admins and the superadmin get every project; a member gets the
+        ones they belong to.
       produces:
       - application/json
       responses:
@@ -892,12 +886,15 @@ paths:
           schema: {}
       security:
       - BearerAuth: []
-      summary: List the caller's projects
+      summary: List the projects the caller can see
       tags:
       - projects
     post:
       consumes:
       - application/json
+      description: 'Admins and the superadmin only. The creator is not added as a
+        member: they already see every project, and the member list is for who works
+        on it.'
       parameters:
       - description: Project details
         in: body
@@ -914,6 +911,9 @@ paths:
             $ref: '#/definitions/store.Project'
         "400":
           description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
           schema: {}
         "422":
           description: Unprocessable Entity
@@ -956,6 +956,7 @@ paths:
       tags:
       - projects
     get:
+      description: Includes my_access, which tells the caller which actions to offer.
       parameters:
       - description: Project ID
         in: path
@@ -1259,53 +1260,12 @@ paths:
       summary: Create an issue on a project
       tags:
       - issues
-  /projects/{id}/lead:
-    put:
-      consumes:
-      - application/json
-      description: Puts a user in charge of the project. They must already be a member
-        of it. Use DELETE to unassign.
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: The new lead
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.UpdateProjectLeadPayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/store.Project'
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "422":
-          description: Unprocessable Entity
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - BearerAuth: []
-      summary: Set a project's lead
-      tags:
-      - projects
   /projects/{id}/members:
     post:
       consumes:
       - application/json
-      description: Role defaults to "editor" when omitted.
+      description: 'Admins and the superadmin only. Membership is yes/no: what a member
+        may do comes from their app-wide role.'
       parameters:
       - description: Project ID
         in: path
@@ -1328,6 +1288,9 @@ paths:
         "400":
           description: Bad Request
           schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
         "404":
           description: Not Found
           schema: {}
@@ -1347,6 +1310,8 @@ paths:
       - memberships
   /projects/{id}/members/{userID}:
     delete:
+      description: Admins and the superadmin only. The member is unassigned from every
+        issue in the project.
       parameters:
       - description: Project ID
         in: path
@@ -1368,6 +1333,9 @@ paths:
         "400":
           description: Bad Request
           schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
         "404":
           description: Not Found
           schema: {}
@@ -1377,50 +1345,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove a member from a project
-      tags:
-      - memberships
-    patch:
-      consumes:
-      - application/json
-      parameters:
-      - description: Project ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: User ID
-        in: path
-        name: userID
-        required: true
-        type: string
-      - description: New role
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.UpdateProjectMemberRolePayload'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/store.Membership'
-        "400":
-          description: Bad Request
-          schema: {}
-        "404":
-          description: Not Found
-          schema: {}
-        "422":
-          description: Unprocessable Entity
-          schema: {}
-        "500":
-          description: Internal Server Error
-          schema: {}
-      security:
-      - BearerAuth: []
-      summary: Change a member's role
       tags:
       - memberships
   /setup:

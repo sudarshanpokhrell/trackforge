@@ -1,6 +1,6 @@
 'use client';
 
-import { Inbox, Ticket,   Server, Laptop, Users } from 'lucide-react';
+import { Inbox, Ticket, Users } from 'lucide-react';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';
@@ -8,14 +8,11 @@ import { NavMain } from './nav-main';
 import { useQuery } from '@tanstack/react-query';
 import { useUser } from '@/hooks/use-auth';
 import { projectsQuery } from '@/hooks/use-projects';
-import type { User, NavItem, ProjectItem } from './types';
+import type { User, NavItem } from './types';
 
 interface AppSidebarData {
   user: User;
   navMain: NavItem[];
-  navCollapsible: {
-    projects: ProjectItem[];
-  };
 }
 
 export const sidebarData: AppSidebarData = {
@@ -45,22 +42,6 @@ export const sidebarData: AppSidebarData = {
       icon: Users,
     },
   ],
-  navCollapsible: {
-    projects: [
-      {
-        id: 'trackforge-ui',
-        title: 'TrackForge UI',
-        icon: Laptop,
-        color: 'bg-green-400 dark:bg-green-300',
-      },
-      {
-        id: 'backend-api',
-        title: 'Backend API',
-        icon: Server,
-        color: 'bg-blue-400 dark:bg-blue-300',
-      },
-    ],
-  },
 };
 
 const ADMIN_NAV_IDS = new Set(['members']);
@@ -85,7 +66,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavCollapsible projects={projects ?? []} />
+        <NavCollapsible
+          projects={projects ?? []}
+          canCreate={user?.role !== 'member'}
+        />
       </SidebarContent>
       <NavFooter />
     </Sidebar>
