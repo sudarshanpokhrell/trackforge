@@ -2,6 +2,7 @@ import { api } from "@/lib/api"
 import type {
   CreateProjectInput,
   Project,
+  ProjectComment,
   ProjectDetails,
   ProjectRole,
   UpdateProjectInput,
@@ -108,6 +109,59 @@ export function useRemoveProjectMember(projectId: number) {
       client.invalidateQueries({ queryKey: projectQuery(projectId).queryKey })
       // Removing yourself can take the project out of your list.
       client.invalidateQueries({ queryKey: projectsQuery.queryKey })
+    },
+  })
+}
+
+// Project comments
+
+export const projectCommentsQuery = (projectId: number) =>
+  queryOptions({
+    queryKey: ["projects", projectId, "comments"],
+    queryFn: async () => {
+      const { comments } = await api
+        .get(`projects/${projectId}/comments`)
+        .json<{ comments: ProjectComment[] }>()
+      return comments
+    },
+  })
+
+export function useCreateProjectComment(projectId: number) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (content: string) =>
+      api
+        .post(`projects/${projectId}/comments`, { json: { content } })
+        .json<{ comment: ProjectComment }>(),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: projectCommentsQuery(projectId).queryKey })
+    },
+  })
+}
+
+export function useUpdateProjectComment(projectId: number) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ commentId, content }: { commentId: number; content: string }) =>
+      api
+        .patch(`projects/${projectId}/comments/${commentId}`, { json: { content } })
+        .json<{ comment: ProjectComment }>(),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: projectCommentsQuery(projectId).queryKey })
+    },
+  })
+}
+
+export function useDeleteProjectComment(projectId: number) {
+  const client = useQueryClient()
+
+  return useMutation({
+    mutationFn: (commentId: number) =>
+      api.delete(`projects/${projectId}/comments/${commentId}`).json(),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: projectCommentsQuery(projectId).queryKey })
     },
   })
 }

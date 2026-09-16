@@ -1,6 +1,7 @@
 import { EmojiPicker } from '@/components/emoji-picker'
 import { InlineText } from '@/components/inline-text'
 import { AddMemberDialog } from '@/components/projects/add-member-dialog'
+import { CommentForm, CommentList } from '@/components/projects/project-comments'
 import { ProjectDates } from '@/components/projects/project-dates'
 import { ProjectIcon } from '@/components/projects/project-icon'
 import { ProjectNotFound } from '@/components/projects/project-not-found'
@@ -108,7 +109,10 @@ function ProjectHome() {
             </div>
 
             <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-                <div className="flex flex-col gap-8 md:col-span-2"></div>
+                <div className="flex flex-col gap-8 md:col-span-2">
+                    <CommentForm projectId={id} />
+                    <CommentList projectId={id} canManage={canManage} />
+                </div>
 
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between pb-2">

@@ -1,3 +1,5 @@
+import type { UserSummary } from "./issues"
+
 export type ProjectRole = "admin" | "contributor"
 
 export interface Project {
@@ -55,4 +57,15 @@ export type UpdateProjectInput = Partial<CreateProjectInput>
 export interface ProjectRef {
   id: number
   name: string
+}
+
+export interface ProjectComment {
+  id: number
+  project_id: number
+  created_by: string
+  creator?: UserSummary
+  content: string
+  version: number
+  created_at: string
+  updated_at: string
 }

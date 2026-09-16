@@ -22,6 +22,7 @@ import { Route as AuthedIssuesIndexRouteImport } from './routes/_authed/issues/i
 import { Route as AuthedIssuesIssueIdRouteImport } from './routes/_authed/issues/$issueId'
 import { Route as AuthedProjectsProjectIdIndexRouteImport } from './routes/_authed/projects/$projectId/index'
 import { Route as AuthedProjectsProjectIdIssuesRouteImport } from './routes/_authed/projects/$projectId/issues'
+import { Route as AuthedProjectsProjectIdSettingsRouteImport } from './routes/_authed/projects/$projectId/settings'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -88,6 +89,12 @@ const AuthedProjectsProjectIdIssuesRoute =
     path: '/projects/$projectId/issues',
     getParentRoute: () => AuthedRouteRoute,
   } as any)
+const AuthedProjectsProjectIdSettingsRoute =
+  AuthedProjectsProjectIdSettingsRouteImport.update({
+    id: '/projects/$projectId/settings',
+    path: '/projects/$projectId/settings',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByFullPath {
   '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/issues/': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
   '/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -113,6 +121,7 @@ export interface FileRoutesByTo {
   '/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/issues': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
   '/projects/$projectId': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
@@ -129,6 +138,7 @@ export interface FileRoutesById {
   '/_authed/issues/$issueId': typeof AuthedIssuesIssueIdRoute
   '/_authed/issues/': typeof AuthedIssuesIndexRoute
   '/_authed/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
+  '/_authed/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
   '/_authed/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues/'
     | '/projects/$projectId/issues'
+    | '/projects/$projectId/settings'
     | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/issues/$issueId'
     | '/issues'
     | '/projects/$projectId/issues'
+    | '/projects/$projectId/settings'
     | '/projects/$projectId'
   id:
     | '__root__'
@@ -172,6 +184,7 @@ export interface FileRouteTypes {
     | '/_authed/issues/$issueId'
     | '/_authed/issues/'
     | '/_authed/projects/$projectId/issues'
+    | '/_authed/projects/$projectId/settings'
     | '/_authed/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
@@ -274,6 +287,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedProjectsProjectIdIssuesRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/projects/$projectId/settings': {
+      id: '/_authed/projects/$projectId/settings'
+      path: '/projects/$projectId/settings'
+      fullPath: '/projects/$projectId/settings'
+      preLoaderRoute: typeof AuthedProjectsProjectIdSettingsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -299,6 +319,7 @@ interface AuthedRouteRouteChildren {
   AuthedIssuesIssueIdRoute: typeof AuthedIssuesIssueIdRoute
   AuthedIssuesIndexRoute: typeof AuthedIssuesIndexRoute
   AuthedProjectsProjectIdIssuesRoute: typeof AuthedProjectsProjectIdIssuesRoute
+  AuthedProjectsProjectIdSettingsRoute: typeof AuthedProjectsProjectIdSettingsRoute
   AuthedProjectsProjectIdIndexRoute: typeof AuthedProjectsProjectIdIndexRoute
 }
 
@@ -310,6 +331,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIssuesIssueIdRoute: AuthedIssuesIssueIdRoute,
   AuthedIssuesIndexRoute: AuthedIssuesIndexRoute,
   AuthedProjectsProjectIdIssuesRoute: AuthedProjectsProjectIdIssuesRoute,
+  AuthedProjectsProjectIdSettingsRoute: AuthedProjectsProjectIdSettingsRoute,
   AuthedProjectsProjectIdIndexRoute: AuthedProjectsProjectIdIndexRoute,
 }
 
