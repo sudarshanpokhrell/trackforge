@@ -19,6 +19,7 @@ const commentCtx contextKey = "comment"
 const issueCtx contextKey = "issue"
 const issueCommentCtx contextKey = "issue_comment"
 const labelCtx contextKey = "label"
+const cycleCtx contextKey = "cycle"
 
 const authCookieName = "jwt_token"
 
@@ -326,6 +327,79 @@ func (app *application) LoadLabel(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), labelCtx, label)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// LoadCycle puts the cycle named by {cycleID} in context, after checking it
+// belongs to the project in the URL (404 otherwise). It runs after
+// RequireProjectAccess.
+func (app *application) LoadCycle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		projectID, err := app.readIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		cycleID, err := app.readCycleIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		cycle, err := app.store.Cycles.GetByID(r.Context(), cycleID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		if cycle.ProjectID != projectID {
+			app.notFoundResponse(w, r)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), cycleCtx, cycle)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// RequireCyclesEnabled refuses cycle writes (409) in a project with cycles off.
+// Reads stay open, so a project's old cycles are still visible.
+func (app *application) RequireCyclesEnabled(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		projectID, err := app.readIDParam(r)
+
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
+
+		project, err := app.store.Projects.GetByID(r.Context(), projectID)
+
+		if err != nil {
+			switch {
+			case errors.Is(err, store.ErrNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+
+		if !project.CyclesEnabled {
+			app.conflictResponse(w, r, store.ErrCyclesDisabled)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 

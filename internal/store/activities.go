@@ -16,6 +16,7 @@ const (
 	ActivityAssigneeChanged    = "assignee_changed"
 	ActivityLabelAdded         = "label_added"
 	ActivityLabelRemoved       = "label_removed"
+	ActivityCycleChanged       = "cycle_changed"
 )
 
 const (

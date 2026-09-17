@@ -76,6 +76,8 @@ export function useUpdateIssue(issue: Pick<Issue, 'id' | 'project_id'>) {
       client.invalidateQueries({
         queryKey: projectIssuesQuery(issue.project_id).queryKey,
       })
+      // Sprint progress counts issues by status.
+      client.invalidateQueries({ queryKey: ['projects', issue.project_id, 'cycles'] })
     },
   })
 }
@@ -88,6 +90,7 @@ export function useDeleteIssue(projectId: number) {
     onSuccess: (_, issueId) => {
       client.removeQueries({ queryKey: issueQuery(issueId).queryKey })
       client.invalidateQueries({ queryKey: projectIssuesQuery(projectId).queryKey })
+      client.invalidateQueries({ queryKey: ['projects', projectId, 'cycles'] })
     },
   })
 }

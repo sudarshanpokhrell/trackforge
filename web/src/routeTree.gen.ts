@@ -23,6 +23,7 @@ import { Route as AuthedIssuesIssueIdRouteImport } from './routes/_authed/issues
 import { Route as AuthedProjectsProjectIdIndexRouteImport } from './routes/_authed/projects/$projectId/index'
 import { Route as AuthedProjectsProjectIdIssuesRouteImport } from './routes/_authed/projects/$projectId/issues'
 import { Route as AuthedProjectsProjectIdSettingsRouteImport } from './routes/_authed/projects/$projectId/settings'
+import { Route as AuthedProjectsProjectIdSprintsRouteImport } from './routes/_authed/projects/$projectId/sprints'
 
 const AuthRouteRoute = AuthRouteRouteImport.update({
   id: '/_auth',
@@ -95,6 +96,12 @@ const AuthedProjectsProjectIdSettingsRoute =
     path: '/projects/$projectId/settings',
     getParentRoute: () => AuthedRouteRoute,
   } as any)
+const AuthedProjectsProjectIdSprintsRoute =
+  AuthedProjectsProjectIdSprintsRouteImport.update({
+    id: '/projects/$projectId/sprints',
+    path: '/projects/$projectId/sprints',
+    getParentRoute: () => AuthedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/issues/': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
   '/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
+  '/projects/$projectId/sprints': typeof AuthedProjectsProjectIdSprintsRoute
   '/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
@@ -122,6 +130,7 @@ export interface FileRoutesByTo {
   '/issues': typeof AuthedIssuesIndexRoute
   '/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
   '/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
+  '/projects/$projectId/sprints': typeof AuthedProjectsProjectIdSprintsRoute
   '/projects/$projectId': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRoutesById {
@@ -139,6 +148,7 @@ export interface FileRoutesById {
   '/_authed/issues/': typeof AuthedIssuesIndexRoute
   '/_authed/projects/$projectId/issues': typeof AuthedProjectsProjectIdIssuesRoute
   '/_authed/projects/$projectId/settings': typeof AuthedProjectsProjectIdSettingsRoute
+  '/_authed/projects/$projectId/sprints': typeof AuthedProjectsProjectIdSprintsRoute
   '/_authed/projects/$projectId/': typeof AuthedProjectsProjectIdIndexRoute
 }
 export interface FileRouteTypes {
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/issues/'
     | '/projects/$projectId/issues'
     | '/projects/$projectId/settings'
+    | '/projects/$projectId/sprints'
     | '/projects/$projectId/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/issues'
     | '/projects/$projectId/issues'
     | '/projects/$projectId/settings'
+    | '/projects/$projectId/sprints'
     | '/projects/$projectId'
   id:
     | '__root__'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
     | '/_authed/issues/'
     | '/_authed/projects/$projectId/issues'
     | '/_authed/projects/$projectId/settings'
+    | '/_authed/projects/$projectId/sprints'
     | '/_authed/projects/$projectId/'
   fileRoutesById: FileRoutesById
 }
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedProjectsProjectIdSettingsRouteImport
       parentRoute: typeof AuthedRouteRoute
     }
+    '/_authed/projects/$projectId/sprints': {
+      id: '/_authed/projects/$projectId/sprints'
+      path: '/projects/$projectId/sprints'
+      fullPath: '/projects/$projectId/sprints'
+      preLoaderRoute: typeof AuthedProjectsProjectIdSprintsRouteImport
+      parentRoute: typeof AuthedRouteRoute
+    }
   }
 }
 
@@ -320,6 +340,7 @@ interface AuthedRouteRouteChildren {
   AuthedIssuesIndexRoute: typeof AuthedIssuesIndexRoute
   AuthedProjectsProjectIdIssuesRoute: typeof AuthedProjectsProjectIdIssuesRoute
   AuthedProjectsProjectIdSettingsRoute: typeof AuthedProjectsProjectIdSettingsRoute
+  AuthedProjectsProjectIdSprintsRoute: typeof AuthedProjectsProjectIdSprintsRoute
   AuthedProjectsProjectIdIndexRoute: typeof AuthedProjectsProjectIdIndexRoute
 }
 
@@ -332,6 +353,7 @@ const AuthedRouteRouteChildren: AuthedRouteRouteChildren = {
   AuthedIssuesIndexRoute: AuthedIssuesIndexRoute,
   AuthedProjectsProjectIdIssuesRoute: AuthedProjectsProjectIdIssuesRoute,
   AuthedProjectsProjectIdSettingsRoute: AuthedProjectsProjectIdSettingsRoute,
+  AuthedProjectsProjectIdSprintsRoute: AuthedProjectsProjectIdSprintsRoute,
   AuthedProjectsProjectIdIndexRoute: AuthedProjectsProjectIdIndexRoute,
 }
 

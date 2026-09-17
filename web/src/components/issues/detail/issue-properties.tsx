@@ -10,6 +10,7 @@ import { PRIORITY_LABELS, STATUS_LABELS, type Issue } from "@/types/issues"
 import type { ProjectDetails } from "@/types/projects"
 import { PriorityIcon, StatusIcon } from "../icons"
 import { AssigneePopover, PriorityPopover, StatusPopover } from "../popovers"
+import { SprintPicker } from "./sprint-picker"
 import { UserAvatar } from "./user-avatar"
 
 const onError = { onError: (e: unknown) => toast.error(getErrorMessage(e)) }
@@ -88,6 +89,13 @@ export function IssueProperties({ issue, project }: { issue: Issue; project?: Pr
           <IssueLabels issue={issue} />
         </div>
       </Property>
+
+      {/* Hidden when sprints are off, unless the issue is still in an old one. */}
+      {(project?.cycles_enabled || issue.cycle_id !== null) && (
+        <Property label="Sprint">
+          <SprintPicker issue={issue} enabled={project?.cycles_enabled ?? false} />
+        </Property>
+      )}
 
       <div className="my-3" />
 

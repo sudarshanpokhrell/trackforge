@@ -1402,6 +1402,446 @@
                 }
             }
         },
+        "/projects/{id}/cycles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Latest start first. Each cycle has its status (upcoming, active, overdue, completed; worked out in APP_TIMEZONE) and issue counts per issue status. Filter with ?status=.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "List a project's cycles",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "upcoming, active, overdue or completed",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/store.Cycle"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Anyone in the project, while cycles are on (409 otherwise). Dates are inclusive and may not overlap another cycle in the project (422).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Create a cycle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Cycle to create",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateCyclePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/store.Cycle"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/projects/{id}/cycles-enabled": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Project admins and the superadmin only. Turning cycles off is refused (422) while the project has an uncompleted cycle.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Turn cycles on or off for a project",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Whether cycles are on",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.SetCyclesEnabledPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/projects/{id}/cycles/{cycleID}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Includes its status and issue counts per issue status, for progress.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Get a cycle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cycle ID",
+                        "name": "cycleID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Cycle"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Anyone in the project, while cycles are on. Its issues stay, with no cycle.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Delete a cycle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cycle ID",
+                        "name": "cycleID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Anyone in the project, while cycles are on. Fields left out are unchanged. A completed cycle is read-only (422).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Edit a cycle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cycle ID",
+                        "name": "cycleID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fields to change",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.UpdateCyclePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/store.Cycle"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/projects/{id}/cycles/{cycleID}/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Anyone in the project, while cycles are on. In one transaction: the cycle is marked completed, and its issues that aren't done or cancelled move to move_open_issues_to (another uncompleted cycle in the project) or to no cycle. Each moved issue gets a cycle_changed activity.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cycles"
+                ],
+                "summary": "Complete a cycle",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Project ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Cycle ID",
+                        "name": "cycleID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Where open issues go",
+                        "name": "payload",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/main.CompleteCyclePayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {}
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {}
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {}
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {}
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/projects/{id}/issues": {
             "get": {
                 "security": [
@@ -2466,6 +2906,32 @@
                 }
             }
         },
+        "main.CompleteCyclePayload": {
+            "type": "object",
+            "properties": {
+                "move_open_issues_to": {
+                    "description": "MoveOpenIssuesTo is another uncompleted cycle in the project, or null (or\nleft out) to leave open issues with no cycle.",
+                    "type": "integer"
+                }
+            }
+        },
+        "main.CreateCyclePayload": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
         "main.CreateIssueCommentPayload": {
             "type": "object",
             "properties": {
@@ -2591,6 +3057,14 @@
                 }
             }
         },
+        "main.SetCyclesEnabledPayload": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean"
+                }
+            }
+        },
         "main.SetupPayload": {
             "type": "object",
             "required": [
@@ -2629,6 +3103,23 @@
                 }
             }
         },
+        "main.UpdateCyclePayload": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
         "main.UpdateIssueCommentPayload": {
             "type": "object",
             "properties": {
@@ -2640,6 +3131,10 @@
         "main.UpdateIssuePayload": {
             "type": "object",
             "properties": {
+                "cycle_id": {
+                    "description": "CycleID moves the issue into a cycle, or out of one with null.",
+                    "type": "integer"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2723,6 +3218,55 @@
                 }
             }
         },
+        "store.Cycle": {
+            "type": "object",
+            "properties": {
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "created_by": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "issue_counts": {
+                    "description": "IssueCounts maps each issue status to how many of the cycle's issues have\nit, for progress. Statuses with no issues are absent.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project_id": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status depends on today's date, so it's worked out per request (see\nSetStatus) rather than stored.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "integer"
+                }
+            }
+        },
         "store.Issue": {
             "type": "object",
             "properties": {
@@ -2737,6 +3281,9 @@
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "cycle_id": {
+                    "type": "integer"
                 },
                 "description": {
                     "type": "string"
@@ -2888,6 +3435,10 @@
                 "created_by": {
                     "type": "string"
                 },
+                "cycles_enabled": {
+                    "description": "CyclesEnabled is changed only through SetCyclesEnabled, never Update.",
+                    "type": "boolean"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -2968,6 +3519,10 @@
                 },
                 "created_by": {
                     "type": "string"
+                },
+                "cycles_enabled": {
+                    "description": "CyclesEnabled is changed only through SetCyclesEnabled, never Update.",
+                    "type": "boolean"
                 },
                 "description": {
                     "type": "string"

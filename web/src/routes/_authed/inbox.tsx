@@ -1,98 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { Bell, Check, Circle, MessageSquare, GitPullRequest } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { Inbox } from 'lucide-react'
 
 export const Route = createFileRoute('/_authed/inbox')({
   component: InboxPage,
 })
 
 function InboxPage() {
-  const notifications = [
-    {
-      id: 1,
-      type: 'mention',
-      title: 'Alice mentioned you in SRS-12',
-      time: '5m ago',
-      read: false,
-      icon: MessageSquare,
-    },
-    {
-      id: 2,
-      type: 'assigned',
-      title: 'You were assigned to SRS-9',
-      time: '1h ago',
-      read: false,
-      icon: GitPullRequest,
-    },
-    {
-      id: 3,
-      type: 'update',
-      title: 'Bob closed SRS-7',
-      time: '3h ago',
-      read: true,
-      icon: Check,
-    },
-    {
-      id: 4,
-      type: 'comment',
-      title: 'Charlie commented on SRS-4',
-      time: '5h ago',
-      read: true,
-      icon: MessageSquare,
-    },
-  ]
-
-  const unreadCount = notifications.filter(n => !n.read).length
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-headline">Inbox</h1>
-          {unreadCount > 0 && (
-            <Badge variant="default" className="px-2.5 py-0.5 text-xs">
-              {unreadCount} unread
-            </Badge>
-          )}
-        </div>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
-          <Check className="mr-1 size-3" />
-          Mark all as read
-        </Button>
+    <div className="flex h-full flex-col items-center justify-center space-y-4 p-8 text-center">
+      <div className="rounded-xl border bg-card p-4 shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
+        <Inbox className="h-8 w-8 text-muted-foreground" />
       </div>
-
-      <div className="overflow-hidden rounded-xl border bg-card shadow-[inset_0_1px_0_0_var(--edge-highlight)]">
-        {notifications.map((item) => (
-          <div
-            key={item.id}
-            className={cn(
-              'flex items-center gap-4 border-b px-4 py-3 transition-colors last:border-0 hover:bg-surface-2',
-              item.read && 'text-ink-muted'
-            )}
-          >
-            <div className="mt-0.5">
-              {!item.read ? (
-                <Circle className="size-2 fill-primary text-primary" />
-              ) : (
-                <div className="size-2" />
-              )}
-            </div>
-            <div className="flex-1">
-              <p className="text-sm">{item.title}</p>
-              <span className="text-xs text-muted-foreground">{item.time}</span>
-            </div>
-            <item.icon className="size-4 text-muted-foreground" />
-          </div>
-        ))}
-        {notifications.length === 0 && (
-          <div className="py-12 text-center text-muted-foreground">
-            <Bell className="mx-auto size-8 mb-2 opacity-50" />
-            <p>All caught up!</p>
-          </div>
-        )}
-      </div>
+      <h2 className="text-card-title">Inbox</h2>
+      <p className="text-sm text-muted-foreground max-w-sm">
+        This feature is coming soon! You will be able to see mentions, assignments and updates on your issues here.
+      </p>
     </div>
   )
 }

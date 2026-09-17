@@ -10,17 +10,19 @@ import (
 )
 
 type Project struct {
-	ID          int64      `json:"id"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Emoji       string     `json:"emoji"`
-	StartDate   *time.Time `json:"start_date"`
-	TargetDate  *time.Time `json:"target_date"`
-	CreatedBy   string     `json:"created_by"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	Version     int32      `json:"version"`
-	MyRole      string     `json:"my_role,omitempty"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Emoji       string `json:"emoji"`
+	// CyclesEnabled is changed only through SetCyclesEnabled, never Update.
+	CyclesEnabled bool       `json:"cycles_enabled"`
+	StartDate     *time.Time `json:"start_date"`
+	TargetDate    *time.Time `json:"target_date"`
+	CreatedBy     string     `json:"created_by"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	Version       int32      `json:"version"`
+	MyRole        string     `json:"my_role,omitempty"`
 }
 
 type ProjectRef struct {
@@ -137,7 +139,7 @@ func (s *ProjectStore) Create(ctx context.Context, p *Project) error {
 // one place to change it.
 func (s *ProjectStore) ListVisibleTo(ctx context.Context, userID string, all bool) ([]*Project, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.cycles_enabled, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version, COALESCE(pm.role::text, '')
 		FROM projects p
 		LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1
@@ -166,6 +168,7 @@ func (s *ProjectStore) ListVisibleTo(ctx context.Context, userID string, all boo
 			&project.Name,
 			&project.Description,
 			&project.Emoji,
+			&project.CyclesEnabled,
 			&project.StartDate,
 			&project.TargetDate,
 			&project.CreatedBy,
@@ -237,7 +240,7 @@ func (s *ProjectStore) ListSoleActiveAdminOf(ctx context.Context, userID string)
 
 func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (*ProjectDetails, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.cycles_enabled, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version,
 			m_user.id, m_user.name, m_user.email, m_user.is_active, pm.role, pm.created_at
 		FROM projects p
@@ -276,6 +279,7 @@ func (s *ProjectStore) GetProjectDetails(ctx context.Context, projectID int64) (
 			&details.Name,
 			&details.Description,
 			&details.Emoji,
+			&details.CyclesEnabled,
 			&details.StartDate,
 			&details.TargetDate,
 			&details.CreatedBy,
@@ -336,7 +340,7 @@ func (s *ProjectStore) Exists(ctx context.Context, projectID int64) (bool, error
 
 func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, error) {
 	query := `
-		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.start_date, p.target_date,
+		SELECT p.id, p.name, COALESCE(p.description, ''), p.emoji, p.cycles_enabled, p.start_date, p.target_date,
 			p.created_by, p.created_at, p.updated_at, p.version
 		FROM projects p
 		WHERE p.id = $1
@@ -352,6 +356,7 @@ func (s *ProjectStore) GetByID(ctx context.Context, projectID int64) (*Project, 
 		&project.Name,
 		&project.Description,
 		&project.Emoji,
+		&project.CyclesEnabled,
 		&project.StartDate,
 		&project.TargetDate,
 		&project.CreatedBy,
@@ -406,6 +411,48 @@ func (s *ProjectStore) Update(ctx context.Context, p *Project) error {
 			return ErrEditConflict
 		}
 		return err
+	}
+
+	return nil
+}
+
+// SetCyclesEnabled turns cycles on or off. Turning them off is refused while any
+// cycle is still open, so disabling never silently changes data; the check and
+// the write are one statement, so a cycle created meanwhile can't slip past.
+func (s *ProjectStore) SetCyclesEnabled(ctx context.Context, projectID int64, enabled bool) error {
+	query := `
+		UPDATE projects
+		SET cycles_enabled = $2
+		WHERE id = $1
+		  AND ($2 OR NOT EXISTS (
+			SELECT 1 FROM cycles WHERE project_id = $1 AND completed_at IS NULL
+		  ))
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+
+	result, err := s.db.ExecContext(ctx, query, projectID, enabled)
+
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+
+	if err != nil {
+		return err
+	}
+
+	if affected == 0 {
+		exists, err := s.Exists(ctx, projectID)
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return ErrNotFound
+		}
+		return ErrOpenCyclesExist
 	}
 
 	return nil

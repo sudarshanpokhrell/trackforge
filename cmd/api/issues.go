@@ -159,6 +159,8 @@ type UpdateIssuePayload struct {
 	Description *string `json:"description"`
 	Status      *string `json:"status"`
 	Priority    *string `json:"priority"`
+	// CycleID moves the issue into a cycle, or out of one with null.
+	CycleID nullableInt64 `json:"cycle_id" swaggertype:"integer"`
 }
 
 // @Summary Edit an issue
@@ -217,6 +219,21 @@ func (app *application) updateIssueHandler(w http.ResponseWriter, r *http.Reques
 		}
 	}
 
+	if payload.CycleID.Set && !sameInt64(payload.CycleID.Value, issue.CycleID) {
+		problem, err := app.issueCycleProblem(r, issue, payload.CycleID.Value)
+
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		if problem != "" {
+			v.AddError("cycle_id", problem)
+		} else {
+			issue.CycleID = payload.CycleID.Value
+		}
+	}
+
 	if store.ValidateIssue(v, issue); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
@@ -226,6 +243,9 @@ func (app *application) updateIssueHandler(w http.ResponseWriter, r *http.Reques
 		switch {
 		case errors.Is(err, store.ErrEditConflict):
 			app.editConflictResponse(w, r)
+		case errors.Is(err, store.ErrCycleNotInProject):
+			v.AddError("cycle_id", err.Error())
+			app.failedValidationResponse(w, r, v.Errors)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -376,4 +396,11 @@ func (app *application) removeIssueAssigneeHandler(w http.ResponseWriter, r *htt
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "assignee removed successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+}
+
+func sameInt64(a, b *int64) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }

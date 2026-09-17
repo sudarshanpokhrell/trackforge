@@ -20,6 +20,7 @@ projects
   name         text  not null
   description  text
   emoji        text  not null  default ''   -- '' means none; the UI shows a generic icon
+  cycles_enabled  boolean  not null  default false  -- cycles (sprints) are opt-in per project
   start_date   date
   target_date  date
   created_by   uuid  not null  → users(id)  ON DELETE RESTRICT
@@ -53,11 +54,14 @@ issues
   description  text
   status       issue_status    not null  default 'backlog'
   priority     issue_priority  not null  default 'no-priority'
+  cycle_id     bigint                     -- null means no cycle
   version      integer  not null  default 1
   created_at   timestamptz
   updated_at   timestamptz      -- maintained by trigger
   UNIQUE (id, project_id)  -- redundant on its own; it is what the composite FKs
                            -- of issue_assignees and issue_labels point at
+  FOREIGN KEY (cycle_id, project_id)
+      → cycles(id, project_id)  ON DELETE SET NULL (cycle_id)  -- a cycle from the issue's own project
 
 issue_assignees                  -- join table: an issue may have many assignees
   issue_id     bigint  not null  → issues(id)  ON DELETE CASCADE
@@ -69,6 +73,24 @@ issue_assignees                  -- join table: an issue may have many assignees
       → issues(id, project_id)              ON DELETE CASCADE
   FOREIGN KEY (project_id, user_id)
       → project_memberships(project_id, user_id)  ON DELETE CASCADE
+
+cycles                           -- sprints; per project, only while cycles_enabled
+  id           bigserial  pk
+  project_id   bigint  not null  → projects(id)  ON DELETE CASCADE
+  name         text    not null
+  description  text
+  start_date   date    not null
+  end_date     date    not null  CHECK (end_date >= start_date)   -- both inclusive
+  completed_at timestamptz                -- set once; a completed cycle is read-only
+  created_by   uuid              → users(id)     ON DELETE SET NULL
+  version      integer  not null  default 1
+  created_at   timestamptz
+  updated_at   timestamptz      -- maintained by trigger
+  UNIQUE (id, project_id)                  -- what issues' composite FK points at
+  EXCLUDE USING gist (project_id WITH =, daterange(start_date, end_date, '[]') WITH &&)
+                                           -- cycles in one project never overlap
+  -- status (upcoming / active / overdue / completed) is computed per request
+  -- from the dates and completed_at, measured in APP_TIMEZONE; it isn't stored
 
 labels                           -- per project; part of the project's settings
   id           bigserial  pk
@@ -134,7 +156,7 @@ issue_activities                 -- append-only audit trail; no updated_at, no t
 | `project_member_role` | `admin`, `contributor` |
 | `issue_status` | `backlog`, `todo`, `in-progress`, `done`, `cancelled` |
 | `issue_priority` | `no-priority`, `urgent`, `high`, `medium`, `low` |
-| `issue_activity_type` | `created`, `title_changed`, `description_changed`, `status_changed`, `priority_changed`, `assignee_changed`, `label_added`, `label_removed` |
+| `issue_activity_type` | `created`, `title_changed`, `description_changed`, `status_changed`, `priority_changed`, `assignee_changed`, `label_added`, `label_removed`, `cycle_changed` |
 
 Migrations create enums inside a `DO $$ ... IF NOT EXISTS (SELECT 1 FROM pg_type ...)` guard, because bare `CREATE TYPE` has no `IF NOT EXISTS` form and would break a re-run.
 

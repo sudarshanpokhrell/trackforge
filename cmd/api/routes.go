@@ -96,6 +96,7 @@ func (app *application) routes() http.Handler {
 					r.Post("/members", app.addProjectMemberHandler)
 					r.Patch("/members/{userID}", app.updateProjectMemberHandler)
 					r.Delete("/members/{userID}", app.removeProjectMemberHandler)
+					r.Put("/cycles-enabled", app.setCyclesEnabledHandler)
 				})
 
 				r.Route("/labels", func(r chi.Router) {
@@ -109,6 +110,23 @@ func (app *application) routes() http.Handler {
 							r.Use(app.LoadLabel)
 							r.Patch("/", app.updateLabelHandler)
 							r.Delete("/", app.deleteLabelHandler)
+						})
+					})
+				})
+
+				r.Route("/cycles", func(r chi.Router) {
+					r.Get("/", app.listCyclesHandler)
+					r.With(app.RequireCyclesEnabled).Post("/", app.createCycleHandler)
+
+					r.Route("/{cycleID}", func(r chi.Router) {
+						r.Use(app.LoadCycle)
+						r.Get("/", app.getCycleHandler)
+
+						r.Group(func(r chi.Router) {
+							r.Use(app.RequireCyclesEnabled)
+							r.Patch("/", app.updateCycleHandler)
+							r.Delete("/", app.deleteCycleHandler)
+							r.Post("/complete", app.completeCycleHandler)
 						})
 					})
 				})

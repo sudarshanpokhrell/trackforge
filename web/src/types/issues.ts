@@ -54,6 +54,8 @@ export interface Issue {
   description: string | null
   status: IssueStatus
   priority: IssuePriority
+  /** The sprint it's in, if any. */
+  cycle_id: number | null
   version: number
   created_at: string
   updated_at: string
@@ -70,7 +72,10 @@ export type CreateIssueInput = {
   label_ids?: number[]
 }
 
-export type UpdateIssueInput = Partial<Omit<CreateIssueInput, 'label_ids'>>
+export type UpdateIssueInput = Partial<Omit<CreateIssueInput, 'label_ids'>> & {
+  /** Moves the issue into a sprint, or out of one with null. */
+  cycle_id?: number | null
+}
 
 export interface UserSummary {
   id: string
@@ -98,6 +103,7 @@ export type IssueActivityType =
   | 'assignee_changed'
   | 'label_added'
   | 'label_removed'
+  | 'cycle_changed'
 
 export interface IssueActivity {
   id: number

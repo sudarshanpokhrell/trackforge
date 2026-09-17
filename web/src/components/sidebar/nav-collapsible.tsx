@@ -1,6 +1,7 @@
 "use client"
 import {
   ChevronDown,
+  IterationCcw,
   LayoutDashboard,
   Plus,
   Settings,
@@ -76,6 +77,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                     const homeHref = `/projects/${item.id}`
                     const issuesHref = `/projects/${item.id}/issues`
                     const settingsHref = `/projects/${item.id}/settings`
+                    const sprintsHref = `/projects/${item.id}/sprints`
 
                     const projectId = String(item.id)
                     const isProjectActive =
@@ -128,6 +130,22 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                                   <span>Issues</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
+                              {item.cycles_enabled && (
+                                <SidebarMenuSubItem>
+                                  <SidebarMenuSubButton
+                                    isActive={pathname === sprintsHref}
+                                    render={
+                                      <Link
+                                        to="/projects/$projectId/sprints"
+                                        params={{ projectId }}
+                                      />
+                                    }
+                                  >
+                                    <IterationCcw />
+                                    <span>Sprints</span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              )}
                               <SidebarMenuSubItem>
                                 <SidebarMenuSubButton
                                   isActive={pathname === settingsHref}

@@ -131,6 +131,16 @@ func (app *application) readLabelIDParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
+func (app *application) readCycleIDParam(r *http.Request) (int64, error) {
+	id, err := strconv.ParseInt(chi.URLParam(r, "cycleID"), 10, 64)
+
+	if err != nil || id < 1 {
+		return 0, errors.New("invalid cycle id parameter")
+	}
+
+	return id, nil
+}
+
 func (app *application) readUserIDParam(r *http.Request) (string, error) {
 	userID := chi.URLParam(r, "userID")
 
@@ -183,6 +193,46 @@ func (app *application) contextLabel(r *http.Request) *store.Label {
 		panic("missing label in request context")
 	}
 	return label
+}
+
+func (app *application) contextCycle(r *http.Request) *store.Cycle {
+	cycle, ok := r.Context().Value(cycleCtx).(*store.Cycle)
+	if !ok {
+		panic("missing cycle in request context")
+	}
+	return cycle
+}
+
+// today is the current date in APP_TIMEZONE, which is what a cycle's status is
+// measured against.
+func (app *application) today() time.Time {
+	return time.Now().In(app.config.app.timezone)
+}
+
+// nullableInt64 is a JSON field that tells "left out" (Set is false) apart from
+// an explicit null (Set is true, Value is nil).
+type nullableInt64 struct {
+	Set   bool
+	Value *int64
+}
+
+func (n *nullableInt64) UnmarshalJSON(data []byte) error {
+	n.Set = true
+
+	if string(data) == "null" {
+		n.Value = nil
+		return nil
+	}
+
+	var v int64
+
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	n.Value = &v
+
+	return nil
 }
 
 // contextProjectAccess reports who the caller is in the project the access

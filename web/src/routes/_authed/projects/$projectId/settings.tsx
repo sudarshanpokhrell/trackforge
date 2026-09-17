@@ -98,7 +98,7 @@ function RouteComponent() {
         />
       )}
       {tab === "members" && <MembersSettings project={project} />}
-      {tab === "sprints" && <SprintsSettings />}
+      {tab === "sprints" && <SprintsSettings project={project} />}
     </main>
   )
 }

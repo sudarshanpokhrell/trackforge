@@ -55,6 +55,7 @@ type Issue struct {
 	Description *string        `json:"description"`
 	Status      string         `json:"status"`
 	Priority    string         `json:"priority"`
+	CycleID     *int64         `json:"cycle_id"`
 	Version     int32          `json:"version"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
@@ -162,7 +163,7 @@ func (s *IssueStore) Create(ctx context.Context, issue *Issue, labelIDs []int64)
 // arrays, so an issue is one row however many of either it has.
 const issueColumns = `
 	i.id, i.project_id, i.author_id, i.title, i.description, i.status, i.priority,
-	i.version, i.created_at, i.updated_at,
+	i.cycle_id, i.version, i.created_at, i.updated_at,
 	COALESCE((
 		SELECT json_agg(json_build_object('id', u.id, 'name', u.name) ORDER BY ia.created_at, u.id)
 		FROM issue_assignees ia
@@ -191,6 +192,7 @@ func scanIssue(row interface{ Scan(...any) error }) (*Issue, error) {
 		&issue.Description,
 		&issue.Status,
 		&issue.Priority,
+		&issue.CycleID,
 		&issue.Version,
 		&issue.CreatedAt,
 		&issue.UpdatedAt,
@@ -276,8 +278,9 @@ func (s *IssueStore) Update(ctx context.Context, issue *Issue, before Issue, act
 			description = $2,
 			status = $3::issue_status,
 			priority = $4::issue_priority,
+			cycle_id = $5,
 			version = version + 1
-		WHERE id = $5 AND version = $6
+		WHERE id = $6 AND version = $7
 		RETURNING updated_at, version
 	`
 
@@ -297,6 +300,7 @@ func (s *IssueStore) Update(ctx context.Context, issue *Issue, before Issue, act
 		issue.Description,
 		issue.Status,
 		issue.Priority,
+		issue.CycleID,
 		issue.ID,
 		issue.Version,
 	).Scan(
@@ -308,10 +312,35 @@ func (s *IssueStore) Update(ctx context.Context, issue *Issue, before Issue, act
 		if errors.Is(err, sql.ErrNoRows) {
 			return ErrEditConflict
 		}
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Constraint == "issues_cycle_fk" {
+			return ErrCycleNotInProject
+		}
 		return err
 	}
 
-	for _, c := range issueChanges(&before, issue) {
+	changes := issueChanges(&before, issue)
+
+	// The cycle entry snapshots both cycles' names, which needs the database,
+	// so it's built here rather than in issueChanges.
+	if !equalInt64Ptr(before.CycleID, issue.CycleID) {
+		from, err := cycleSummaryOf(ctx, tx, before.CycleID)
+		if err != nil && !errors.Is(err, ErrNotFound) {
+			return err
+		}
+
+		to, err := cycleSummaryOf(ctx, tx, issue.CycleID)
+		if err != nil {
+			return err
+		}
+
+		changes = append(changes, change{
+			Type:    ActivityCycleChanged,
+			Payload: map[string]any{"from": from, "to": to},
+		})
+	}
+
+	for _, c := range changes {
 		if err := recordActivity(ctx, tx, issue.ID, actorID, c); err != nil {
 			return err
 		}
@@ -354,6 +383,13 @@ func issueChanges(before, after *Issue) []change {
 	}
 
 	return changes
+}
+
+func equalInt64Ptr(a, b *int64) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return *a == *b
 }
 
 func equalStringPtr(a, b *string) bool {

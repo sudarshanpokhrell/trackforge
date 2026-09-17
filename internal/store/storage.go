@@ -33,6 +33,7 @@ type Storage struct {
 		ListVisibleTo(ctx context.Context, userID string, all bool) ([]*Project, error)
 		ListSoleActiveAdminOf(ctx context.Context, userID string) ([]ProjectRef, error)
 		Update(context.Context, *Project) error
+		SetCyclesEnabled(ctx context.Context, projectID int64, enabled bool) error
 		Delete(ctx context.Context, projectID int64) error
 	}
 
@@ -60,6 +61,15 @@ type Storage struct {
 		ListByProject(ctx context.Context, projectID int64) ([]*Label, error)
 		Update(context.Context, *Label) error
 		Delete(ctx context.Context, labelID int64) (int64, error)
+	}
+
+	Cycles interface {
+		Create(context.Context, *Cycle) error
+		GetByID(ctx context.Context, cycleID int64) (*Cycle, error)
+		ListByProject(ctx context.Context, projectID int64) ([]*Cycle, error)
+		Update(context.Context, *Cycle) error
+		Delete(ctx context.Context, cycleID int64) error
+		Complete(ctx context.Context, cycle *Cycle, moveTo *int64, actorID string) (int, error)
 	}
 
 	Activities interface {
@@ -91,6 +101,7 @@ func NewStorage(db *sql.DB) Storage {
 		Comments:    &CommentStore{db},
 		Issues:      &IssueStore{db},
 		Labels:      &LabelStore{db},
+		Cycles:      &CycleStore{db},
 		Activities:  &ActivityStore{db},
 
 		IssueComments: &IssueCommentStore{db},

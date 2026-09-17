@@ -8,6 +8,8 @@ export interface Project {
   description: string
   /** "" when the project has none. */
   emoji: string
+  /** Whether sprints (cycles) are on; project admins toggle it in settings. */
+  cycles_enabled: boolean
   start_date: string | null
   target_date: string | null
   created_by: string

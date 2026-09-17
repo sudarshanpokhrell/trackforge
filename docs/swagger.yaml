@@ -25,6 +25,25 @@ definitions:
       new_password:
         type: string
     type: object
+  main.CompleteCyclePayload:
+    properties:
+      move_open_issues_to:
+        description: |-
+          MoveOpenIssuesTo is another uncompleted cycle in the project, or null (or
+          left out) to leave open issues with no cycle.
+        type: integer
+    type: object
+  main.CreateCyclePayload:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+    type: object
   main.CreateIssueCommentPayload:
     properties:
       content:
@@ -107,6 +126,11 @@ definitions:
       password:
         type: string
     type: object
+  main.SetCyclesEnabledPayload:
+    properties:
+      enabled:
+        type: boolean
+    type: object
   main.SetupPayload:
     properties:
       email:
@@ -132,6 +156,17 @@ definitions:
       name:
         type: string
     type: object
+  main.UpdateCyclePayload:
+    properties:
+      description:
+        type: string
+      end_date:
+        type: string
+      name:
+        type: string
+      start_date:
+        type: string
+    type: object
   main.UpdateIssueCommentPayload:
     properties:
       content:
@@ -139,6 +174,9 @@ definitions:
     type: object
   main.UpdateIssuePayload:
     properties:
+      cycle_id:
+        description: CycleID moves the issue into a cycle, or out of one with null.
+        type: integer
       description:
         type: string
       priority:
@@ -192,6 +230,43 @@ definitions:
       name:
         type: string
     type: object
+  store.Cycle:
+    properties:
+      completed_at:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      description:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: integer
+      issue_counts:
+        additionalProperties:
+          type: integer
+        description: |-
+          IssueCounts maps each issue status to how many of the cycle's issues have
+          it, for progress. Statuses with no issues are absent.
+        type: object
+      name:
+        type: string
+      project_id:
+        type: integer
+      start_date:
+        type: string
+      status:
+        description: |-
+          Status depends on today's date, so it's worked out per request (see
+          SetStatus) rather than stored.
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
   store.Issue:
     properties:
       assignees:
@@ -202,6 +277,8 @@ definitions:
         type: string
       created_at:
         type: string
+      cycle_id:
+        type: integer
       description:
         type: string
       id:
@@ -300,6 +377,10 @@ definitions:
         type: string
       created_by:
         type: string
+      cycles_enabled:
+        description: CyclesEnabled is changed only through SetCyclesEnabled, never
+          Update.
+        type: boolean
       description:
         type: string
       emoji:
@@ -353,6 +434,10 @@ definitions:
         type: string
       created_by:
         type: string
+      cycles_enabled:
+        description: CyclesEnabled is changed only through SetCyclesEnabled, never
+          Update.
+        type: boolean
       description:
         type: string
       emoji:
@@ -1370,6 +1455,309 @@ paths:
       summary: Edit a comment
       tags:
       - comments
+  /projects/{id}/cycles:
+    get:
+      description: Latest start first. Each cycle has its status (upcoming, active,
+        overdue, completed; worked out in APP_TIMEZONE) and issue counts per issue
+        status. Filter with ?status=.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: upcoming, active, overdue or completed
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/store.Cycle'
+            type: array
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: List a project's cycles
+      tags:
+      - cycles
+    post:
+      consumes:
+      - application/json
+      description: Anyone in the project, while cycles are on (409 otherwise). Dates
+        are inclusive and may not overlap another cycle in the project (422).
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cycle to create
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateCyclePayload'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/store.Cycle'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Create a cycle
+      tags:
+      - cycles
+  /projects/{id}/cycles-enabled:
+    put:
+      consumes:
+      - application/json
+      description: Project admins and the superadmin only. Turning cycles off is refused
+        (422) while the project has an uncompleted cycle.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Whether cycles are on
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.SetCyclesEnabledPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Turn cycles on or off for a project
+      tags:
+      - cycles
+  /projects/{id}/cycles/{cycleID}:
+    delete:
+      description: Anyone in the project, while cycles are on. Its issues stay, with
+        no cycle.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cycle ID
+        in: path
+        name: cycleID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Delete a cycle
+      tags:
+      - cycles
+    get:
+      description: Includes its status and issue counts per issue status, for progress.
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cycle ID
+        in: path
+        name: cycleID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Cycle'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Get a cycle
+      tags:
+      - cycles
+    patch:
+      consumes:
+      - application/json
+      description: Anyone in the project, while cycles are on. Fields left out are
+        unchanged. A completed cycle is read-only (422).
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cycle ID
+        in: path
+        name: cycleID
+        required: true
+        type: integer
+      - description: Fields to change
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.UpdateCyclePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/store.Cycle'
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Edit a cycle
+      tags:
+      - cycles
+  /projects/{id}/cycles/{cycleID}/complete:
+    post:
+      consumes:
+      - application/json
+      description: 'Anyone in the project, while cycles are on. In one transaction:
+        the cycle is marked completed, and its issues that aren''t done or cancelled
+        move to move_open_issues_to (another uncompleted cycle in the project) or
+        to no cycle. Each moved issue gets a cycle_changed activity.'
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Cycle ID
+        in: path
+        name: cycleID
+        required: true
+        type: integer
+      - description: Where open issues go
+        in: body
+        name: payload
+        schema:
+          $ref: '#/definitions/main.CompleteCyclePayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: object
+        "400":
+          description: Bad Request
+          schema: {}
+        "404":
+          description: Not Found
+          schema: {}
+        "409":
+          description: Conflict
+          schema: {}
+        "422":
+          description: Unprocessable Entity
+          schema: {}
+        "500":
+          description: Internal Server Error
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Complete a cycle
+      tags:
+      - cycles
   /projects/{id}/issues:
     get:
       description: Issues are returned newest first, each with its assignees and labels.

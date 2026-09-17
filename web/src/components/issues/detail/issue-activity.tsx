@@ -2,6 +2,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
 import {
   CircleDot,
+  IterationCcw,
   Loader2,
   Pencil,
   Tag,
@@ -33,6 +34,7 @@ import {
   type IssuePriority,
   type IssueStatus,
 } from "@/types/issues"
+import type { CycleSummary } from "@/types/cycles"
 import type { ProjectDetails } from "@/types/projects"
 import { LabelDot } from "@/components/labels/label-chip"
 import { PriorityIcon, StatusIcon } from "../icons"
@@ -221,6 +223,23 @@ function describe(
             {p.action === "unassigned" ? "unassigned" : "assigned"}{" "}
             <span className="text-foreground">{name}</span>
           </>
+        ),
+      }
+    }
+    case "cycle_changed": {
+      const from = p.from as CycleSummary | null
+      const to = p.to as CycleSummary | null
+      const name = (s: CycleSummary) => <span className="text-foreground">{s.name}</span>
+      return {
+        icon: <IterationCcw className="size-3.5" />,
+        text: to && from ? (
+          <>moved from sprint {name(from)} to {name(to)}</>
+        ) : to ? (
+          <>added to sprint {name(to)}</>
+        ) : from ? (
+          <>removed from sprint {name(from)}</>
+        ) : (
+          "changed the sprint"
         ),
       }
     }
