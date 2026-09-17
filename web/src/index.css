@@ -241,3 +241,152 @@
         background-color: color-mix(in oklab, var(--primary) 28%, transparent);
     }
 }
+
+/* Content inside RichTextEditor. Preflight strips headings and lists, so they
+   get just enough styling to read as formatted text. Tints mix from the text
+   color so they show on any surface, dialogs included. */
+.tiptap-content > * + * {
+    margin-top: 0.6em;
+}
+.tiptap-content h1 {
+    font-size: 1.5em;
+    font-weight: 600;
+    line-height: 1.3;
+}
+.tiptap-content h2 {
+    font-size: 1.25em;
+    font-weight: 600;
+    line-height: 1.35;
+}
+.tiptap-content h3 {
+    font-size: 1.1em;
+    font-weight: 600;
+}
+.tiptap-content ul {
+    list-style: disc;
+    padding-left: 1.4em;
+}
+.tiptap-content ol {
+    list-style: decimal;
+    padding-left: 1.4em;
+}
+.tiptap-content li > p {
+    margin: 0;
+}
+.tiptap-content li + li {
+    margin-top: 0.2em;
+}
+.tiptap-content ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+}
+.tiptap-content ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6em;
+}
+/* One line tall, so the box centers on the first line of its text however
+   long the item wraps. */
+.tiptap-content ul[data-type="taskList"] li > label {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    height: 1lh;
+    user-select: none;
+}
+.tiptap-content ul[data-type="taskList"] li > label input {
+    appearance: none;
+    display: grid;
+    place-content: center;
+    width: 1em;
+    height: 1em;
+    margin: 0;
+    border: 1.5px solid color-mix(in oklab, var(--foreground) 35%, transparent);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.1s, border-color 0.1s;
+}
+.tiptap-content ul[data-type="taskList"] li > label input:hover {
+    border-color: color-mix(in oklab, var(--foreground) 60%, transparent);
+}
+.tiptap-content ul[data-type="taskList"] li > label input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+.tiptap-content ul[data-type="taskList"] li > label input:checked::after {
+    content: "";
+    width: 0.3em;
+    height: 0.55em;
+    margin-top: -0.12em;
+    border: solid var(--primary-foreground);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+.tiptap-content ul[data-type="taskList"] li > div {
+    flex: 1;
+    min-width: 0;
+}
+.tiptap-content ul[data-type="taskList"] li[data-checked="true"] > div {
+    color: var(--muted-foreground);
+    text-decoration: line-through;
+}
+.tiptap-content a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.tiptap-content code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    background-color: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+.tiptap-content pre {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 0.75em 1em;
+    border-radius: 8px;
+    background-color: color-mix(in oklab, var(--foreground) 6%, transparent);
+    overflow-x: auto;
+}
+.tiptap-content pre code {
+    padding: 0;
+    background: none;
+}
+.tiptap-content blockquote {
+    border-left: 2px solid var(--border);
+    padding-left: 1em;
+    color: var(--muted-foreground);
+}
+.tiptap-content hr {
+    border-color: var(--border);
+    margin: 1em 0;
+}
+.tiptap-content .editor-callout {
+    display: flex;
+    gap: 0.6em;
+    padding: 0.7em 0.9em;
+    border-radius: 8px;
+    background-color: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+.tiptap-content .editor-callout-icon {
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    margin-top: 0.25em;
+    color: #eab308;
+}
+.tiptap-content .editor-callout-body {
+    flex: 1;
+    min-width: 0;
+}
+.tiptap-content .editor-callout-body > * + * {
+    margin-top: 0.4em;
+}
+.tiptap-content p.is-empty::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+}

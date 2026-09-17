@@ -124,8 +124,10 @@ function IssueCard({
       )}
     >
       <Link
-        to="/issues/$issueId"
-        params={{ issueId: issue.id.toString() }}
+        to="/projects/$projectId/issues"
+        params={{ projectId: String(issue.project_id) }}
+        // Opens the issue in the side peek; ⌘-click still gives a real URL.
+        search={(prev) => ({ ...prev, issue: issue.id })}
         draggable={false}
         className="line-clamp-2 text-sm text-foreground hover:underline"
       >
