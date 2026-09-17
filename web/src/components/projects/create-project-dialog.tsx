@@ -13,7 +13,8 @@ import { useCreateProject } from "@/hooks/use-projects"
 import { getErrorMessage } from "@/lib/api"
 import { toDateTime } from "@/lib/dates"
 import { format } from "date-fns"
-import { Loader2, Plus, XIcon } from "lucide-react"
+import { Add01Icon, Cancel01Icon, Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 
@@ -76,7 +77,7 @@ export function CreateProjectDialog({
       <DialogTrigger render={trigger ?? <Button />}>
         {children ?? (
           <>
-            <Plus />
+            <HugeiconsIcon icon={Add01Icon} />
             New project
           </>
         )}
@@ -98,7 +99,7 @@ export function CreateProjectDialog({
               New project
             </DialogTitle>
             <DialogClose render={<Button type="button" variant="ghost" size="icon-sm" />}>
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} />
               <span className="sr-only">Close</span>
             </DialogClose>
           </div>
@@ -171,7 +172,7 @@ export function CreateProjectDialog({
               </p>
             )}
             <Button type="submit" disabled={!canSubmit}>
-              {createProject.isPending && <Loader2 className="animate-spin" />}
+              {createProject.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
               Create project
             </Button>
           </div>

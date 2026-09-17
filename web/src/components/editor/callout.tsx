@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from "@tiptap/react"
 import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react"
-import { Lightbulb } from "lucide-react"
+import { Idea01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 
 declare module "@tiptap/core" {
   interface Commands<ReturnType> {
@@ -44,7 +45,7 @@ function CalloutView() {
   return (
     <NodeViewWrapper data-type="callout" className="editor-callout">
       <span contentEditable={false} className="editor-callout-icon">
-        <Lightbulb aria-hidden className="size-full" />
+        <HugeiconsIcon icon={Idea01Icon} aria-hidden className="size-full" />
       </span>
       <NodeViewContent className="editor-callout-body" />
     </NodeViewWrapper>

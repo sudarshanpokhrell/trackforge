@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
-import { FolderKanban } from "lucide-react"
+import { CubeIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 
 /**
  * A project's emoji, or the generic project icon when it has none. Size it with
@@ -12,7 +13,7 @@ export function ProjectIcon({
   emoji?: string
   className?: string
 }) {
-  if (!emoji) return <FolderKanban className={className} />
+  if (!emoji) return <HugeiconsIcon icon={CubeIcon} className={className} />
 
   return (
     <span

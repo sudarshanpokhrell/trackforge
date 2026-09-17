@@ -6,7 +6,8 @@ import {
   type EmojiPickerListEmojiProps,
   type EmojiPickerListRowProps,
 } from "frimousse"
-import { Loader2, Search } from "lucide-react"
+import { Loading03Icon, Search01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 
 type EmojiPickerProps = {
@@ -51,7 +52,7 @@ export function EmojiPicker({
           className="isolate flex h-[360px] w-fit flex-col"
         >
           <div className="flex items-center gap-2 border-b border-border px-2.5 py-2">
-            <Search className="size-4 shrink-0 text-muted-foreground" />
+            <HugeiconsIcon icon={Search01Icon} className="size-4 shrink-0 text-muted-foreground" />
             <Picker.Search
               autoFocus
               placeholder="Search emoji…"
@@ -70,7 +71,7 @@ export function EmojiPicker({
 
           <Picker.Viewport className="relative flex-1 outline-hidden">
             <Picker.Loading className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
+              <HugeiconsIcon icon={Loading03Icon} className="size-4 animate-spin" />
             </Picker.Loading>
             <Picker.Empty className="absolute inset-0 flex items-center justify-center text-sm text-muted-foreground">
               No emoji found.

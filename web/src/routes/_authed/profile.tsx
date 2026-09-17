@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label"
 import { useUpdateMe, useUser } from "@/hooks/use-auth"
 import { getErrorMessage } from "@/lib/api"
 import { createFileRoute } from "@tanstack/react-router"
-import { Loader2 } from "lucide-react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -72,7 +73,7 @@ function ProfilePage() {
             />
           </div>
           <Button className="h-9" disabled={!isDirty || isSubmitting} type="submit">
-            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isSubmitting && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
             Save
           </Button>
         </form>

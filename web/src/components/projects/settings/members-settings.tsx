@@ -16,7 +16,8 @@ import {
 import { useRemoveProjectMember, useUpdateProjectMemberRole } from "@/hooks/use-projects"
 import { getErrorMessage } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import { MoreHorizontal, Plus, UserMinus } from "lucide-react"
+import { Add01Icon, MoreHorizontalIcon, UserRemove01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import type { ProjectDetails, ProjectMember, ProjectRole } from "@/types/projects"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -35,7 +36,7 @@ export function MembersSettings({ project }: { project: ProjectDetails }) {
               members={project.members}
               trigger={<Button size="sm" />}
             >
-              <Plus />
+              <HugeiconsIcon icon={Add01Icon} />
               Add member
             </AddMemberDialog>
           )
@@ -135,7 +136,7 @@ function MemberActions({ projectId, member }: { projectId: number; member: Proje
           disabled={updateRole.isPending || removeMember.isPending}
           className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground disabled:pointer-events-none data-popup-open:bg-muted/50 data-popup-open:text-foreground"
         >
-          <MoreHorizontal className="size-4" />
+          <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-48">
           <DropdownMenuGroup>
@@ -150,7 +151,7 @@ function MemberActions({ projectId, member }: { projectId: number; member: Proje
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={() => setConfirmingRemove(true)}>
-            <UserMinus className="size-4" />
+            <HugeiconsIcon icon={UserRemove01Icon} className="size-4" />
             Remove
           </DropdownMenuItem>
         </DropdownMenuContent>

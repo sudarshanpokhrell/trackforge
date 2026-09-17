@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { LayoutList, SquareKanban } from "lucide-react"
+import { KanbanIcon, ListViewIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { TabBar, type TabBarItem } from "@/components/ui/tab-bar"
 import { cn } from "@/lib/utils"
 import { IssueBoard } from "./IssueBoard"
@@ -114,8 +115,8 @@ function ViewToggle({
   onChange: (view: View) => void
 }) {
   const options = [
-    { value: "list" as const, label: "List view", icon: LayoutList },
-    { value: "board" as const, label: "Board view", icon: SquareKanban },
+    { value: "list" as const, label: "List view", icon: ListViewIcon },
+    { value: "board" as const, label: "Board view", icon: KanbanIcon },
   ]
 
   return (
@@ -124,7 +125,7 @@ function ViewToggle({
       aria-label="Layout"
       className="flex items-center rounded-lg border border-border p-0.5"
     >
-      {options.map(({ value: option, label, icon: Icon }) => (
+      {options.map(({ value: option, label, icon }) => (
         <button
           key={option}
           type="button"
@@ -138,7 +139,7 @@ function ViewToggle({
             value === option && "bg-surface-2 text-foreground"
           )}
         >
-          <Icon className="size-4" />
+          <HugeiconsIcon icon={icon} className="size-4" />
         </button>
       ))}
     </div>

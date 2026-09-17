@@ -10,7 +10,8 @@ import {
 import { useCompleteCycle } from "@/hooks/use-cycles"
 import { getErrorMessage } from "@/lib/api"
 import type { Cycle } from "@/types/cycles"
-import { Loader2 } from "lucide-react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { openIssueCount } from "./sprint-status"
@@ -111,7 +112,7 @@ function CompleteForm({
           Cancel
         </Button>
         <Button type="button" size="sm" onClick={onComplete} disabled={completeSprint.isPending}>
-          {completeSprint.isPending && <Loader2 className="animate-spin" />}
+          {completeSprint.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
           Complete sprint
         </Button>
       </div>

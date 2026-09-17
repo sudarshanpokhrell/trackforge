@@ -17,7 +17,8 @@ import { getErrorMessage } from "@/lib/api"
 import type { ProjectComment } from "@/types/projects"
 import { useQuery } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
-import { Loader2, Pencil, Trash2 } from "lucide-react"
+import { Delete02Icon, Loading03Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -53,7 +54,7 @@ export function CommentForm({ projectId }: { projectId: number }) {
                     size="sm"
                     disabled={!content.trim() || createComment.isPending}
                 >
-                    {createComment.isPending && <Loader2 className="animate-spin" />}
+                    {createComment.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
                     Submit
                 </Button>
             </div>
@@ -151,7 +152,7 @@ function CommentItem({
                                     onClick={() => setEditing(true)}
                                     className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
                                 >
-                                    <Pencil className="size-3.5" />
+                                    <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />
                                 </button>
                             )}
                             {canDelete && (
@@ -162,7 +163,7 @@ function CommentItem({
                                     onClick={() => setConfirmingDelete(true)}
                                     className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                                 >
-                                    <Trash2 className="size-3.5" />
+                                    <HugeiconsIcon icon={Delete02Icon} className="size-3.5" />
                                 </button>
                             )}
                         </div>
@@ -236,7 +237,7 @@ function CommentEditor({
                     Cancel
                 </Button>
                 <Button type="submit" size="sm" disabled={!trimmed || updateComment.isPending}>
-                    {updateComment.isPending && <Loader2 className="animate-spin" />}
+                    {updateComment.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
                     Save
                 </Button>
             </div>
@@ -281,7 +282,7 @@ function DeleteCommentDialog({
                         onClick={onDelete}
                         disabled={deleteComment.isPending}
                     >
-                        {deleteComment.isPending && <Loader2 className="animate-spin" />}
+                        {deleteComment.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
                         Delete
                     </Button>
                 </div>

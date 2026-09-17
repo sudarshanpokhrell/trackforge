@@ -12,7 +12,8 @@ import { useUpdateIssue } from "@/hooks/use-issues"
 import { getErrorMessage } from "@/lib/api"
 import type { Issue } from "@/types/issues"
 import { useQuery } from "@tanstack/react-query"
-import { Check, IterationCcw } from "lucide-react"
+import { Target02Icon, Tick02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 
 /**
@@ -30,7 +31,7 @@ export function SprintPicker({ issue, enabled }: { issue: Issue; enabled: boolea
 
   const label = (
     <span className="flex min-w-0 items-center gap-2">
-      <IterationCcw className="size-4 shrink-0 text-muted-foreground" />
+      <HugeiconsIcon icon={Target02Icon} className="size-4 shrink-0 text-muted-foreground" />
       <span className={current ? "truncate" : "text-muted-foreground"}>{current?.name ?? "No sprint"}</span>
     </span>
   )
@@ -59,13 +60,13 @@ export function SprintPicker({ issue, enabled }: { issue: Issue; enabled: boolea
           <DropdownMenuLabel>Move to sprint</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => move(null)} className="gap-3">
             <span className="flex-1">No sprint</span>
-            {issue.cycle_id === null && <Check className="size-3.5 text-muted-foreground" />}
+            {issue.cycle_id === null && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
           </DropdownMenuItem>
           {open.map((sprint) => (
             <DropdownMenuItem key={sprint.id} onClick={() => move(sprint.id)} className="gap-3">
               <span className="min-w-0 flex-1 truncate">{sprint.name}</span>
               <SprintStatusBadge status={sprint.status} />
-              {issue.cycle_id === sprint.id && <Check className="size-3.5 text-muted-foreground" />}
+              {issue.cycle_id === sprint.id && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
             </DropdownMenuItem>
           ))}
           {open.length === 0 && (

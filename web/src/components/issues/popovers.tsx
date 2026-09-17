@@ -1,4 +1,5 @@
-import { Check } from 'lucide-react'
+import { Tick02Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +46,7 @@ export function StatusPopover({ current, onChange, children }: StatusPopoverProp
             >
               <StatusIcon status={s} />
               <span className="flex-1">{STATUS_LABELS[s]}</span>
-              {current === s && <Check className="size-3.5 text-muted-foreground" />}
+              {current === s && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
@@ -80,7 +81,7 @@ export function PriorityPopover({ current, onChange, children }: PriorityPopover
             >
               <PriorityIcon priority={p} />
               <span className="flex-1">{PRIORITY_LABELS[p]}</span>
-              {current === p && <Check className="size-3.5 text-muted-foreground" />}
+              {current === p && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
@@ -117,7 +118,7 @@ export function AssigneePopover({ current, onChange, children }: AssigneePopover
               ?
             </div>
             <span className="flex-1">No assignee</span>
-            {!current && <Check className="size-3.5 text-muted-foreground" />}
+            {!current && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
           </DropdownMenuItem>
           {users.map((a) => (
             <DropdownMenuItem
@@ -129,7 +130,7 @@ export function AssigneePopover({ current, onChange, children }: AssigneePopover
                 {a.name ? a.name[0].toUpperCase() : '?'}
               </div>
               <span className="flex-1">{a.name}</span>
-              {current === a.id && <Check className="size-3.5 text-muted-foreground" />}
+              {current === a.id && <HugeiconsIcon icon={Tick02Icon} className="size-3.5 text-muted-foreground" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>

@@ -1,6 +1,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { Check } from "lucide-react"
+import { Tick02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { HexColorPicker } from "react-colorful"
 
@@ -79,7 +80,7 @@ export function ColorPicker({
                   className="flex aspect-square cursor-pointer items-center justify-center rounded-full ring-foreground/15 transition-transform hover:scale-115 hover:ring-1"
                   style={{ backgroundColor: color }}
                 >
-                  {selected && <Check className="size-3" style={{ color: inkFor(color) }} />}
+                  {selected && <HugeiconsIcon icon={Tick02Icon} className="size-3" style={{ color: inkFor(color) }} />}
                 </button>
               )
             })}

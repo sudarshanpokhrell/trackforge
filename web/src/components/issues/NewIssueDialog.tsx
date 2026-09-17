@@ -2,7 +2,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Dialog, DialogClose, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { Loader2, Plus, Tag, XIcon } from 'lucide-react'
+import {
+  Add01Icon,
+  Cancel01Icon,
+  Loading03Icon,
+  Tag01Icon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useQuery } from '@tanstack/react-query'
 import { LabelChip } from '@/components/labels/label-chip'
 import { RichTextEditor } from '@/components/editor/rich-text-editor'
@@ -76,7 +82,7 @@ export function NewIssueDialog({
       <DialogTrigger render={trigger} className={trigger ? undefined : buttonVariants()}>
         {children ?? (
           <>
-            <Plus className="mr-1 size-4" />
+            <HugeiconsIcon icon={Add01Icon} className="mr-1 size-4" />
             New issue
           </>
         )}
@@ -89,7 +95,7 @@ export function NewIssueDialog({
           <div className="flex items-center justify-between px-5 pt-4">
             <DialogTitle className="text-sm font-normal text-muted-foreground">New issue</DialogTitle>
             <DialogClose render={<Button type="button" variant="ghost" size="icon-sm" />}>
-              <XIcon />
+              <HugeiconsIcon icon={Cancel01Icon} />
               <span className="sr-only">Close</span>
             </DialogClose>
           </div>
@@ -135,7 +141,7 @@ export function NewIssueDialog({
               >
                 {selectedLabels.length === 0 ? (
                   <>
-                    <Tag className="size-3.5 text-muted-foreground" />
+                    <HugeiconsIcon icon={Tag01Icon} className="size-3.5 text-muted-foreground" />
                     <span className="text-muted-foreground">Labels</span>
                   </>
                 ) : (
@@ -158,7 +164,7 @@ export function NewIssueDialog({
 
           <div className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
             <Button type="submit" disabled={isPending}>
-              {isPending && <Loader2 className="animate-spin" />}
+              {isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
               Create issue
             </Button>
           </div>

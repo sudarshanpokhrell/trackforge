@@ -10,7 +10,8 @@ import { toDateInput, toDateTime } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import type { Project } from "@/types/projects"
 import { format, isSameDay, parseISO } from "date-fns"
-import { CalendarDays } from "lucide-react"
+import { Calendar03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import type { Matcher } from "react-day-picker"
 import { toast } from "sonner"
@@ -83,7 +84,7 @@ function DatePick({
 
   return (
     <span className="flex items-center gap-2">
-      <CalendarDays className="size-4 shrink-0 text-ink-subtle" />
+      <HugeiconsIcon icon={Calendar03Icon} className="size-4 shrink-0 text-ink-subtle" />
       {label}
       {editable ? (
         <Popover open={open} onOpenChange={setOpen}>

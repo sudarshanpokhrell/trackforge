@@ -14,7 +14,15 @@ import type { Cycle } from "@/types/cycles"
 import type { ProjectDetails } from "@/types/projects"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { CircleCheck, IterationCcw, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
+import {
+  Add01Icon,
+  CheckmarkCircle02Icon,
+  Delete02Icon,
+  MoreHorizontalIcon,
+  PencilEdit02Icon,
+  Target02Icon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { CompleteSprintDialog } from "./complete-sprint-dialog"
@@ -31,7 +39,7 @@ export function SprintsView({ project }: { project: ProjectDetails }) {
       <div className="flex flex-col gap-6">
         <Header />
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-border px-6 py-14 text-center">
-          <IterationCcw className="size-5 text-muted-foreground" />
+          <HugeiconsIcon icon={Target02Icon} className="size-5 text-muted-foreground" />
           <p className="text-sm font-medium text-foreground">Sprints are turned off</p>
           <p className="max-w-sm text-sm text-muted-foreground">
             {project.my_access.can_manage
@@ -72,7 +80,7 @@ export function SprintsView({ project }: { project: ProjectDetails }) {
       <Header
         action={
           <Button size="sm" onClick={() => setCreating(true)}>
-            <Plus />
+            <HugeiconsIcon icon={Add01Icon} />
             New sprint
           </Button>
         }
@@ -90,7 +98,7 @@ export function SprintsView({ project }: { project: ProjectDetails }) {
           <p className="text-sm font-medium text-foreground">No sprints yet</p>
           <p className="text-sm text-muted-foreground">Create one to start planning.</p>
           <Button size="sm" variant="outline" className="mt-2" onClick={() => setCreating(true)}>
-            <Plus />
+            <HugeiconsIcon icon={Add01Icon} />
             New sprint
           </Button>
         </div>
@@ -192,24 +200,24 @@ function SprintCard({ sprint, all, projectId }: { sprint: Cycle; all: Cycle[]; p
             aria-label={`Manage ${sprint.name}`}
             className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-popup-open:bg-muted"
           >
-            <MoreHorizontal className="size-4" />
+            <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-44">
             {open && (
               <>
                 <DropdownMenuItem onClick={() => setEditing(true)}>
-                  <Pencil className="size-4" />
+                  <HugeiconsIcon icon={PencilEdit02Icon} className="size-4" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCompleting(true)}>
-                  <CircleCheck className="size-4" />
+                  <HugeiconsIcon icon={CheckmarkCircle02Icon} className="size-4" />
                   Complete sprint
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
               </>
             )}
             <DropdownMenuItem variant="destructive" onClick={() => setDeleting(true)}>
-              <Trash2 className="size-4" />
+              <HugeiconsIcon icon={Delete02Icon} className="size-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

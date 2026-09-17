@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router"
 import { format } from "date-fns"
-import { Plus, X } from "lucide-react"
+import { Add01Icon, Cancel01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { toast } from "sonner"
 import { IssueLabels } from "@/components/labels/issue-labels"
 import { ProjectIcon } from "@/components/projects/project-icon"
@@ -60,7 +61,7 @@ export function IssueProperties({ issue, project }: { issue: Issue; project?: Pr
                 onClick={() => removeAssignee.mutate(assignee.id, onError)}
                 className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity group-hover/assignee:opacity-100 hover:bg-muted hover:text-foreground focus-visible:opacity-100"
               >
-                <X className="size-3.5" />
+                <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
               </button>
             </span>
           ))}
@@ -77,7 +78,7 @@ export function IssueProperties({ issue, project }: { issue: Issue; project?: Pr
             }}
           >
             <span className={`${valueButton} text-muted-foreground`}>
-              <Plus className="size-4" />
+              <HugeiconsIcon icon={Add01Icon} className="size-4" />
               {issue.assignees.length === 0 ? "Assign" : "Add assignee"}
             </span>
           </AssigneePopover>

@@ -19,7 +19,8 @@ import {
 import { useCreateUser } from "@/hooks/use-user"
 import { getErrorMessage } from "@/lib/api"
 import type { AssignableRole } from "@/types/auth"
-import { Loader2, Plus } from "lucide-react"
+import { Add01Icon, Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -70,7 +71,7 @@ export function CreateMemberDialog({ canCreateAdmin }: { canCreateAdmin: boolean
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger render={<Button />}>
-        <Plus />
+        <HugeiconsIcon icon={Add01Icon} />
         Add member
       </DialogTrigger>
       <DialogContent className="sm:max-w-md mt-5">
@@ -176,7 +177,7 @@ export function CreateMemberDialog({ canCreateAdmin }: { canCreateAdmin: boolean
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="animate-spin" />}
+              {isSubmitting && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
               Add member
             </Button>
           </DialogFooter>

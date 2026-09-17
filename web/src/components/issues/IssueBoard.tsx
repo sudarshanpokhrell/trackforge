@@ -2,7 +2,8 @@ import { useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useUpdateIssue } from '@/hooks/use-issues'
 import { IssueLabels } from '@/components/labels/issue-labels'
 import { PriorityIcon, StatusIcon } from './icons'
@@ -79,7 +80,7 @@ export function IssueBoard({ issues, statuses, projectId }: IssueBoardProps) {
                       defaultStatus={status}
                       trigger={<Button variant="ghost" size="sm" />}
                     >
-                      <Plus />
+                      <HugeiconsIcon icon={Add01Icon} />
                       Add issue
                     </NewIssueDialog>
                   )}

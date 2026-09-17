@@ -1,4 +1,5 @@
-import { UserCircle2 } from 'lucide-react'
+import { UserCircleIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { StatusIcon, PriorityIcon } from './icons'
 import { StatusPopover, PriorityPopover, AssigneePopover } from './popovers'
 import type { Issue, Status, Priority } from './types'
@@ -90,7 +91,7 @@ export function IssueAssignee({ issue }: { issue: Issue }) {
           </span>
         ) : (
           <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-border/80">
-            <UserCircle2 className="size-3.5 text-muted-foreground/40" />
+            <HugeiconsIcon icon={UserCircleIcon} className="size-3.5 text-muted-foreground/40" />
           </span>
         )}
       </span>

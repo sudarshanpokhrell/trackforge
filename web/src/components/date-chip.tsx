@@ -2,7 +2,8 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarDays } from "lucide-react"
+import { Calendar03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import type { Matcher } from "react-day-picker"
 
@@ -33,7 +34,7 @@ export function DateChip({
           />
         }
       >
-        <CalendarDays className="size-3.5" />
+        <HugeiconsIcon icon={Calendar03Icon} className="size-3.5" />
         {value ? `${label} · ${format(value, "d MMM yyyy")}` : label}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">

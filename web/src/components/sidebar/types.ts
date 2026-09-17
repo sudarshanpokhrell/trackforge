@@ -1,10 +1,10 @@
-import type { LucideIcon } from 'lucide-react';
+import type { IconSvgElement } from '@hugeicons/react';
 import type { ElementType } from 'react';
 
 export interface NavItem {
   id: string;
   title: string;
-  icon?: ElementType;
+  icon?: IconSvgElement;
   url?: string;
   isActive?: boolean;
   items?: {
@@ -23,7 +23,7 @@ export interface ProjectItem {
   id: string;
   title: string;
   color: string;
-  icon: LucideIcon
+  icon: IconSvgElement
 }
 
 export interface TeamItem {

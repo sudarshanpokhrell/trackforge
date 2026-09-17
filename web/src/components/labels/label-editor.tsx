@@ -2,7 +2,8 @@ import { ColorPicker } from "@/components/color-picker"
 import { LabelIcon } from "@/components/labels/label-chip"
 import { Button } from "@/components/ui/button"
 import { LABEL_COLORS, type LabelInput } from "@/types/labels"
-import { Loader2 } from "lucide-react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 
 /** One row for creating or editing a label: color on the left, name, then actions. */
@@ -53,7 +54,7 @@ export function LabelEditor({
         Cancel
       </Button>
       <Button type="submit" size="sm" disabled={!name.trim() || pending}>
-        {pending && <Loader2 className="animate-spin" />}
+        {pending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
         {submitLabel}
       </Button>
     </form>

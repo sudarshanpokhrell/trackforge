@@ -15,7 +15,8 @@ import { getErrorMessage } from '@/lib/api'
 import type { LabelSummary } from '@/types/issues'
 import type { LabelInput } from '@/types/labels'
 import { useQuery } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { LabelDot } from './label-chip'
@@ -84,7 +85,7 @@ export function LabelPicker({
                   setCreating(true)
                 }}
               >
-                <Plus />
+                <HugeiconsIcon icon={Add01Icon} />
                 New label
               </DropdownMenuItem>
             </>

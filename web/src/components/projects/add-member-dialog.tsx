@@ -21,7 +21,8 @@ import { getErrorMessage } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import type { ProjectMember, ProjectRole } from "@/types/projects"
 import { useQuery } from "@tanstack/react-query"
-import { Loader2, Plus } from "lucide-react"
+import { Add01Icon, Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 
@@ -84,7 +85,7 @@ export function AddMemberDialog({
           )
         }
       >
-        {children ?? <Plus className="size-3.5" />}
+        {children ?? <HugeiconsIcon icon={Add01Icon} className="size-3.5" />}
       </DialogTrigger>
       <DialogContent className="mt-5 sm:max-w-lg">
         <DialogHeader>
@@ -156,7 +157,7 @@ export function AddMemberDialog({
             onClick={onSubmit}
             disabled={!userId || addMember.isPending}
           >
-            {addMember.isPending && <Loader2 className="animate-spin" />}
+            {addMember.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
             Add member
           </Button>
         </DialogFooter>

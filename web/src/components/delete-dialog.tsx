@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Loader2 } from "lucide-react"
+import { Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 
 type DeleteDialogProps = {
@@ -76,7 +77,7 @@ function DeleteForm({
           Cancel
         </Button>
         <Button type="submit" variant="destructive" size="sm" disabled={!confirmed || pending}>
-          {pending && <Loader2 className="animate-spin" />}
+          {pending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
           {confirmLabel}
         </Button>
       </div>

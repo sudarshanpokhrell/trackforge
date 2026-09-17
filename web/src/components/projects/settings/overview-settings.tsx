@@ -13,7 +13,8 @@ import { toDateInput, toDateTime } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import type { ProjectDetails } from "@/types/projects"
 import { format, isSameDay, parseISO } from "date-fns"
-import { CalendarDays, Loader2, Pencil } from "lucide-react"
+import { Calendar03Icon, Loading03Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import type { Matcher } from "react-day-picker"
 import { toast } from "sonner"
@@ -110,7 +111,7 @@ export function OverviewSettings({ project }: { project: ProjectDetails }) {
                 size="sm"
                 onClick={() => setEditing(true)}
               >
-                <Pencil />
+                <HugeiconsIcon icon={PencilEdit02Icon} />
                 Edit
               </Button>
             )}
@@ -165,7 +166,7 @@ export function OverviewSettings({ project }: { project: ProjectDetails }) {
               type="submit"
               disabled={!name.trim() || updateProject.isPending}
             >
-              {updateProject.isPending && <Loader2 className="animate-spin" />}
+              {updateProject.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
               Save
             </Button>
           </div>
@@ -196,7 +197,7 @@ function DateChip({
   )
   const content = (
     <>
-      <CalendarDays className="size-3.5" />
+      <HugeiconsIcon icon={Calendar03Icon} className="size-3.5" />
       {value ? `${label} · ${format(value, "d MMM yyyy")}` : label}
     </>
   )

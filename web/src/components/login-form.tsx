@@ -1,4 +1,10 @@
-import { ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import {
+  ArrowRight02Icon,
+  Loading03Icon,
+  ViewIcon,
+  ViewOffSlashIcon,
+} from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react';
 import { type JSX, type SVGProps, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -152,9 +158,9 @@ export default function LoginForm() {
                     type="button"
                   >
                     {isVisible ? (
-                      <EyeOff aria-hidden="true" size={16} />
+                      <HugeiconsIcon icon={ViewOffSlashIcon} aria-hidden="true" size={16} />
                     ) : (
-                      <Eye aria-hidden="true" size={16} />
+                      <HugeiconsIcon icon={ViewIcon} aria-hidden="true" size={16} />
                     )}
                   </button>
                 </div>
@@ -181,9 +187,9 @@ export default function LoginForm() {
             <Button className="w-full h-10" disabled={isSubmitting} type="submit">
               {isSubmitting ? 'Signing in…' : 'Sign in'}
               {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
               ) : (
-                <ArrowRight className="h-4 w-4" />
+                <HugeiconsIcon icon={ArrowRight02Icon} className="h-4 w-4" />
               )}
             </Button>
           </form>

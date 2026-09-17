@@ -1,14 +1,15 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
 import {
-  CircleDot,
-  IterationCcw,
-  Loader2,
-  Pencil,
-  Tag,
-  Trash2,
-  UserRound,
-} from "lucide-react"
+  Delete02Icon,
+  Loading03Icon,
+  PencilEdit02Icon,
+  RecordIcon,
+  Tag01Icon,
+  Target02Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { DeleteDialog } from "@/components/delete-dialog"
@@ -175,14 +176,14 @@ function describe(
   memberName: (userId: string) => string
 ): { icon: React.ReactNode; text: React.ReactNode } {
   const p = activity.payload
-  const muted = <CircleDot className="size-3.5" />
+  const muted = <HugeiconsIcon icon={RecordIcon} className="size-3.5" />
 
   switch (activity.type) {
     case "created":
       return { icon: muted, text: "created the issue" }
     case "title_changed":
       return {
-        icon: <Pencil className="size-3.5" />,
+        icon: <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />,
         text: (
           <>
             changed the title to <span className="text-foreground">{String(p.to ?? "")}</span>
@@ -190,7 +191,7 @@ function describe(
         ),
       }
     case "description_changed":
-      return { icon: <Pencil className="size-3.5" />, text: "updated the description" }
+      return { icon: <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />, text: "updated the description" }
     case "status_changed": {
       const to = p.to as IssueStatus
       return {
@@ -217,7 +218,7 @@ function describe(
     case "assignee_changed": {
       const name = memberName(String(p.user_id))
       return {
-        icon: <UserRound className="size-3.5" />,
+        icon: <HugeiconsIcon icon={UserIcon} className="size-3.5" />,
         text: (
           <>
             {p.action === "unassigned" ? "unassigned" : "assigned"}{" "}
@@ -231,7 +232,7 @@ function describe(
       const to = p.to as CycleSummary | null
       const name = (s: CycleSummary) => <span className="text-foreground">{s.name}</span>
       return {
-        icon: <IterationCcw className="size-3.5" />,
+        icon: <HugeiconsIcon icon={Target02Icon} className="size-3.5" />,
         text: to && from ? (
           <>moved from sprint {name(from)} to {name(to)}</>
         ) : to ? (
@@ -246,7 +247,7 @@ function describe(
     case "label_added":
     case "label_removed":
       return {
-        icon: <Tag className="size-3.5" />,
+        icon: <HugeiconsIcon icon={Tag01Icon} className="size-3.5" />,
         text: (
           <>
             {activity.type === "label_added" ? "added label" : "removed label"}{" "}
@@ -310,7 +311,7 @@ function CommentItem({
                 onClick={() => setEditing(true)}
                 className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
               >
-                <Pencil className="size-3.5" />
+                <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />
               </button>
             )}
             {canDelete && (
@@ -321,7 +322,7 @@ function CommentItem({
                 onClick={() => setConfirmingDelete(true)}
                 className="rounded p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
               >
-                <Trash2 className="size-3.5" />
+                <HugeiconsIcon icon={Delete02Icon} className="size-3.5" />
               </button>
             )}
           </div>
@@ -391,7 +392,7 @@ function CommentEditor({
           Cancel
         </Button>
         <Button type="submit" size="sm" disabled={!trimmed || updateComment.isPending}>
-          {updateComment.isPending && <Loader2 className="animate-spin" />}
+          {updateComment.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
           Save
         </Button>
       </div>
@@ -427,7 +428,7 @@ function CommentComposer({ issueId }: { issueId: number }) {
       />
       <div className="flex justify-end">
         <Button type="submit" size="sm" disabled={!content.trim() || createComment.isPending}>
-          {createComment.isPending && <Loader2 className="animate-spin" />}
+          {createComment.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
           Comment
         </Button>
       </div>

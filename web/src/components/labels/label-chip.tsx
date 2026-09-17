@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
-import { Tag } from 'lucide-react'
+import { Tag01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import type { LabelSummary } from '@/types/issues'
 
 export function LabelDot({ color, className }: { color: string; className?: string }) {
@@ -36,7 +37,7 @@ export function LabelIcon({ color, className }: { color: string; className?: str
       // Label colors are 6-digit hex, so a two-digit suffix sets the alpha.
       style={{ backgroundColor: `${color}1f`, color }}
     >
-      <Tag className="size-3.5" />
+      <HugeiconsIcon icon={Tag01Icon} className="size-3.5" />
     </span>
   )
 }

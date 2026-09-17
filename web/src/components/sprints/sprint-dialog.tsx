@@ -8,7 +8,8 @@ import { fromApiDate, toApiDate } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import type { Cycle } from "@/types/cycles"
 import { addDays, format, isAfter } from "date-fns"
-import { CalendarRange, Loader2, XIcon } from "lucide-react"
+import { Calendar04Icon, Cancel01Icon, Loading03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useRef, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { toast } from "sonner"
@@ -105,7 +106,7 @@ function SprintForm({
           {editing ? "Edit sprint" : "New sprint"}
         </DialogTitle>
         <DialogClose render={<Button type="button" variant="ghost" size="icon-sm" />}>
-          <XIcon />
+          <HugeiconsIcon icon={Cancel01Icon} />
           <span className="sr-only">Close</span>
         </DialogClose>
       </div>
@@ -152,7 +153,7 @@ function SprintForm({
           </p>
         )}
         <Button type="submit" disabled={!canSubmit}>
-          {pending && <Loader2 className="animate-spin" />}
+          {pending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
           {editing ? "Save" : "Create sprint"}
         </Button>
       </div>
@@ -186,7 +187,7 @@ function DateRangeChip({
           />
         }
       >
-        <CalendarRange className="size-3.5" />
+        <HugeiconsIcon icon={Calendar04Icon} className="size-3.5" />
         {from
           ? `${format(from, "d MMM yyyy")} – ${to ? format(to, "d MMM yyyy") : "End date"}`
           : "Start and end dates"}

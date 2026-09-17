@@ -12,7 +12,8 @@ import {
 import { getErrorMessage } from "@/lib/api"
 import type { Label, LabelInput } from "@/types/labels"
 import { useQuery } from "@tanstack/react-query"
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { Add01Icon, Delete02Icon, PencilEdit02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { SettingsHeader } from "./settings-header"
@@ -29,7 +30,7 @@ export function LabelsSettings({ projectId, canManage }: { projectId: number; ca
         action={
           canManage && (
             <Button size="sm" disabled={adding} onClick={() => setAdding(true)}>
-              <Plus />
+              <HugeiconsIcon icon={Add01Icon} />
               Add label
             </Button>
           )
@@ -173,7 +174,7 @@ function LabelRow({
             onClick={() => setEditing(true)}
             className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground"
           >
-            <Pencil className="size-3.5" />
+            <HugeiconsIcon icon={PencilEdit02Icon} className="size-3.5" />
           </button>
           <button
             type="button"
@@ -182,7 +183,7 @@ function LabelRow({
             onClick={() => setConfirmingDelete(true)}
             className="rounded p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
           >
-            <Trash2 className="size-3.5" />
+            <HugeiconsIcon icon={Delete02Icon} className="size-3.5" />
           </button>
         </div>
       )}

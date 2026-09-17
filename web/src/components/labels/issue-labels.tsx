@@ -1,7 +1,8 @@
 import { useAddIssueLabel, useRemoveIssueLabel } from '@/hooks/use-labels'
 import { getErrorMessage } from '@/lib/api'
 import type { Issue, LabelSummary } from '@/types/issues'
-import { Plus } from 'lucide-react'
+import { Add01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { toast } from 'sonner'
 import { LabelChip } from './label-chip'
 import { LabelPicker } from './label-picker'
@@ -33,7 +34,7 @@ export function IssueLabels({ issue, compact }: { issue: Issue; compact?: boolea
       {issue.labels.length === 0 &&
         (compact ? (
           <span className="flex size-5 items-center justify-center text-muted-foreground/40 opacity-0 group-hover/row:opacity-100">
-            <Plus className="size-3.5" />
+            <HugeiconsIcon icon={Add01Icon} className="size-3.5" />
           </span>
         ) : (
           <span className="text-sm text-muted-foreground">Add labels</span>

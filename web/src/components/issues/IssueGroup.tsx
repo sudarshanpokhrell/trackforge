@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
+import { Add01Icon, ArrowDown01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react'
 import { cn } from '@/lib/utils'
 import { StatusIcon } from './icons'
 import { IssueRow } from './IssueRow'
@@ -27,8 +28,8 @@ export function IssueGroup({ status, issues, showProject, projectId }: IssueGrou
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
           {collapsed
-            ? <ChevronRight className="size-3.5" />
-            : <ChevronDown className="size-3.5" />}
+            ? <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5" />
+            : <HugeiconsIcon icon={ArrowDown01Icon} className="size-3.5" />}
         </button>
         <StatusIcon status={status} />
         <span className="text-sm font-medium">{STATUS_LABELS[status]}</span>
@@ -48,7 +49,7 @@ export function IssueGroup({ status, issues, showProject, projectId }: IssueGrou
               />
             }
           >
-            <Plus className="size-3.5" />
+            <HugeiconsIcon icon={Add01Icon} className="size-3.5" />
           </NewIssueDialog>
         )}
       </div>

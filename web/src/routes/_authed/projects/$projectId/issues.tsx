@@ -7,7 +7,8 @@ import { cyclesQuery } from "@/hooks/use-cycles"
 import { projectIssuesQuery } from "@/hooks/use-issues"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
-import { IterationCcw, X } from "lucide-react"
+import { Cancel01Icon, Target02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 
 export const Route = createFileRoute("/_authed/projects/$projectId/issues")({
   // ?issue=<id> opens that issue in the side peek, so it survives reloads and
@@ -58,7 +59,7 @@ function RouteComponent() {
           <>
             {sprintId !== undefined && (
               <span className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border pr-1 pl-2.5 text-sm">
-                <IterationCcw className="size-3.5 text-muted-foreground" />
+                <HugeiconsIcon icon={Target02Icon} className="size-3.5 text-muted-foreground" />
                 <span className="max-w-40 truncate">{sprint?.name ?? "Sprint"}</span>
                 <button
                   type="button"
@@ -67,7 +68,7 @@ function RouteComponent() {
                   onClick={() => navigate({ to: ".", search: (prev) => ({ ...prev, sprint: undefined }) })}
                   className="rounded p-0.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
-                  <X className="size-3.5" />
+                  <HugeiconsIcon icon={Cancel01Icon} className="size-3.5" />
                 </button>
               </span>
             )}

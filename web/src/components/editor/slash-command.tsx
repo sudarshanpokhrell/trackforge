@@ -1,23 +1,23 @@
 import { Extension, ReactRenderer, type Editor, type Range } from "@tiptap/react"
 import Suggestion, { type SuggestionKeyDownProps, type SuggestionProps } from "@tiptap/suggestion"
 import {
-  CodeXml,
-  Heading1,
-  Heading2,
-  Heading3,
-  Lightbulb,
-  List,
-  ListChecks,
-  ListOrdered,
-  Quote,
-  type LucideIcon,
-} from "lucide-react"
+  CheckListIcon,
+  Heading01Icon,
+  Heading02Icon,
+  Heading03Icon,
+  Idea01Icon,
+  LeftToRightListBulletIcon,
+  LeftToRightListNumberIcon,
+  QuoteDownIcon,
+  SourceCodeIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 type CommandItem = {
   title: string
-  icon: LucideIcon
+  icon: IconSvgElement
   keywords: string[]
   /** Items with different groups are separated by a divider. */
   group: number
@@ -27,63 +27,63 @@ type CommandItem = {
 const ITEMS: CommandItem[] = [
   {
     title: "Heading 1",
-    icon: Heading1,
+    icon: Heading01Icon,
     keywords: ["h1", "title"],
     group: 0,
     run: (editor, range) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 1 }).run(),
   },
   {
     title: "Heading 2",
-    icon: Heading2,
+    icon: Heading02Icon,
     keywords: ["h2", "subtitle"],
     group: 0,
     run: (editor, range) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 2 }).run(),
   },
   {
     title: "Heading 3",
-    icon: Heading3,
+    icon: Heading03Icon,
     keywords: ["h3"],
     group: 0,
     run: (editor, range) => editor.chain().focus().deleteRange(range).setNode("heading", { level: 3 }).run(),
   },
   {
     title: "Bulleted list",
-    icon: List,
+    icon: LeftToRightListBulletIcon,
     keywords: ["unordered", "ul", "bullet"],
     group: 1,
     run: (editor, range) => editor.chain().focus().deleteRange(range).toggleBulletList().run(),
   },
   {
     title: "Numbered list",
-    icon: ListOrdered,
+    icon: LeftToRightListNumberIcon,
     keywords: ["ordered", "ol"],
     group: 1,
     run: (editor, range) => editor.chain().focus().deleteRange(range).toggleOrderedList().run(),
   },
   {
     title: "Checklist",
-    icon: ListChecks,
+    icon: CheckListIcon,
     keywords: ["todo", "task", "checkbox"],
     group: 1,
     run: (editor, range) => editor.chain().focus().deleteRange(range).toggleTaskList().run(),
   },
   {
     title: "Code block",
-    icon: CodeXml,
+    icon: SourceCodeIcon,
     keywords: ["code", "snippet", "pre"],
     group: 2,
     run: (editor, range) => editor.chain().focus().deleteRange(range).toggleCodeBlock().run(),
   },
   {
     title: "Blockquote",
-    icon: Quote,
+    icon: QuoteDownIcon,
     keywords: ["quote"],
     group: 2,
     run: (editor, range) => editor.chain().focus().deleteRange(range).toggleBlockquote().run(),
   },
   {
     title: "Callout",
-    icon: Lightbulb,
+    icon: Idea01Icon,
     keywords: ["note", "info", "tip"],
     group: 2,
     run: (editor, range) => editor.chain().focus().deleteRange(range).setCallout().run(),
@@ -196,7 +196,6 @@ const SlashMenu = forwardRef<SlashMenuHandle, SuggestionProps<CommandItem, Comma
         className="z-50 max-h-96 w-64 overflow-y-auto rounded-xl border border-border bg-popover p-1 text-popover-foreground shadow-lg"
       >
         {items.map((item, index) => {
-          const Icon = item.icon
           const divider = index > 0 && items[index - 1].group !== item.group
           return (
             <div key={item.title}>
@@ -214,7 +213,7 @@ const SlashMenu = forwardRef<SlashMenuHandle, SuggestionProps<CommandItem, Comma
                   index === active && "bg-foreground/8"
                 )}
               >
-                <Icon className="size-4 shrink-0 text-muted-foreground" />
+                <HugeiconsIcon icon={item.icon} className="size-4 shrink-0 text-muted-foreground" />
                 <span className="flex-1 truncate">{item.title}</span>
               </button>
             </div>

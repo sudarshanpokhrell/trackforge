@@ -1,4 +1,5 @@
-import { Moon, Sun } from "lucide-react"
+import { Moon02Icon, Sun03Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useTheme } from "@/components/theme-provider"
 import { Button } from "@/components/ui/button"
 
@@ -19,9 +20,9 @@ export function ModeToggle() {
       aria-label="Toggle theme"
     >
       {theme === "dark" ? (
-        <Sun className="size-4 transition-transform rotate-0 scale-100" />
+        <HugeiconsIcon icon={Sun03Icon} className="size-4 transition-transform rotate-0 scale-100" />
       ) : (
-        <Moon className="size-4 transition-transform rotate-0 scale-100" />
+        <HugeiconsIcon icon={Moon02Icon} className="size-4 transition-transform rotate-0 scale-100" />
       )}
     </Button>
   )

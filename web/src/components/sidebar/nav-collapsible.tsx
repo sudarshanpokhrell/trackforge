@@ -1,12 +1,13 @@
 "use client"
 import {
-  ChevronDown,
-  IterationCcw,
-  LayoutDashboard,
-  Plus,
-  Settings,
-  Ticket,
-} from "lucide-react"
+  Add01Icon,
+  ArrowDown01Icon,
+  Home07Icon,
+  Settings02Icon,
+  Target02Icon,
+  TaskDaily01Icon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { Link, useRouterState } from "@tanstack/react-router"
 import {
   Collapsible,
@@ -47,7 +48,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
               render={<CollapsibleTrigger />}
             >
               Projects
-              <ChevronDown className="ml-auto transition-transform group-data-open/collapsible:rotate-180" />
+              <HugeiconsIcon icon={ArrowDown01Icon} className="ml-auto transition-transform group-data-open/collapsible:rotate-180" />
             </SidebarGroupLabel>
             {canCreate && (
               <CreateProjectDialog
@@ -58,7 +59,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                   />
                 }
               >
-                <Plus className="size-4" />
+                <HugeiconsIcon icon={Add01Icon} className="size-4" />
               </CreateProjectDialog>
             )}
           </div>
@@ -112,7 +113,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                                     />
                                   }
                                 >
-                                  <LayoutDashboard />
+                                  <HugeiconsIcon icon={Home07Icon} />
                                   <span>Overview</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -126,7 +127,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                                     />
                                   }
                                 >
-                                  <Ticket />
+                                  <HugeiconsIcon icon={TaskDaily01Icon} />
                                   <span>Issues</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>
@@ -141,7 +142,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                                       />
                                     }
                                   >
-                                    <IterationCcw />
+                                    <HugeiconsIcon icon={Target02Icon} />
                                     <span>Sprints</span>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -156,7 +157,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                                     />
                                   }
                                 >
-                                  <Settings />
+                                  <HugeiconsIcon icon={Settings02Icon} />
                                   <span>Settings</span>
                                 </SidebarMenuSubButton>
                               </SidebarMenuSubItem>

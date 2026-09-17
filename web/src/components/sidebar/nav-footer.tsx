@@ -1,5 +1,6 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { LogOut, UserCircle2 } from 'lucide-react';
+import { Logout01Icon, UserCircleIcon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react';
 import {
   SidebarFooter,
   SidebarMenu,
@@ -26,7 +27,7 @@ export function NavFooter() {
             render={<Link to="/profile" />}
             tooltip="Profile"
           >
-            <UserCircle2 />
+            <HugeiconsIcon icon={UserCircleIcon} />
             <span className="truncate">{user?.name ?? 'Profile'}</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -36,7 +37,7 @@ export function NavFooter() {
             onClick={() => logout.mutate()}
             tooltip="Log out"
           >
-            <LogOut />
+            <HugeiconsIcon icon={Logout01Icon} />
             <span>Log out</span>
           </SidebarMenuButton>
         </SidebarMenuItem>

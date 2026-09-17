@@ -1,4 +1,5 @@
-import { Loader2 } from 'lucide-react';
+import { Loading03Icon } from '@hugeicons/core-free-icons'
+import { HugeiconsIcon } from '@hugeicons/react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -118,7 +119,7 @@ export function ChangePasswordForm({
       )}
 
       <Button className="h-10 w-full" disabled={isSubmitting} type="submit">
-        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isSubmitting && <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />}
         {submitLabel}
       </Button>
     </form>

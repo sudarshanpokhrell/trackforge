@@ -7,6 +7,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { NavItem } from './types';
 
 export function NavMain({ items }: { items: NavItem[] }) {
@@ -16,7 +17,6 @@ export function NavMain({ items }: { items: NavItem[] }) {
     <SidebarGroup>
       <SidebarMenu>
         {items.map((item) => {
-          const Icon = item.icon;
           const isActive = item.url ? pathname === item.url : false;
           return (
             <SidebarMenuItem key={item.id}>
@@ -25,7 +25,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                 isActive={isActive}
                 render={<Link to={item.url ?? '/'} />}
               >
-                {Icon && <Icon className="h-4 w-4" />}
+                {item.icon && <HugeiconsIcon icon={item.icon} className="h-4 w-4" />}
                 <span>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

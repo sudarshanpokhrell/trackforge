@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { ChevronRight, Maximize2, Trash2, X } from "lucide-react"
+import {
+  ArrowExpandDiagonal01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  Delete02Icon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { DeleteDialog } from "@/components/delete-dialog"
@@ -130,7 +136,7 @@ function IssueView({
             <ProjectIcon emoji={project?.emoji} className="size-4 text-sm" />
             {project?.name ?? "Project"}
           </Link>
-          <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60" />
+          <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5 shrink-0 text-muted-foreground/60" />
           <Link
             to="/projects/$projectId/issues"
             params={{ projectId: String(issue.project_id) }}
@@ -140,14 +146,14 @@ function IssueView({
           </Link>
           {!peek && (
             <>
-              <ChevronRight className="size-3.5 shrink-0 text-muted-foreground/60" />
+              <HugeiconsIcon icon={ArrowRight01Icon} className="size-3.5 shrink-0 text-muted-foreground/60" />
               <span className="truncate px-1 text-foreground">{issue.title}</span>
             </>
           )}
         </nav>
 
         <HeaderButton label="Delete issue" onClick={() => setConfirmingDelete(true)} destructive>
-          <Trash2 className="size-4" />
+          <HugeiconsIcon icon={Delete02Icon} className="size-4" />
         </HeaderButton>
         {peek && (
           <>
@@ -158,10 +164,10 @@ function IssueView({
               title="Open as full page"
               className={headerButton}
             >
-              <Maximize2 className="size-4" />
+              <HugeiconsIcon icon={ArrowExpandDiagonal01Icon} className="size-4" />
             </Link>
             <HeaderButton label="Close" onClick={onClose}>
-              <X className="size-4" />
+              <HugeiconsIcon icon={Cancel01Icon} className="size-4" />
             </HeaderButton>
           </>
         )}
@@ -240,7 +246,7 @@ function Message({
       {variant === "peek" && (
         <header className="flex h-12 items-center justify-end border-b border-border px-4">
           <HeaderButton label="Close" onClick={onClose}>
-            <X className="size-4" />
+            <HugeiconsIcon icon={Cancel01Icon} className="size-4" />
           </HeaderButton>
         </header>
       )}

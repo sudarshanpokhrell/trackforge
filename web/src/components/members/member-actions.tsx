@@ -25,15 +25,16 @@ import {
 import { getErrorMessage } from "@/lib/api"
 import type { User } from "@/types/auth"
 import {
-  Crown,
-  KeyRound,
-  Loader2,
-  MoreHorizontal,
-  ShieldCheck,
-  UserCheck,
-  UserRound,
-  UserX,
-} from "lucide-react"
+  CrownIcon,
+  Key01Icon,
+  Loading03Icon,
+  MoreHorizontalIcon,
+  SecurityCheckIcon,
+  UserBlock01Icon,
+  UserCheck01Icon,
+  UserIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -92,7 +93,7 @@ export function MemberActions({ me, user }: { me: User; user: User }) {
             <Button variant="ghost" size="icon" aria-label={`Manage ${user.name}`} />
           }
         >
-          <MoreHorizontal className="size-4" />
+          <HugeiconsIcon icon={MoreHorizontalIcon} className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {isSuperadmin && user.role === "member" && (
@@ -104,7 +105,7 @@ export function MemberActions({ me, user }: { me: User; user: User }) {
                 )
               }
             >
-              <ShieldCheck className="size-4" />
+              <HugeiconsIcon icon={SecurityCheckIcon} className="size-4" />
               Make admin
             </DropdownMenuItem>
           )}
@@ -117,24 +118,24 @@ export function MemberActions({ me, user }: { me: User; user: User }) {
                 )
               }
             >
-              <UserRound className="size-4" />
+              <HugeiconsIcon icon={UserIcon} className="size-4" />
               Make member
             </DropdownMenuItem>
           )}
           {isSuperadmin && user.is_active && (
             <DropdownMenuItem onClick={() => setTransferring(true)}>
-              <Crown className="size-4" />
+              <HugeiconsIcon icon={CrownIcon} className="size-4" />
               Make superadmin
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => setResetting(true)}>
-            <KeyRound className="size-4" />
+            <HugeiconsIcon icon={Key01Icon} className="size-4" />
             Reset password
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {user.is_active ? (
             <DropdownMenuItem variant="destructive" onClick={onDeactivate}>
-              <UserX className="size-4" />
+              <HugeiconsIcon icon={UserBlock01Icon} className="size-4" />
               Deactivate
             </DropdownMenuItem>
           ) : (
@@ -143,7 +144,7 @@ export function MemberActions({ me, user }: { me: User; user: User }) {
                 run(() => reactivate.mutateAsync(user.id), `${user.name} reactivated.`)
               }
             >
-              <UserCheck className="size-4" />
+              <HugeiconsIcon icon={UserCheck01Icon} className="size-4" />
               Reactivate
             </DropdownMenuItem>
           )}
@@ -237,7 +238,7 @@ function ResetPasswordDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="animate-spin" />}
+              {isSubmitting && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
               Reset password
             </Button>
           </DialogFooter>
@@ -288,7 +289,7 @@ function MakeSuperadminDialog({
             onClick={onConfirm}
             disabled={makeSuperadmin.isPending}
           >
-            {makeSuperadmin.isPending && <Loader2 className="animate-spin" />}
+            {makeSuperadmin.isPending && <HugeiconsIcon icon={Loading03Icon} className="animate-spin" />}
             Transfer superadmin
           </Button>
         </DialogFooter>

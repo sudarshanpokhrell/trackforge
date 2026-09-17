@@ -1,6 +1,6 @@
 'use client';
 
-import { Inbox, Ticket, Users } from 'lucide-react';
+import { InboxIcon, TaskDaily01Icon, UserMultipleIcon } from '@hugeicons/core-free-icons';
 import { Sidebar, SidebarContent, SidebarHeader } from '@/components/ui/sidebar';
 import { NavCollapsible } from './nav-collapsible';
 import { NavFooter } from './nav-footer';
@@ -26,20 +26,20 @@ export const sidebarData: AppSidebarData = {
       id: 'inbox',
       title: 'Inbox',
       url: '/inbox',
-      icon: Inbox,
+      icon: InboxIcon,
       isActive: true,
     },
     {
       id: 'issues',
       title: 'My Issues',
       url: '/issues',
-      icon: Ticket,
+      icon: TaskDaily01Icon,
     },
     {
       id: 'members',
       title: 'Members',
       url: '/members',
-      icon: Users,
+      icon: UserMultipleIcon,
     },
   ],
 };

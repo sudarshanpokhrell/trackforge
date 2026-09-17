@@ -1,35 +1,36 @@
 import {
-  Inbox,
-  ListChecks,
-  Folder,
-  LayoutDashboard,
-  Eye,
-  MoreHorizontal,
-  FolderKanban,
-  Import,
-  UserPlus,
-} from "lucide-react"
+  CheckListIcon,
+  DashboardSquare02Icon,
+  FileImportIcon,
+  Folder01Icon,
+  FolderLibraryIcon,
+  InboxIcon,
+  MoreHorizontalIcon,
+  UserAdd01Icon,
+  ViewIcon,
+} from "@hugeicons/core-free-icons"
+import type { IconSvgElement } from "@hugeicons/react"
 
 export type NavItem = {
   title: string
-  icon?: React.ComponentType<{ className?: string }>
+  icon?: IconSvgElement
   href?: string
   children?: NavItem[]
 }
 
 export const mainNav: NavItem[] = [
-  { title: "Inbox", icon: Inbox, href: "/inbox" },
-  { title: "My issues", icon: ListChecks, href: "/issues" },
-  { title: "Workspace", icon: Folder, href: "/workspace" },
-  { title: "Projects", icon: LayoutDashboard, href: "/projects" },
-  { title: "Views", icon: Eye, href: "/views" },
-  { title: "More", icon: MoreHorizontal, href: "/more" },
+  { title: "Inbox", icon: InboxIcon, href: "/inbox" },
+  { title: "My issues", icon: CheckListIcon, href: "/issues" },
+  { title: "Workspace", icon: Folder01Icon, href: "/workspace" },
+  { title: "Projects", icon: DashboardSquare02Icon, href: "/projects" },
+  { title: "Views", icon: ViewIcon, href: "/views" },
+  { title: "More", icon: MoreHorizontalIcon, href: "/more" },
 ]
 
 export const teamNav: NavItem[] = [
   {
     title: "Srs issue tracking",
-    icon: FolderKanban,
+    icon: FolderLibraryIcon,
     children: [
       { title: "Home", href: "/" },
       { title: "Issues", href: "/issues" },
@@ -40,7 +41,7 @@ export const teamNav: NavItem[] = [
 ]
 
 export const tryNav: NavItem[] = [
-  { title: "Import issues", icon: Import, href: "/import" },
-  { title: "Invite people", icon: UserPlus, href: "/invite" },
+  { title: "Import issues", icon: FileImportIcon, href: "/import" },
+  { title: "Invite people", icon: UserAdd01Icon, href: "/invite" },
   // { title: 'Connect GitHub', icon: GitHub, href: '/github' },
 ]
