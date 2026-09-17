@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -90,6 +91,8 @@ func (app *application) createIssueCommentHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueCommentsChanged, ProjectID: issue.ProjectID, IssueID: issue.ID})
+
 	// The insert cannot return the author, but it is the caller — fill it in so
 	// the response matches the shape the list endpoint returns.
 	comment.Author = &store.UserSummary{
@@ -149,6 +152,9 @@ func (app *application) updateIssueCommentHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	issue := app.contextIssue(r)
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueCommentsChanged, ProjectID: issue.ProjectID, IssueID: issue.ID})
+
 	if err := app.writeJSON(w, http.StatusOK, envelope{"comment": comment}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -179,6 +185,9 @@ func (app *application) deleteIssueCommentHandler(w http.ResponseWriter, r *http
 		}
 		return
 	}
+
+	issue := app.contextIssue(r)
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueCommentsChanged, ProjectID: issue.ProjectID, IssueID: issue.ID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "comment deleted successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

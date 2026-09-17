@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -133,6 +134,8 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeUsersChanged})
+
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"user": user}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -224,6 +227,9 @@ func (app *application) deactivateUserHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	// Their open tabs reconnect, get a 401 and land on the login page.
+	app.realtime.DisconnectUser(user.ID)
+
 	orphaned, err := app.store.Projects.ListSoleActiveAdminOf(r.Context(), user.ID)
 
 	if err != nil {
@@ -301,7 +307,17 @@ func (app *application) resetUserPasswordHandler(w http.ResponseWriter, r *http.
 	}
 
 	user.MustChangePassword = true
-	app.saveUser(w, r, user)
+
+	if !app.updateUser(w, r, user) {
+		return
+	}
+
+	// RequireAuth refuses their reconnect with a 403, which sends them to change their password.
+	app.realtime.DisconnectUser(user.ID)
+
+	if err := app.writeJSON(w, http.StatusOK, envelope{"user": user}, nil); err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
 
 // @Summary Transfer superadmin
@@ -345,6 +361,11 @@ func (app *application) makeSuperadminHandler(w http.ResponseWriter, r *http.Req
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeUsersChanged})
+	// One user gains every project and the other goes back to their memberships.
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: app.contextUserID(r)})
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: user.ID})
 
 	user.Role = store.UserRoleSuperadmin
 
@@ -426,6 +447,8 @@ func (app *application) updateUser(w http.ResponseWriter, r *http.Request, user 
 		}
 		return false
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeUsersChanged})
 
 	return true
 }

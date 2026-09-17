@@ -560,6 +560,35 @@ paths:
       summary: Logout
       tags:
       - auth
+  /events:
+    get:
+      description: Server-Sent Events. Each event names what changed (type and ids),
+        not the new data; refetch it through the normal endpoints. The stream ends
+        when the token expires.
+      parameters:
+      - description: Per-tab UUID. Events caused by requests that sent the same X-Client-ID
+          header carry it, so that tab can skip them.
+        in: query
+        name: client_id
+        type: string
+      produces:
+      - text/event-stream
+      responses:
+        "200":
+          description: text/event-stream
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema: {}
+        "403":
+          description: Forbidden
+          schema: {}
+      security:
+      - BearerAuth: []
+      summary: Stream change events
+      tags:
+      - events
   /health:
     get:
       description: Check if the API is running

@@ -49,7 +49,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex h-full flex-col px-6 py-6">
+    <div className="flex h-full  flex-col px-6 py-6">
       <IssueList
         issues={sprintId === undefined ? issues : issues.filter((i) => i.cycle_id === sprintId)}
         showProject={false}

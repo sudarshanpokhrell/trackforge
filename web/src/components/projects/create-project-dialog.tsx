@@ -1,7 +1,7 @@
+import { DateChip } from "@/components/date-chip"
 import { EmojiPicker } from "@/components/emoji-picker"
 import { ProjectIcon } from "@/components/projects/project-icon"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import {
   Dialog,
   DialogClose,
@@ -9,15 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useCreateProject } from "@/hooks/use-projects"
 import { getErrorMessage } from "@/lib/api"
 import { toDateTime } from "@/lib/dates"
-import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarDays, Loader2, Plus, XIcon } from "lucide-react"
+import { Loader2, Plus, XIcon } from "lucide-react"
 import { useRef, useState } from "react"
-import type { Matcher } from "react-day-picker"
 import { toast } from "sonner"
 
 const toApiDate = (day: Date | undefined) =>
@@ -181,52 +178,5 @@ export function CreateProjectDialog({
         </form>
       </DialogContent>
     </Dialog>
-  )
-}
-
-/** A pill that opens a calendar. Clicking the chosen day again clears it. */
-function DateChip({
-  label,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string
-  value: Date | undefined
-  onChange: (day: Date | undefined) => void
-  disabled?: Matcher
-}) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        render={
-          <button
-            type="button"
-            className={cn(
-              "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 text-xs transition-colors hover:bg-muted data-popup-open:bg-muted",
-              value ? "text-foreground" : "text-muted-foreground"
-            )}
-          />
-        }
-      >
-        <CalendarDays className="size-3.5" />
-        {value ? `${label} · ${format(value, "d MMM yyyy")}` : label}
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-0">
-        <Calendar
-          mode="single"
-          autoFocus
-          selected={value}
-          defaultMonth={value}
-          disabled={disabled}
-          onSelect={(day) => {
-            setOpen(false)
-            onChange(day)
-          }}
-        />
-      </PopoverContent>
-    </Popover>
   )
 }

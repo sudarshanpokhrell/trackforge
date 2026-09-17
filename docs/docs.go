@@ -75,6 +75,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/events": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Server-Sent Events. Each event names what changed (type and ids), not the new data; refetch it through the normal endpoints. The stream ends when the token expires.",
+                "produces": [
+                    "text/event-stream"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Stream change events",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Per-tab UUID. Events caused by requests that sent the same X-Client-ID header carry it, so that tab can skip them.",
+                        "name": "client_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "text/event-stream",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {}
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Check if the API is running",

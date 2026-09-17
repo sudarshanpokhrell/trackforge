@@ -31,6 +31,7 @@ func (app *application) routes() http.Handler {
 			r.Post("/login", app.loginUserHandler)
 			r.Post("/logout", app.logoutUserHandler)
 		})
+		r.With(app.RequireAuth).Get("/events", app.eventsHandler)
 		r.Route("/me", func(r chi.Router) {
 			r.Use(app.AuthTokenMiddleware)
 			r.Get("/", app.getCurrentUserHandler)

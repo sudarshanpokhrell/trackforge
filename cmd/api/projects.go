@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -60,6 +61,10 @@ func (app *application) createProjectHandler(w http.ResponseWriter, r *http.Requ
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectUpdated, ProjectID: project.ID})
+	// The creator is now the project's admin; their open streams were loaded without it.
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: project.CreatedBy, ProjectID: project.ID})
 
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"project": project}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -211,6 +216,8 @@ func (app *application) updateProjectHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectUpdated, ProjectID: project.ID})
+
 	if err := app.writeJSON(w, http.StatusOK, envelope{"project": project}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -247,6 +254,8 @@ func (app *application) deleteProjectHandler(w http.ResponseWriter, r *http.Requ
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectDeleted, ProjectID: projectID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "project deleted successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -100,6 +101,8 @@ func (app *application) createProjectCommentHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCommentsChanged, ProjectID: comment.ProjectID})
+
 	// The insert cannot return the creator, but it is the caller — fill it in so
 	// the response matches the shape the list endpoint returns.
 	comment.Creator = &store.UserSummary{
@@ -159,6 +162,8 @@ func (app *application) updateProjectCommentHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCommentsChanged, ProjectID: comment.ProjectID})
+
 	if err := app.writeJSON(w, http.StatusOK, envelope{"comment": comment}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -189,6 +194,8 @@ func (app *application) deleteProjectCommentHandler(w http.ResponseWriter, r *ht
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCommentsChanged, ProjectID: comment.ProjectID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "comment deleted successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

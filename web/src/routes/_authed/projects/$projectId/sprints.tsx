@@ -39,7 +39,7 @@ function RouteComponent() {
   }
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col px-6 py-8">
+    <main className="mx-auto flex max-w-6xl flex-col px-6 py-8">
       <SprintsView project={project} />
     </main>
   )

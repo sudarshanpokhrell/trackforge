@@ -49,7 +49,7 @@ function ProjectHome() {
     const canManage = project.my_access.can_manage
 
     return (
-        <div className="mx-auto flex h-full max-w-5xl flex-col gap-10 px-6 py-8">
+        <div className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-6 py-8">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3">
                     {canManage ? (

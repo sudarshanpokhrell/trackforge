@@ -8,6 +8,7 @@ import (
 	"github.com/sudarshanpokhrell/trackforge/internal/auth"
 	"github.com/sudarshanpokhrell/trackforge/internal/db"
 	"github.com/sudarshanpokhrell/trackforge/internal/env"
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"go.uber.org/zap"
 )
@@ -50,6 +51,7 @@ type application struct {
 	store         store.Storage
 	logger        *zap.SugaredLogger
 	authenticator auth.Authenticator
+	realtime      realtime.Broker
 }
 
 // @title Trackforge API
@@ -119,6 +121,11 @@ func main() {
 		store:         store.NewStorage(database),
 		authenticator: jwtAuthenticator,
 	}
+
+	// The access loader is a method on app, so the hub is created after it.
+	hub := realtime.NewHub(app.loadRealtimeAccess, logger)
+	defer hub.Close()
+	app.realtime = hub
 
 	if err := app.serve(); err != nil {
 		logger.Fatalf("server error: %v", err)

@@ -1,4 +1,5 @@
 import ky, { isHTTPError } from 'ky'
+import { clientId } from './realtime'
 
 export class ApiError extends Error {
   status: number
@@ -37,7 +38,8 @@ export const api = ky.create({
   prefix: '/api/v1',
   timeout: 10000,
   retry: { limit: 2 },
-  headers: { 'X-Requested-With': 'XMLHttpRequest' },
+  // X-Client-ID lets this tab recognise, and skip, the events its own requests cause.
+  headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-Client-ID': clientId },
   hooks: {
     beforeError: [
       ({ request, error }) => {

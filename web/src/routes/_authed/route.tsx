@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/sidebar/sidebar"
 import { meQuery } from "@/hooks/use-auth"
+import { useRealtime } from "@/hooks/use-realtime"
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/_authed")({
@@ -17,6 +18,9 @@ export const Route = createFileRoute("/_authed")({
 })
 
 function AuthenticatedLayout() {
+  // One event stream per tab, for as long as someone is signed in.
+  useRealtime()
+
   return (
     <div className="flex flex-1 overflow-hidden">
       <AppSidebar />

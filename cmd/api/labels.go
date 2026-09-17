@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -107,6 +108,8 @@ func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectLabelsChanged, ProjectID: label.ProjectID})
+
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"label": label}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -159,6 +162,8 @@ func (app *application) updateLabelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectLabelsChanged, ProjectID: label.ProjectID})
+
 	if err := app.writeJSON(w, http.StatusOK, envelope{"label": label}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -191,6 +196,8 @@ func (app *application) deleteLabelHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectLabelsChanged, ProjectID: label.ProjectID})
 
 	env := envelope{
 		"message":     "label deleted successfully",
@@ -249,6 +256,8 @@ func (app *application) addIssueLabelHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueUpdated, ProjectID: issue.ProjectID, IssueID: issue.ID})
+
 	status := http.StatusCreated
 
 	if !added {
@@ -292,6 +301,8 @@ func (app *application) removeIssueLabelHandler(w http.ResponseWriter, r *http.R
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueUpdated, ProjectID: issue.ProjectID, IssueID: issue.ID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "label removed successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

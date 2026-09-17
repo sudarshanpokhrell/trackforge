@@ -1,37 +1,39 @@
-export type IssueStatus = 'backlog' | 'todo' | 'in-progress' | 'done' | 'cancelled'
+export type IssueStatus =
+  "backlog" | "todo" | "in-progress" | "done" | "cancelled"
 
-export type IssuePriority = 'no-priority' | 'urgent' | 'high' | 'medium' | 'low'
+export type IssuePriority = "no-priority" | "urgent" | "high" | "medium" | "low"
 
 export const STATUS_ORDER: IssueStatus[] = [
-  'in-progress',
-  'todo',
-  'backlog',
-  'done',
-  'cancelled',
+  "backlog",
+
+  "todo",
+  "in-progress",
+  "done",
+  "cancelled",
 ]
 
 export const STATUS_LABELS: Record<IssueStatus, string> = {
-  'in-progress': 'In Progress',
-  todo: 'Todo',
-  backlog: 'Backlog',
-  done: 'Done',
-  cancelled: 'Cancelled',
+  "in-progress": "In Progress",
+  todo: "Todo",
+  backlog: "Backlog",
+  done: "Done",
+  cancelled: "Cancelled",
 }
 
 export const PRIORITY_ORDER: IssuePriority[] = [
-  'urgent',
-  'high',
-  'medium',
-  'low',
-  'no-priority',
+  "urgent",
+  "high",
+  "medium",
+  "low",
+  "no-priority",
 ]
 
 export const PRIORITY_LABELS: Record<IssuePriority, string> = {
-  'no-priority': 'No priority',
-  urgent: 'Urgent',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
+  "no-priority": "No priority",
+  urgent: "Urgent",
+  high: "High",
+  medium: "Medium",
+  low: "Low",
 }
 
 export interface Assignee {
@@ -39,7 +41,6 @@ export interface Assignee {
   name: string
 }
 
-/** A label as it appears on an issue. */
 export interface LabelSummary {
   id: number
   name: string
@@ -72,7 +73,7 @@ export type CreateIssueInput = {
   label_ids?: number[]
 }
 
-export type UpdateIssueInput = Partial<Omit<CreateIssueInput, 'label_ids'>> & {
+export type UpdateIssueInput = Partial<Omit<CreateIssueInput, "label_ids">> & {
   /** Moves the issue into a sprint, or out of one with null. */
   cycle_id?: number | null
 }
@@ -95,15 +96,15 @@ export interface IssueComment {
 }
 
 export type IssueActivityType =
-  | 'created'
-  | 'title_changed'
-  | 'description_changed'
-  | 'status_changed'
-  | 'priority_changed'
-  | 'assignee_changed'
-  | 'label_added'
-  | 'label_removed'
-  | 'cycle_changed'
+  | "created"
+  | "title_changed"
+  | "description_changed"
+  | "status_changed"
+  | "priority_changed"
+  | "assignee_changed"
+  | "label_added"
+  | "label_removed"
+  | "cycle_changed"
 
 export interface IssueActivity {
   id: number

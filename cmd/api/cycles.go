@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -85,6 +86,8 @@ func (app *application) setCyclesEnabledHandler(w http.ResponseWriter, r *http.R
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCyclesChanged, ProjectID: projectID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"cycles_enabled": *payload.Enabled}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -201,6 +204,8 @@ func (app *application) createCycleHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCyclesChanged, ProjectID: cycle.ProjectID})
+
 	cycle.SetStatus(app.today())
 
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"cycle": cycle}, nil); err != nil {
@@ -286,6 +291,8 @@ func (app *application) updateCycleHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCyclesChanged, ProjectID: cycle.ProjectID})
+
 	cycle.SetStatus(app.today())
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"cycle": cycle}, nil); err != nil {
@@ -318,6 +325,8 @@ func (app *application) deleteCycleHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCyclesChanged, ProjectID: cycle.ProjectID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "cycle deleted successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -368,6 +377,8 @@ func (app *application) completeCycleHandler(w http.ResponseWriter, r *http.Requ
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectCyclesChanged, ProjectID: cycle.ProjectID})
 
 	env := envelope{
 		"cycle":             cycle,

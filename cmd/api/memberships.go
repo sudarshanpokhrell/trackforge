@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -97,6 +98,9 @@ func (app *application) addProjectMemberHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectUpdated, ProjectID: projectID})
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: payload.UserID, ProjectID: projectID})
+
 	membership := store.Membership{
 		ProjectID: projectID,
 		UserID:    payload.UserID,
@@ -160,6 +164,10 @@ func (app *application) updateProjectMemberHandler(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// Visibility is unchanged, but the member's own role (my_role) is not.
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectUpdated, ProjectID: projectID})
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: userID, ProjectID: projectID})
+
 	membership := store.Membership{
 		ProjectID: projectID,
 		UserID:    userID,
@@ -206,6 +214,9 @@ func (app *application) removeProjectMemberHandler(w http.ResponseWriter, r *htt
 		app.membershipChangeErrorResponse(w, r, err)
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeProjectUpdated, ProjectID: projectID})
+	app.publish(r, realtime.Event{Type: realtime.TypeMembershipChanged, UserID: userID, ProjectID: projectID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "member removed successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

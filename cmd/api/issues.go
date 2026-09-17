@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/sudarshanpokhrell/trackforge/internal/realtime"
 	"github.com/sudarshanpokhrell/trackforge/internal/store"
 	"github.com/sudarshanpokhrell/trackforge/internal/validator"
 )
@@ -97,6 +98,8 @@ func (app *application) createIssueHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueCreated, ProjectID: issue.ProjectID, IssueID: issue.ID})
 
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"issue": issue}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -252,6 +255,8 @@ func (app *application) updateIssueHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueUpdated, ProjectID: issue.ProjectID, IssueID: issue.ID})
+
 	if err := app.writeJSON(w, http.StatusOK, envelope{"issue": issue}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -280,6 +285,8 @@ func (app *application) deleteIssueHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueDeleted, ProjectID: issue.ProjectID, IssueID: issue.ID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "issue deleted successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -353,6 +360,8 @@ func (app *application) addIssueAssigneeHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueUpdated, ProjectID: issue.ProjectID, IssueID: issue.ID})
+
 	assignee := store.Assignee{ID: user.ID, Name: user.Name}
 
 	if err := app.writeJSON(w, http.StatusCreated, envelope{"assignee": assignee}, nil); err != nil {
@@ -392,6 +401,8 @@ func (app *application) removeIssueAssigneeHandler(w http.ResponseWriter, r *htt
 		}
 		return
 	}
+
+	app.publish(r, realtime.Event{Type: realtime.TypeIssueUpdated, ProjectID: issue.ProjectID, IssueID: issue.ID})
 
 	if err := app.writeJSON(w, http.StatusOK, envelope{"message": "assignee removed successfully"}, nil); err != nil {
 		app.serverErrorResponse(w, r, err)

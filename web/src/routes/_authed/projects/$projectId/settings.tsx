@@ -74,7 +74,7 @@ function RouteComponent() {
   }
 
   return (
-    <main className="mx-auto flex h-full max-w-5xl flex-col gap-10 px-6 py-8">
+    <main className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-6 py-8">
       <TabBar
         aria-label="Project settings"
         tabs={tabs}

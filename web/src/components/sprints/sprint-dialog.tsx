@@ -1,17 +1,15 @@
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Textarea } from "@/components/ui/textarea"
 import { useCreateCycle, useUpdateCycle } from "@/hooks/use-cycles"
 import { getErrorMessage } from "@/lib/api"
 import { fromApiDate, toApiDate } from "@/lib/dates"
 import { cn } from "@/lib/utils"
 import type { Cycle } from "@/types/cycles"
 import { addDays, format, isAfter } from "date-fns"
-import { CalendarRange, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { CalendarRange, Loader2, XIcon } from "lucide-react"
+import { useRef, useState } from "react"
 import type { DateRange } from "react-day-picker"
 import { toast } from "sonner"
 
@@ -25,10 +23,15 @@ type SprintDialogProps = {
   sprint?: Cycle
 }
 
+type Span = { from: Date; to: Date }
+
 export function SprintDialog({ open, onOpenChange, ...props }: SprintDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="gap-0 p-0 sm:max-w-md">
+      <DialogContent
+        showCloseButton={false}
+        className="flex h-[min(560px,calc(100dvh-4rem))] flex-col gap-0 p-0 sm:max-w-2xl"
+      >
         {/* Mounted only while open, so each opening starts from fresh values. */}
         <SprintForm onDone={() => onOpenChange(false)} {...props} />
       </DialogContent>
@@ -48,22 +51,23 @@ function SprintForm({
   const [range, setRange] = useState<DateRange | undefined>(() =>
     sprint
       ? { from: fromApiDate(sprint.start_date), to: fromApiDate(sprint.end_date) }
-      : suggestRange(sprints)
+      : suggestSpan(sprints)
   )
   const [error, setError] = useState("")
 
+  const descriptionRef = useRef<HTMLTextAreaElement>(null)
   const createSprint = useCreateCycle(projectId)
   const updateSprint = useUpdateCycle(projectId)
   const pending = createSprint.isPending || updateSprint.isPending
   const canSubmit = name.trim() !== "" && range?.from && range?.to && !pending
 
   // Days other sprints already cover; the server rejects overlaps anyway.
-  const taken = sprints
+  const taken: Span[] = sprints
     .filter((s) => s.id !== sprint?.id)
     .map((s) => ({ from: fromApiDate(s.start_date)!, to: fromApiDate(s.end_date)! }))
 
-  const onSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const onSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!canSubmit || !range?.from || !range.to) return
 
     const input = {
@@ -88,43 +92,66 @@ function SprintForm({
   }
 
   return (
-    <form className="flex flex-col" onSubmit={onSubmit}>
-      <div className="flex flex-col gap-4 p-5">
-        <DialogTitle className="text-sm">{editing ? "Edit sprint" : "New sprint"}</DialogTitle>
+    <form
+      noValidate
+      onSubmit={onSubmit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void onSubmit(e)
+      }}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <div className="flex items-center justify-between px-5 pt-4">
+        <DialogTitle className="text-sm font-normal text-muted-foreground">
+          {editing ? "Edit sprint" : "New sprint"}
+        </DialogTitle>
+        <DialogClose render={<Button type="button" variant="ghost" size="icon-sm" />}>
+          <XIcon />
+          <span className="sr-only">Close</span>
+        </DialogClose>
+      </div>
 
-        <Input
+      <div className="flex flex-col gap-3 px-6 pt-3">
+        <input
           autoFocus
           aria-label="Sprint name"
           placeholder="Sprint name"
           maxLength={100}
-          className="h-9"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter moves on to the goal rather than submitting.
+            if (e.key === "Enter" && !e.metaKey && !e.ctrlKey) {
+              e.preventDefault()
+              descriptionRef.current?.focus()
+            }
+          }}
+          className="bg-transparent text-2xl font-semibold text-foreground outline-none placeholder:text-muted-foreground/50"
         />
 
-        <DateRangeField value={range} onChange={setRange} taken={taken} />
+        <div className="flex flex-wrap gap-2 pt-1">
+          <DateRangeChip value={range} onChange={setRange} taken={taken} />
+        </div>
+      </div>
 
-        <Textarea
-          aria-label="Sprint goal"
-          placeholder="Sprint goal (optional)"
-          maxLength={2000}
-          className="min-h-20 resize-none"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+      <div className="mx-6 mt-5 border-t border-border" />
 
+      <textarea
+        ref={descriptionRef}
+        aria-label="Sprint goal"
+        placeholder="What should this sprint achieve?"
+        maxLength={2000}
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="min-h-0 flex-1 resize-none bg-transparent px-6 py-5 text-[15px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground/60"
+      />
+
+      <div className="flex items-center justify-end gap-3 border-t border-border px-5 py-3">
         {error && (
-          <p className="text-sm text-destructive" role="alert">
+          <p className="mr-auto text-sm text-destructive" role="alert">
             {error}
           </p>
         )}
-      </div>
-
-      <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone}>
-          Cancel
-        </Button>
-        <Button type="submit" size="sm" disabled={!canSubmit}>
+        <Button type="submit" disabled={!canSubmit}>
           {pending && <Loader2 className="animate-spin" />}
           {editing ? "Save" : "Create sprint"}
         </Button>
@@ -133,17 +160,18 @@ function SprintForm({
   )
 }
 
-function DateRangeField({
+/** A pill that opens one calendar for both ends of the sprint. */
+function DateRangeChip({
   value,
   onChange,
   taken,
 }: {
   value: DateRange | undefined
   onChange: (range: DateRange | undefined) => void
-  taken: { from: Date; to: Date }[]
+  taken: Span[]
 }) {
   const [open, setOpen] = useState(false)
-  const complete = value?.from && value?.to
+  const { from, to } = value ?? {}
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -152,29 +180,32 @@ function DateRangeField({
           <button
             type="button"
             className={cn(
-              "flex h-9 w-full cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 text-left text-sm transition-colors hover:border-hairline-strong data-popup-open:border-hairline-strong",
-              !complete && "text-muted-foreground"
+              "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 text-xs transition-colors hover:bg-muted data-popup-open:bg-muted",
+              from && to ? "text-foreground" : "text-muted-foreground"
             )}
           />
         }
       >
-        <CalendarRange className="size-4 shrink-0 text-muted-foreground" />
-        {complete
-          ? `${format(value.from!, "d MMM yyyy")} – ${format(value.to!, "d MMM yyyy")}`
-          : "Pick start and end dates"}
+        <CalendarRange className="size-3.5" />
+        {from
+          ? `${format(from, "d MMM yyyy")} – ${to ? format(to, "d MMM yyyy") : "End date"}`
+          : "Start and end dates"}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
         <Calendar
           mode="range"
           numberOfMonths={2}
-          defaultMonth={value?.from}
+          autoFocus
+          defaultMonth={from}
           selected={value}
           disabled={taken}
           excludeDisabled
+          // Once both ends are set, the next click starts over from a new start
+          // date instead of dragging the end around.
+          resetOnSelect
           onSelect={(next) => {
             onChange(next)
-            // Close once both ends are chosen, not on the first click.
-            if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) setOpen(false)
+            if (next?.from && next?.to) setOpen(false)
           }}
         />
       </PopoverContent>
@@ -183,7 +214,7 @@ function DateRangeField({
 }
 
 /** Two weeks starting the day after the latest sprint ends, or today. */
-function suggestRange(sprints: Cycle[]): DateRange {
+function suggestSpan(sprints: Cycle[]): Span {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 

@@ -73,7 +73,6 @@ export function IssueBoard({ issues, statuses, projectId }: IssueBoardProps) {
               ))}
               {column.length === 0 && (
                 <div className="flex flex-1 flex-col items-center justify-center gap-2 py-6 text-center">
-                  <p className="text-xs text-muted-foreground">No issues</p>
                   {projectId !== undefined && (
                     <NewIssueDialog
                       projectId={projectId}
@@ -99,7 +98,6 @@ function IssueCard({
   onDragEnd,
 }: {
   issue: Issue
-  /** Returns the column the card was dropped on, if any. */
   onDragEnd: () => Status | null
 }) {
   const { mutate: updateIssue } = useUpdateIssue(issue)
@@ -126,7 +124,6 @@ function IssueCard({
       <Link
         to="/projects/$projectId/issues"
         params={{ projectId: String(issue.project_id) }}
-        // Opens the issue in the side peek; ⌘-click still gives a real URL.
         search={(prev) => ({ ...prev, issue: issue.id })}
         draggable={false}
         className="line-clamp-2 text-sm text-foreground hover:underline"
