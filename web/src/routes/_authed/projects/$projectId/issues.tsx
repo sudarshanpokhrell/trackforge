@@ -34,7 +34,7 @@ function RouteComponent() {
 
   if (isPending) {
     return (
-      <div className="flex flex-col gap-4 px-6 py-6">
+      <div className="flex flex-col gap-4 px-8 py-8">
         <Skeleton className="h-8 w-72" />
         <Skeleton className="h-40 w-full rounded-xl" />
       </div>
@@ -43,14 +43,14 @@ function RouteComponent() {
 
   if (error) {
     return (
-      <div className="px-6 py-6 text-sm text-destructive">
+      <div className="px-8 py-8 text-sm text-destructive">
         Failed to load issues.
       </div>
     )
   }
 
   return (
-    <div className="flex h-full  flex-col px-6 py-6">
+    <div className="flex h-full  flex-col px-8 py-8">
       <IssueList
         issues={sprintId === undefined ? issues : issues.filter((i) => i.cycle_id === sprintId)}
         showProject={false}
@@ -58,7 +58,7 @@ function RouteComponent() {
         actions={
           <>
             {sprintId !== undefined && (
-              <span className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border pr-1 pl-2.5 text-sm">
+              <span className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border pr-1.5 pl-3 text-sm">
                 <HugeiconsIcon icon={Target02Icon} className="size-3.5 text-muted-foreground" />
                 <span className="max-w-40 truncate">{sprint?.name ?? "Sprint"}</span>
                 <button

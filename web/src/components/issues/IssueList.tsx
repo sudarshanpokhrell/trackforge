@@ -61,7 +61,7 @@ export function IssueList({
   const visible = issues.filter((i) => statuses.includes(i.status))
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-5">
       <div className="flex items-center justify-between gap-3">
         <TabBar
           aria-label="Issue views"
@@ -135,7 +135,7 @@ function ViewToggle({
           title={label}
           onClick={() => onChange(option)}
           className={cn(
-            "flex size-7 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground",
+            "flex size-8 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground",
             value === option && "bg-surface-2 text-foreground"
           )}
         >

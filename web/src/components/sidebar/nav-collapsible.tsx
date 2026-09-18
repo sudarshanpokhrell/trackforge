@@ -42,7 +42,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
     <div className="space-y-0">
       <Collapsible className="group/collapsible" defaultOpen>
         <SidebarGroup>
-          <div className="flex items-center gap-1 pr-2">
+          <div className="flex items-center gap-1 pr-1">
             <SidebarGroupLabel
               className="flex-1 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               render={<CollapsibleTrigger />}
@@ -55,7 +55,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
                 trigger={
                   <button
                     aria-label="New project"
-                    className="rounded p-1 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    className="rounded-md p-1.5 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   />
                 }
               >
@@ -65,7 +65,7 @@ export function NavCollapsible({ projects, canCreate }: NavCollapsibleProps) {
           </div>
           <CollapsibleContent>
             {projects.length === 0 && (
-              <p className="px-2 py-1.5 text-xs text-sidebar-foreground/60">
+              <p className="px-2.5 py-2 text-xs text-sidebar-foreground/60">
                 {canCreate
                   ? "No projects yet."
                   : "You're not in any projects yet."}

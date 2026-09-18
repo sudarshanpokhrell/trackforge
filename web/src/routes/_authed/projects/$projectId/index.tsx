@@ -37,7 +37,7 @@ function ProjectHome() {
         return isApiError(error, 404) ? (
             <ProjectNotFound />
         ) : (
-            <div className="mx-auto max-w-5xl px-6 py-16 text-center">
+            <div className="mx-auto max-w-5xl px-8 py-16 text-center">
                 <h1 className="text-lg font-medium">Something went wrong</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
                     {getErrorMessage(error)}
@@ -49,7 +49,7 @@ function ProjectHome() {
     const canManage = project.my_access.can_manage
 
     return (
-        <div className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-6 py-8">
+        <div className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-8 py-10">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3">
                     {canManage ? (
@@ -184,7 +184,7 @@ function MemberList({ project }: { project: ProjectDetails }) {
 
 function ProjectSkeleton() {
     return (
-        <div className="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-8">
+        <div className="mx-auto flex max-w-5xl flex-col gap-10 px-8 py-10">
             <div className="flex flex-col gap-3">
                 <Skeleton className="size-12 rounded-xl" />
                 <Skeleton className="h-8 w-64" />

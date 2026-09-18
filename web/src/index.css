@@ -68,13 +68,13 @@
     --color-foreground: var(--foreground);
     --color-background: var(--background);
 
-    /* Radius scale: xs 4 · sm 6 · md/lg 8 (buttons, inputs) · xl 12 (cards) · 2xl 16 (panels) · 3xl 24 */
+    /* Radius scale: xs 4 · sm 6 · md 8 (menu items) · lg 10 (buttons, inputs) · xl 14 (cards) · 2xl 18 (panels) · 3xl 24 */
     --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 8px;
-    --radius-lg: 8px;
-    --radius-xl: 12px;
-    --radius-2xl: 16px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
+    --radius-2xl: 18px;
     --radius-3xl: 24px;
     --radius-4xl: 9999px;
 
@@ -120,15 +120,15 @@
 
 /* Light theme — secondary; the system is dark-first. Cobalt deepens slightly for contrast on white. */
 :root {
-    --canvas: #fbfbfc;
+    --canvas: #f9f9f9;
     --surface-1: #ffffff;
-    --surface-2: #f4f5f6;
-    --surface-3: #eceef0;
-    --surface-4: #e4e6e9;
-    --hairline-strong: #d6d8dd;
-    --hairline-tertiary: #c7cad0;
-    --ink-muted: #3c3f45;
-    --ink-tertiary: #9a9ea6;
+    --surface-2: #f3f3f3;
+    --surface-3: #ececec;
+    --surface-4: #e4e4e4;
+    --hairline-strong: #d9d9d9;
+    --hairline-tertiary: #c8c8c8;
+    --ink-muted: #3d3d3d;
+    --ink-tertiary: #9b9b9b;
 
     --primary-hover: #1a4bc4;
     --primary-focus: #3a72f0;
@@ -137,35 +137,35 @@
     --success: #1f8a3a;
 
     --background: var(--canvas);
-    --foreground: #0f1011;
+    --foreground: #202020;
     --card: var(--surface-1);
-    --card-foreground: #0f1011;
+    --card-foreground: #202020;
     --popover: var(--surface-1);
-    --popover-foreground: #0f1011;
+    --popover-foreground: #202020;
     --primary: #1f5ae6;
     --primary-foreground: #ffffff;
     --secondary: var(--surface-2);
-    --secondary-foreground: #0f1011;
+    --secondary-foreground: #202020;
     --muted: var(--surface-2);
-    --muted-foreground: #6b6f76;
+    --muted-foreground: #6b6b6b;
     --accent: var(--surface-3);
-    --accent-foreground: #0f1011;
+    --accent-foreground: #202020;
     --destructive: #d23c3c;
-    --border: #e6e7ea;
+    --border: #e8e8e8;
     --input: var(--hairline-strong);
     --ring: #3b82f6;
     --chart-1: #1f5ae6;
     --chart-2: #3a72f0;
     --chart-3: #8fb0ff;
-    --chart-4: #6b6f76;
-    --chart-5: #9a9ea6;
-    --radius: 8px;
+    --chart-4: #6b6b6b;
+    --chart-5: #9b9b9b;
+    --radius: 10px;
     --sidebar: var(--canvas);
-    --sidebar-foreground: #3c3f45;
+    --sidebar-foreground: #3d3d3d;
     --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: var(--primary-foreground);
     --sidebar-accent: var(--surface-3);
-    --sidebar-accent-foreground: #0f1011;
+    --sidebar-accent-foreground: #202020;
     --sidebar-border: var(--border);
     --sidebar-ring: #3b82f6;
     --edge-highlight: transparent;
@@ -239,6 +239,31 @@
     }
     ::selection {
         background-color: color-mix(in oklab, var(--primary) 28%, transparent);
+    }
+    /* Tell the browser which palette native controls should use. */
+    :root {
+        color-scheme: light;
+    }
+    .dark {
+        color-scheme: dark;
+    }
+    /* Browser autofill paints its own pale background, which can't be reset
+       with background-color. An inset shadow covers it with the card surface. */
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover,
+    input:-webkit-autofill:focus,
+    textarea:-webkit-autofill,
+    select:-webkit-autofill {
+        -webkit-text-fill-color: var(--foreground);
+        -webkit-box-shadow: 0 0 0 1000px var(--card) inset;
+        caret-color: var(--foreground);
+        transition: background-color 9999s ease-out 0s;
+    }
+    /* Keep the focus ring, since the override above also uses box-shadow. */
+    input:-webkit-autofill:focus-visible {
+        -webkit-box-shadow:
+            0 0 0 2px color-mix(in oklab, var(--ring) 50%, transparent),
+            0 0 0 1000px var(--card) inset;
     }
 }
 

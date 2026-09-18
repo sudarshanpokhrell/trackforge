@@ -53,7 +53,7 @@ function RouteComponent() {
 
   if (isPending) {
     return (
-      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-6 py-8">
+      <main className="mx-auto flex max-w-3xl flex-col gap-6 px-8 py-10">
         <Skeleton className="h-8 w-80" />
         <Skeleton className="h-40 w-full" />
       </main>
@@ -64,7 +64,7 @@ function RouteComponent() {
     return isApiError(error, 404) ? (
       <ProjectNotFound />
     ) : (
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+      <main className="mx-auto max-w-3xl px-8 py-16 text-center">
         <h1 className="text-lg font-medium">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {getErrorMessage(error)}
@@ -74,7 +74,7 @@ function RouteComponent() {
   }
 
   return (
-    <main className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-6 py-8">
+    <main className="mx-auto flex h-full max-w-6xl flex-col gap-10 px-8 py-10">
       <TabBar
         aria-label="Project settings"
         tabs={tabs}

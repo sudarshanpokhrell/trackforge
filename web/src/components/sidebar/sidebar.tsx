@@ -56,11 +56,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader className="border-b px-4 py-3">
+      <SidebarHeader className="border-b px-5 py-4">
         <div className="flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.2px]">
-          <div className="flex size-6 items-center justify-center rounded-md bg-primary text-[11px] font-semibold tracking-normal text-primary-foreground shadow-[inset_0_1px_0_0_rgb(255_255_255/0.25)]">
-            TF
-          </div>
+          <img src="/logo.svg" alt="" className="size-6" />
           <span>TrackForge</span>
         </div>
       </SidebarHeader>

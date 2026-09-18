@@ -17,7 +17,7 @@ export function IssueRow({ issue, showProject }: IssueRowProps) {
   const { mutate: updateIssue } = useUpdateIssue(issue)
 
   return (
-    <div className="group/row flex h-11 items-center gap-3 border-b border-border/60 px-4 text-sm transition-colors hover:bg-surface-1">
+    <div className="group/row flex h-12 items-center gap-3 border-b border-border/60 px-5 text-sm transition-colors hover:bg-surface-1">
       <PriorityPopover
         current={issue.priority}
         onChange={(p: Priority) => updateIssue({ priority: p })}

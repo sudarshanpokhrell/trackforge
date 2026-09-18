@@ -65,18 +65,18 @@ All tokens are defined in `web/src/index.css`, under `:root` (light) and `.dark`
 
 | Token | Dark | Light |
 |---|---|---|
-| `{colors.canvas}` | #010102 | #fbfbfc |
+| `{colors.canvas}` | #010102 | #f9f9f9 |
 | `{colors.surface-1}` | #0f1011 | #ffffff |
-| `{colors.surface-2}` | #141516 | #f4f5f6 |
-| `{colors.surface-3}` | #191a1b | #eceef0 |
-| `{colors.surface-4}` | #1f2023 | #e4e6e9 |
-| `{colors.hairline}` | #23252a | #e6e7ea |
-| `{colors.hairline-strong}` | #34343a | #d6d8dd |
-| `{colors.hairline-tertiary}` | #3e3e44 | #c7cad0 |
-| `{colors.ink}` | #f7f8f8 | #0f1011 |
-| `{colors.ink-muted}` | #d0d6e0 | #3c3f45 |
-| `{colors.ink-subtle}` | #8a8f98 | #6b6f76 |
-| `{colors.ink-tertiary}` | #62666d | #9a9ea6 |
+| `{colors.surface-2}` | #141516 | #f3f3f3 |
+| `{colors.surface-3}` | #191a1b | #ececec |
+| `{colors.surface-4}` | #1f2023 | #e4e4e4 |
+| `{colors.hairline}` | #23252a | #e8e8e8 |
+| `{colors.hairline-strong}` | #34343a | #d9d9d9 |
+| `{colors.hairline-tertiary}` | #3e3e44 | #c8c8c8 |
+| `{colors.ink}` | #f7f8f8 | #202020 |
+| `{colors.ink-muted}` | #d0d6e0 | #3d3d3d |
+| `{colors.ink-subtle}` | #8a8f98 | #6b6b6b |
+| `{colors.ink-tertiary}` | #62666d | #9b9b9b |
 | `{colors.primary}` | #2f6bff | #1f5ae6 |
 | `{colors.on-primary}` | #ffffff | #ffffff |
 | `{colors.primary-hover}` | #4a7fff | #1a4bc4 |

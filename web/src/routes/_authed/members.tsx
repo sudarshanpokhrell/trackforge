@@ -30,7 +30,7 @@ function MembersPage() {
   const { data: users, isPending, error } = useQuery(usersQuery)
   
   return (
-    <div className="mx-auto flex flex-col gap-6 px-5 py-4">
+    <div className="mx-auto flex flex-col gap-6 px-8 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-headline">Members</h1>
